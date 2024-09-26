@@ -2,7 +2,6 @@
 #define TENSOR_HPP
 
 #include "dtype.hpp"
-#include "utils.hpp"
 
 #include <iostream>
 #include <vector>
@@ -30,10 +29,15 @@ public:
     int ndim;
     DataType dtype;
     std::vector<int> strides;
+    bool is_view = false;
 
     // Constructors
     Tensor();
-    Tensor(const std::shared_ptr<T[]>& data, const size_t numel, const std::vector<int>& shape);
+    Tensor(const std::shared_ptr<T[]>& data, const std::vector<int>& shape);
+    Tensor(const std::shared_ptr<T[]>& data, const std::vector<int>& shape, const std::vector<int>& strides);
+
+    T get(int idx) const;
+    T* get_ptr(int idx) const;
 
     // Initializers
     static Tensor empty(const std::vector<int>& shape);
@@ -53,9 +57,8 @@ public:
     
     Tensor operator[](int index) const;
 
-    // TODO: Implement to 
-    Tensor view();
-    Tensor expand(std::vector<int> shape); // Broadcast
+    Tensor view(const std::vector<int>& shape) const;
+    Tensor expand(const std::vector<int>& shape) const; // Broadcast
 
     // String representation
     std::string to_string() const;

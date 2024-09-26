@@ -1,6 +1,8 @@
 #ifndef UTILS_HPP
 #define UTILS_HPP
 
+#include "tensor.hpp"
+
 #include <vector>
 #include <cstdint>
 #include <iostream>
@@ -12,7 +14,9 @@
 const int DECIMALS = 4;
 const int VALUES_PER_LINE = 8;
 
-std::vector<int> calc_strides(const std::vector<int>& shape, size_t dtype_size);
+namespace utils {
+
+std::vector<int> calc_strides(const std::vector<int>& shape);
 
 template<typename T>
 T cast_value(double value) {
@@ -62,11 +66,11 @@ std::string array_to_string(const T* array, size_t length, int padding) {
 }
 
 template<typename T>
-std::string ndarray_to_string(const T* array, size_t length, const std::vector<int>& shape, int padding) {
-    int ndim = shape.size();
-    int last_dim_size = shape[ndim - 1];
-    size_t narrays = length / last_dim_size;
-    std::vector<int> strides = calc_strides(shape, sizeof(T));
+std::string tensor_to_string(const Tensor<T>& tensor, int padding) {
+    int ndim = tensor.ndim;
+    int last_dim_size = tensor.shape[ndim - 1];
+    size_t narrays = tensor.numel / last_dim_size;
+    std::vector<int> strides = calc_strides(tensor.shape);
 
     std::string buffer;
     int dims_ended = (ndim - 1);
@@ -79,15 +83,15 @@ std::string ndarray_to_string(const T* array, size_t length, const std::vector<i
         buffer.append(dims_ended, '[');
 
         // Get array string
+        T* array = tensor.get_ptr(i*last_dim_size);
         std::string array_str = array_to_string(array, last_dim_size, 7);
         buffer.append(array_str);
-        array += last_dim_size;
 
         // Calculate finished matrices
         dims_ended = 0;
         for (int sidx = 0; sidx < ndim - 1; sidx++) {
             if (sidx == ndim - 2) continue;
-            if (((i + 1) * last_dim_size) % (strides[sidx] / sizeof(T)) == 0) {
+            if (((i + 1) * last_dim_size) % strides[sidx] == 0) {
                 dims_ended += 1;
             }
         }
@@ -101,6 +105,8 @@ std::string ndarray_to_string(const T* array, size_t length, const std::vector<i
     }
     if (ndim > 1) buffer.append("]");
     return buffer;
+}
+
 }
 
 #endif
