@@ -7,8 +7,9 @@ int main() {
     try {
         using dtype = float32; 
         
-        // Step 1: Create a tensor t1 of shape {2}, filled with 3.0
-        Tensor<dtype> t1 = Tensor<dtype>::full({2}, 3.0);
+        // Step 1: Create a tensor t1 of shape {2}, filled with 3.0 + 2.0
+        Tensor<dtype> t1 = Tensor<dtype>::full({2}, 3.0) + 1.0;
+        t1 += 1.0;
         std::cout << "Created tensor t1 with shape {2}, filled with 3.0:\n" << t1.to_string() << std::endl;
 
         // Step 2: Create a tensor t2 of shape {3, 2}, filled with 4.0

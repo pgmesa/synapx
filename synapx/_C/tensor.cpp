@@ -77,39 +77,56 @@ Tensor<T> Tensor<T>::operator+(const Tensor<T>& t2) const {
     return F::add(*this, t2);
 }
 
-// template<typename T>
-// Tensor<T> Tensor<T>::operator+(const double value) const {
-//     T val = utils::cast_value<T>(value);
-//     Tensor<T> t2(&val, {0});
-//     return F::add(*this, t2);
+template<typename T>
+Tensor<T>& Tensor<T>::operator+=(const Tensor<T>& t2) {
+    F::add(*this, t2, true);
+    return *this;
+}
+
+template<typename T>
+Tensor<T> Tensor<T>::operator+(const double value) const {
+    Tensor<T> t2 = Tensor<T>::full({1}, value);
+    return F::add(*this, t2);
+}
+
+template<typename T>
+Tensor<T>& Tensor<T>::operator+=(const double value) {
+    Tensor<T> t2 = Tensor<T>::full({1}, value);
+    F::add(*this, t2, true);
+    return *this;
+}
+
+
+// Tensor Tensor::operator*(const Tensor& t2) const {
+//     Tensor out = std::visit([this, &t2](auto& data_ptr) -> Tensor {
+//         using T = std::decay_t<decltype(data_ptr.get()[0])>;
+//         return this->element_wise_operation<T>(t2, std::multiplies<T>());
+//     }, this->data);
+
+//     return out;
 // }
 
-// template<typename T>
-// Tensor<T>& Tensor<T>::operator+=(const double value) {
-//     return F::add(*this, value);
-// }
-
-// Tensor Tensor::operator+(const double value) const {
+// Tensor Tensor::operator*(const double value) const {
 //     Tensor out = std::visit([this, value](auto& data_ptr) -> Tensor {
 //         using T = std::decay_t<decltype(data_ptr.get()[0])>;
-//         return this->element_wise_operation_scalar<T>(value, std::plus<T>());   
+//         return this->element_wise_operation_scalar<T>(value, std::multiplies<T>());   
 //     }, this->data);
 //     return out;
 // }
 
-// Tensor& Tensor::operator+=(const Tensor& t2) {
+// Tensor& Tensor::operator*=(const Tensor& t2) {
 //     std::visit([this, &t2](auto& data_ptr) {
 //         using T = std::decay_t<decltype(data_ptr.get()[0])>;
-//         this->element_wise_operation_in_place<T>(t2, std::plus<T>());
+//         this->element_wise_operation_in_place<T>(t2, std::multiplies<T>());
 //     }, this->data);
 
 //     return *this;
 // }
 
-// Tensor& Tensor::operator+=(const double value) {
+// Tensor& Tensor::operator*=(const double value) {
 //     std::visit([this, value](auto& data_ptr) {
 //         using T = std::decay_t<decltype(data_ptr.get()[0])>; 
-//         this->element_wise_operation_in_place_scalar<T>(value, std::plus<T>());
+//         this->element_wise_operation_in_place_scalar<T>(value, std::multiplies<T>());
 //     }, this->data);
 
 //     return *this;
@@ -225,42 +242,6 @@ Tensor<T> Tensor<T>::expand(const std::vector<int>& shape) const {
     return expanded_tensor;
 }
 
-
-
-// Tensor Tensor::operator*(const Tensor& t2) const {
-//     Tensor out = std::visit([this, &t2](auto& data_ptr) -> Tensor {
-//         using T = std::decay_t<decltype(data_ptr.get()[0])>;
-//         return this->element_wise_operation<T>(t2, std::multiplies<T>());
-//     }, this->data);
-
-//     return out;
-// }
-
-// Tensor Tensor::operator*(const double value) const {
-//     Tensor out = std::visit([this, value](auto& data_ptr) -> Tensor {
-//         using T = std::decay_t<decltype(data_ptr.get()[0])>;
-//         return this->element_wise_operation_scalar<T>(value, std::multiplies<T>());   
-//     }, this->data);
-//     return out;
-// }
-
-// Tensor& Tensor::operator*=(const Tensor& t2) {
-//     std::visit([this, &t2](auto& data_ptr) {
-//         using T = std::decay_t<decltype(data_ptr.get()[0])>;
-//         this->element_wise_operation_in_place<T>(t2, std::multiplies<T>());
-//     }, this->data);
-
-//     return *this;
-// }
-
-// Tensor& Tensor::operator*=(const double value) {
-//     std::visit([this, value](auto& data_ptr) {
-//         using T = std::decay_t<decltype(data_ptr.get()[0])>; 
-//         this->element_wise_operation_in_place_scalar<T>(value, std::multiplies<T>());
-//     }, this->data);
-
-//     return *this;
-// }
 
 // Tensor Tensor::operator[](int index) const {
 //     if (index < 0 || index >= this->shape[0]) {
