@@ -96,40 +96,49 @@ Tensor<T>& Tensor<T>::operator+=(const double value) {
     return *this;
 }
 
+template<typename T>
+Tensor<T> Tensor<T>::operator*(const Tensor<T>& t2) const {
+    return F::mul(*this, t2);
+}
 
-// Tensor Tensor::operator*(const Tensor& t2) const {
-//     Tensor out = std::visit([this, &t2](auto& data_ptr) -> Tensor {
+template<typename T>
+Tensor<T>& Tensor<T>::operator*=(const Tensor<T>& t2) {
+    F::mul(*this, t2, true);
+    return *this;
+}
+
+template<typename T>
+Tensor<T> Tensor<T>::operator*(const double value) const {
+    Tensor<T> t2 = Tensor<T>::full({1}, value);
+    return F::mul(*this, t2);
+}
+
+template<typename T>
+Tensor<T>& Tensor<T>::operator*=(const double value) {
+    Tensor<T> t2 = Tensor<T>::full({1}, value);
+    F::mul(*this, t2, true);
+    return *this;
+}
+
+// Tensor Tensor::operator[](int index) const {
+//     if (index < 0 || index >= this->shape[0]) {
+//         throw std::out_of_range("Index out of range");
+//     }
+
+//     DataType out_dtype = this->dtype;
+//     size_t out_numel = this->numel / this->shape[0];
+    
+//     std::vector<int> out_shape(this->shape.begin() + 1, this->shape.end());
+
+//     size_t offset = index * out_numel;
+
+//     TensorData out_data = std::visit([offset](auto& data_ptr) -> TensorData {
 //         using T = std::decay_t<decltype(data_ptr.get()[0])>;
-//         return this->element_wise_operation<T>(t2, std::multiplies<T>());
+//         // Create a new shared_ptr that points to the correct offset
+//         return std::shared_ptr<T[]>(data_ptr, data_ptr.get() + offset);
 //     }, this->data);
 
-//     return out;
-// }
-
-// Tensor Tensor::operator*(const double value) const {
-//     Tensor out = std::visit([this, value](auto& data_ptr) -> Tensor {
-//         using T = std::decay_t<decltype(data_ptr.get()[0])>;
-//         return this->element_wise_operation_scalar<T>(value, std::multiplies<T>());   
-//     }, this->data);
-//     return out;
-// }
-
-// Tensor& Tensor::operator*=(const Tensor& t2) {
-//     std::visit([this, &t2](auto& data_ptr) {
-//         using T = std::decay_t<decltype(data_ptr.get()[0])>;
-//         this->element_wise_operation_in_place<T>(t2, std::multiplies<T>());
-//     }, this->data);
-
-//     return *this;
-// }
-
-// Tensor& Tensor::operator*=(const double value) {
-//     std::visit([this, value](auto& data_ptr) {
-//         using T = std::decay_t<decltype(data_ptr.get()[0])>; 
-//         this->element_wise_operation_in_place_scalar<T>(value, std::multiplies<T>());
-//     }, this->data);
-
-//     return *this;
+//     return Tensor(out_data, out_numel, out_shape, out_dtype);
 // }
 
 
@@ -241,29 +250,6 @@ Tensor<T> Tensor<T>::expand(const std::vector<int>& shape) const {
 
     return expanded_tensor;
 }
-
-
-// Tensor Tensor::operator[](int index) const {
-//     if (index < 0 || index >= this->shape[0]) {
-//         throw std::out_of_range("Index out of range");
-//     }
-
-//     DataType out_dtype = this->dtype;
-//     size_t out_numel = this->numel / this->shape[0];
-    
-//     std::vector<int> out_shape(this->shape.begin() + 1, this->shape.end());
-
-//     size_t offset = index * out_numel;
-
-//     TensorData out_data = std::visit([offset](auto& data_ptr) -> TensorData {
-//         using T = std::decay_t<decltype(data_ptr.get()[0])>;
-//         // Create a new shared_ptr that points to the correct offset
-//         return std::shared_ptr<T[]>(data_ptr, data_ptr.get() + offset);
-//     }, this->data);
-
-//     return Tensor(out_data, out_numel, out_shape, out_dtype);
-// }
-
 
 template<typename T>
 std::string Tensor<T>::to_string() const {

@@ -32,12 +32,30 @@ Tensor<T> add(const Tensor<T>& t1_, const Tensor<T>& t2_, bool inplace=false) {
     return out;
 }
 
-// template<typename T>
-// Tensor<T> add(const Tensor<T>& t1, const double value) {
-//     Tensor<T> t2 = Tensor<T>::full(t1.shape, value);
-//     cpu::add_forward(t1.data.get(), t2.data.get(), t2.data.get(), t1.numel);
-//     return out;
-// }
+template<typename T>
+Tensor<T> mul(const Tensor<T>& t1_, const Tensor<T>& t2_, bool inplace=false) {
+    Tensor<T> t1 = t1_;  // Create a copy of t1
+    Tensor<T> t2 = t2_;  // Create a copy of t2
+
+    if (t1.dtype != t2.dtype) {
+        throw std::invalid_argument("Datatypes must match.");
+    }
+
+    bool t1_expanded = false;
+    if (t1.numel < t2.numel) {
+        t1 = t1.expand(t2.shape);
+        t1_expanded = true;
+    } else if (t2.numel < t1.numel) {
+        t2 = t2.expand(t1.shape);
+    }
+
+    Tensor<T> out = inplace? t1: Tensor<T>::empty(t1.shape);
+    if (inplace && t1_expanded) {
+        throw std::runtime_error("Broadcasted Tensor doesn't support in-place operation");
+    }
+    cpu::mul_forward(t1, t2, out);
+    return out;
+}
 
 
 } // namespace F
