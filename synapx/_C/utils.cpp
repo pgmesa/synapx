@@ -25,7 +25,7 @@ bool utils::shapes_equal(const std::vector<int>& shape1, const std::vector<int>&
 }
 
 std::vector<int> utils::broadcast_shapes(const std::vector<int>& shape1, const std::vector<int>& shape2) {
-    int max_dims = std::max(shape1.size(), shape2.size());
+    int max_dims = static_cast<int>(std::max(shape1.size(), shape2.size()));
     std::vector<int> result(max_dims);
 
     // Iterate from right to left (least significant dimension to most significant)

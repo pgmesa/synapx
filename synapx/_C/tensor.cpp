@@ -159,6 +159,7 @@ T Tensor<T>::get(int idx) const {
 
 template<typename T>
 T* Tensor<T>::get_ptr(int idx) const {
+    if (!this->is_view) return this->data.get() + idx;
     int offset = 0;
     for (int i=0; i < this->ndim; i++) {
         if (idx < this->strides[i]) continue;
@@ -174,7 +175,7 @@ template<typename T>
 Tensor<T> Tensor<T>::view(const std::vector<int>& shape) const {
     std::vector<int> new_shape(shape);
     // Check if there's at most one -1 in the new shape
-    int neg_one_count = std::count(new_shape.begin(), new_shape.end(), -1);
+    int neg_one_count = static_cast<int>(std::count(new_shape.begin(), new_shape.end(), -1));
     if (neg_one_count > 1) {
         throw std::invalid_argument("Only one -1 is allowed in the new shape");
     }
@@ -182,7 +183,7 @@ Tensor<T> Tensor<T>::view(const std::vector<int>& shape) const {
     // Calculate the total number of elements in the new shape
     int total_elements = 1;
     int neg_one_index = -1;
-    for (size_t i = 0; i < new_shape.size(); ++i) {
+    for (int i = 0; i < new_shape.size(); ++i) {
         if (new_shape[i] == -1) {
             neg_one_index = i;
         } else if (new_shape[i] > 0) {
@@ -197,7 +198,7 @@ Tensor<T> Tensor<T>::view(const std::vector<int>& shape) const {
         if (numel % total_elements != 0) {
             throw std::invalid_argument("Cannot reshape tensor to requested dimensions");
         }
-        new_shape[neg_one_index] = numel / total_elements;
+        new_shape[neg_one_index] = static_cast<int>(numel / total_elements);
         total_elements *= new_shape[neg_one_index];
     }
 
@@ -271,7 +272,7 @@ Tensor<T> Tensor<T>::broadcast_to(const std::vector<int>& shape) const {
 
 template<typename T>
 Tensor<T> Tensor<T>::squeeze(const std::vector<int>& dims) const {
-    std::vector<int> new_shape = shape;  // Start with the current shape
+    std::vector<int> new_shape = shape;
     
     // If specific dimensions are provided
     if (!dims.empty()) {
@@ -294,13 +295,12 @@ Tensor<T> Tensor<T>::squeeze(const std::vector<int>& dims) const {
         );
     }
     
-    // Return a new tensor with the squeezed shape
     return this->view(new_shape);
 }
 
 template<typename T>
 Tensor<T> Tensor<T>::unsqueeze(const std::vector<int>& dims) const {
-    std::vector<int> new_shape = shape;  // Start with the current shape
+    std::vector<int> new_shape = shape;
     
     // Sort the dimensions to unsqueeze, so we can insert them in the correct order
     std::vector<int> sorted_dims = dims;
@@ -314,7 +314,6 @@ Tensor<T> Tensor<T>::unsqueeze(const std::vector<int>& dims) const {
         new_shape.insert(new_shape.begin() + dim, 1);
     }
     
-    // Return a new tensor with the unsqueezed shape
     return this->view(new_shape);
 }
 
@@ -324,7 +323,7 @@ std::string Tensor<T>::to_string() const {
     std::string dtype_str = dtype_to_str(this->dtype);
 
     std::string prefix = "Tensor(";
-    int padding = prefix.size(); 
+    int padding = static_cast<int>(prefix.size()); 
     std::string spaces(padding, ' ');
 
     std::string data_str = utils::tensor_to_string(*this, padding);

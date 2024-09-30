@@ -35,7 +35,7 @@ void matmul_forward(const Tensor<T>& t1, const Tensor<T>& t2, T* out) {
                     int t1_idx = batch * rows * common_dim + i * common_dim + k;
                     int t2_idx = batch * common_dim * cols + k * cols + j;
                     
-                    out[out_idx] += t1.get(t1_idx) * t2.get(t2_idx);
+                    out[out_idx] += t1.get(t1_idx) * t2.get(t2_idx); // TODO: .get(idx) is very slow;
                 }
             }   
         }

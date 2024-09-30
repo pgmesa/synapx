@@ -58,7 +58,7 @@ public:
     static Tensor matmul(const Tensor& t1, const Tensor& t2);
     Tensor matmul(const Tensor& t2) const;
     
-    Tensor operator[](int index) const;
+    // Tensor operator[](int index) const;
 
     Tensor view(const std::vector<int>& shape) const;
     Tensor expand(const std::vector<int>& shape) const;       // Broadcast
