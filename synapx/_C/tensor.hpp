@@ -54,11 +54,17 @@ public:
     Tensor operator*(const double value) const;
     Tensor& operator*=(const Tensor& t2);
     Tensor& operator*=(const double value);
+
+    static Tensor matmul(const Tensor& t1, const Tensor& t2);
+    Tensor matmul(const Tensor& t2) const;
     
     Tensor operator[](int index) const;
 
     Tensor view(const std::vector<int>& shape) const;
-    Tensor expand(const std::vector<int>& shape) const; // Broadcast
+    Tensor expand(const std::vector<int>& shape) const;       // Broadcast
+    Tensor broadcast_to(const std::vector<int>& shape) const; // Same as expand
+    Tensor squeeze(const std::vector<int>& dims) const;
+    Tensor unsqueeze(const std::vector<int>& dims) const;
 
     // String representation
     std::string to_string() const;

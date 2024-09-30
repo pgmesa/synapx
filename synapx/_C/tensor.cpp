@@ -120,6 +120,16 @@ Tensor<T>& Tensor<T>::operator*=(const double value) {
     return *this;
 }
 
+template<typename T>
+Tensor<T> Tensor<T>::matmul(const Tensor<T>& t1, const Tensor<T>& t2) {
+    return F::matmul(t1, t2);
+}
+
+template<typename T>
+Tensor<T> Tensor<T>::matmul(const Tensor<T>& t2) const {
+    return F::matmul(*this, t2);
+}
+
 // Tensor Tensor::operator[](int index) const {
 //     if (index < 0 || index >= this->shape[0]) {
 //         throw std::out_of_range("Index out of range");
@@ -205,6 +215,9 @@ Tensor<T> Tensor<T>::view(const std::vector<int>& shape) const {
 
 template<typename T>
 Tensor<T> Tensor<T>::expand(const std::vector<int>& shape) const {
+    if (utils::shapes_equal(this->shape, shape)) return *this;
+
+
     // Check if the new shape is compatible for broadcasting
     if (shape.size() < this->shape.size()) {
         throw std::invalid_argument("New shape must have at least as many dimensions as the current shape");
@@ -252,6 +265,60 @@ Tensor<T> Tensor<T>::expand(const std::vector<int>& shape) const {
 }
 
 template<typename T>
+Tensor<T> Tensor<T>::broadcast_to(const std::vector<int>& shape) const {
+    return this->expand(shape);
+}
+
+template<typename T>
+Tensor<T> Tensor<T>::squeeze(const std::vector<int>& dims) const {
+    std::vector<int> new_shape = shape;  // Start with the current shape
+    
+    // If specific dimensions are provided
+    if (!dims.empty()) {
+        for (int dim : dims) {
+            if (dim < 0 || dim >= ndim) {
+                throw std::invalid_argument("Dimension out of range for squeeze");
+            }
+            if (shape[dim] != 1) {
+                throw std::invalid_argument("Cannot squeeze a dimension that is not 1");
+            }
+            // Erase the dimension
+            new_shape.erase(new_shape.begin() + dim);
+        }
+    } 
+    // If no dimensions are provided, squeeze all dimensions of size 1
+    else {
+        new_shape.erase(
+            std::remove(new_shape.begin(), new_shape.end(), 1),
+            new_shape.end()
+        );
+    }
+    
+    // Return a new tensor with the squeezed shape
+    return this->view(new_shape);
+}
+
+template<typename T>
+Tensor<T> Tensor<T>::unsqueeze(const std::vector<int>& dims) const {
+    std::vector<int> new_shape = shape;  // Start with the current shape
+    
+    // Sort the dimensions to unsqueeze, so we can insert them in the correct order
+    std::vector<int> sorted_dims = dims;
+    std::sort(sorted_dims.begin(), sorted_dims.end());
+    
+    for (int dim : sorted_dims) {
+        if (dim < 0 || dim > ndim) {
+            throw std::invalid_argument("Dimension out of range for unsqueeze");
+        }
+        // Insert a new dimension of size 1 at the specified position
+        new_shape.insert(new_shape.begin() + dim, 1);
+    }
+    
+    // Return a new tensor with the unsqueezed shape
+    return this->view(new_shape);
+}
+
+template<typename T>
 std::string Tensor<T>::to_string() const {
     size_t mem_size = this->numel * get_dtype_size(this->dtype);
     std::string dtype_str = dtype_to_str(this->dtype);
@@ -261,12 +328,14 @@ std::string Tensor<T>::to_string() const {
     std::string spaces(padding, ' ');
 
     std::string data_str = utils::tensor_to_string(*this, padding);
-    std::string shape_str = utils::array_to_string(shape.data(), shape.size(), 0);
-    std::string strides_str = utils::array_to_string(strides.data(), strides.size(), 0);
+    std::string shape_str = utils::vector_to_string(shape);
+    std::string strides_str = utils::vector_to_string(strides);
+    std::string is_view_str = this->is_view? "true": "false";
     
     std::ostringstream oss;
     oss << prefix << data_str << ",\n"
         << spaces << "numel=" << numel << ", shape=" << shape_str << ", ndim=" << ndim
-        << ", strides=" << strides_str << ", dtype=" << dtype_str << ", msize=" << mem_size << ")";
+        << ", strides=" << strides_str << ", dtype=" << dtype_str << ", msize=" << mem_size 
+        << ", is_view=" << is_view_str << ")";
     return oss.str();
 }

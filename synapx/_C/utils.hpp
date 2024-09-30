@@ -18,6 +18,13 @@ namespace utils {
 
 std::vector<int> calc_strides(const std::vector<int>& shape);
 
+bool shapes_equal(const std::vector<int>& shape1, const std::vector<int>& shape2);
+
+std::vector<int> broadcast_shapes(const std::vector<int>& shape1, const std::vector<int>& shape2);
+
+std::pair<std::vector<int>, std::vector<int>> broadcast_shapes_for_matmul(
+                const std::vector<int>& shape1, const std::vector<int>& shape2);
+
 template<typename T>
 T cast_value(double value) {
     T tvalue;
@@ -34,7 +41,7 @@ T cast_value(double value) {
 }
 
 template <typename T>
-std::string array_to_string(const T* array, size_t length, int padding) {
+std::string array_to_string(const T* array, size_t length, int padding=0) {
     std::ostringstream oss;
     oss << "[";
 
@@ -65,8 +72,13 @@ std::string array_to_string(const T* array, size_t length, int padding) {
     return oss.str();
 }
 
+template <typename T>
+std::string vector_to_string(const std::vector<T>& vector, int padding=0) {
+    return array_to_string(vector.data(), vector.size(), padding);
+}
+
 template<typename T>
-std::string tensor_to_string(const Tensor<T>& tensor, int padding) {
+std::string tensor_to_string(const Tensor<T>& tensor, int padding=0) {
     int ndim = tensor.ndim;
     int last_dim_size = tensor.shape[ndim - 1];
     size_t narrays = tensor.numel / last_dim_size;
