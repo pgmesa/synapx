@@ -1,133 +1,127 @@
 
-#include "xtensor/xarray.hpp"
-#include "xtensor/xio.hpp"    // for printing xtensor arrays
-#include "xtensor/xadapt.hpp"
-#include "cblas.h
-#include <iostream>
-#include <vector>
+#include "tensor.hpp"
+#include "functional.hpp"
 
+#include "xtensor/xarray.hpp"
+#include "xtensor/xio.hpp"
+#include "xtensor/xadapt.hpp"
+#include "xtensor/xview.hpp"
+#include "xtensor/xstrided_view.hpp"
+#include "cblas.h"
+#include <iostream>
+
+
+// Explicit template instantiations
+template class Tensor<float>;
+template class Tensor<int32_t>;
+template class Tensor<uint8_t>;
+
+template Tensor<int32_t> Tensor<float>::to<int32_t>() const;
+template Tensor<uint8_t> Tensor<float>::to<uint8_t>() const;
+template Tensor<float> Tensor<int32_t>::to<float>() const;
+template Tensor<uint8_t> Tensor<int32_t>::to<uint8_t>() const;
+template Tensor<float> Tensor<uint8_t>::to<float>() const;
+template Tensor<int32_t> Tensor<uint8_t>::to<int32_t>() const;
+
+// Constructor implementations
+template <typename T>
+Tensor<T>::Tensor(const std::vector<size_t>& shape) : array(shape) {}
 
 template <typename T>
-class Tensor {
-private:
-    xt::xarray<T> tensor;  // xtensor's multidimensional array
+Tensor<T>::Tensor(const xt::xarray<T>& arr) : array(arr) {}
 
-public:
-    // Constructor: Initialize with dimensions as std::vector
-    Tensor(const std::vector<size_t>& dims) : tensor(dims) {}
+template <typename T>
+size_t Tensor<T>::numel() const {
+    return array.size();
+}
 
-    // Constructor: Initialize with a predefined tensor
-    Tensor(const xt::xarray<T>& arr) : tensor(arr) {}
+template <typename T>
+size_t Tensor<T>::ndim() const {
+    return array.shape().size();
+}
 
-    // Static method to create a tensor full of zeros
-    static Tensor<T> zeros(const std::vector<size_t>& dims) {
-        return Tensor<T>(xt::zeros<T>(dims));
+template <typename T>
+std::vector<size_t> Tensor<T>::shape() const {
+    return std::vector<size_t>(array.shape().begin(), array.shape().end());
+}
+
+template <typename T>
+std::vector<size_t> Tensor<T>::strides() const {
+    return std::vector<size_t>(array.strides().begin(), array.strides().end());
+}
+
+template <typename T>
+Tensor<T> Tensor<T>::empty(const std::vector<size_t>& shape) {
+    return Tensor<T>(xt::empty<T>(shape));
+}
+
+template <typename T>
+Tensor<T> Tensor<T>::full(const std::vector<size_t>& shape, T value) {
+    auto array = xt::xarray<T>::from_shape(shape);
+    array.fill(value);
+    return Tensor<T>(array);
+}
+
+template <typename T>
+Tensor<T> Tensor<T>::zeros(const std::vector<size_t>& shape) {
+    return Tensor<T>(xt::zeros<T>(shape));
+}
+
+template <typename T>
+Tensor<T> Tensor<T>::ones(const std::vector<size_t>& shape) {
+    return Tensor<T>(xt::ones<T>(shape));
+}
+
+template <typename T>
+Tensor<T> Tensor<T>::view(const std::vector<size_t>& shape) const {
+    size_t total_elements = array.size();
+    size_t requested_elements = std::accumulate(shape.begin(), shape.end(), 1, std::multiplies<size_t>());
+    if (total_elements != requested_elements) {
+        throw std::invalid_argument("Invalid shape for viewing: total elements do not match.");
     }
+    auto viewed = xt::reshape_view(array, shape);
+    return Tensor<T>(viewed);
+}
 
-    // Static method to create a tensor full of ones
-    static Tensor<T> ones(const std::vector<size_t>& dims) {
-        return Tensor<T>(xt::ones<T>(dims));
+template <typename T>
+Tensor<T> Tensor<T>::broadcast_to(const std::vector<size_t>& shape) const {
+    auto broadcasted = xt::broadcast(array, shape);
+    return Tensor<T>(broadcasted);
+}
+
+template <typename T>
+Tensor<T> Tensor<T>::add(const Tensor<T>& other) const {
+    return F::add(*this, other);
+}
+
+template <typename T>
+Tensor<T> Tensor<T>::mul(const Tensor<T>& other) const {
+    return F::mul(*this, other);
+}
+
+// Matrix multiplication
+template <typename T>
+Tensor<T> Tensor<T>::matmul(const Tensor<T>& other) const {
+    return F::matmul(*this, other);
+}
+
+template <typename T>
+Tensor<T> Tensor<T>::matmul(const Tensor<T>& t1, const Tensor<T>& t2) {
+    return F::matmul(t1, t2);
+}
+
+template <typename T>
+template <typename U>
+Tensor<U> Tensor<T>::to() const {
+    if constexpr (std::is_same<T, U>::value) {
+        return *this;
     }
+    auto casted = xt::cast<U>(array);
+    return Tensor<U>(casted);
+}
 
-    // Static method to create a tensor full of a specific value
-    // static Tensor<T> full(const std::vector<size_t>& dims, T value) {
-    //     return Tensor<T>(xt::xfull<T>(dims, value));
-    // }
-
-    // Set value at a specific index
-    // void setValue(const std::vector<size_t>& indices, T value) {
-    //     xt::xindex index(indices.begin(), indices.end());  // Convert vector to xt::xindex
-    //     tensor(index) = value;
-    // }
-
-    // // Get value at a specific index
-    // T getValue(const std::vector<size_t>& indices) const {
-    //     xt::xindex index(indices.begin(), indices.end());  // Convert vector to xt::xindex
-    //     return tensor(index);
-    // }
-
-    // Add operation: element-wise addition of two tensors
-    Tensor<T> add(const Tensor<T>& other) const {
-        std::vector<size_t> result_shape(tensor.shape().begin(), tensor.shape().end());
-        Tensor<T> result(result_shape);
-        result.tensor = tensor + other.tensor;
-        return result;
-    }
-
-    // Matrix multiplication using OpenBLAS
-    Tensor<T> matmul(const Tensor<T>& other) const {
-        auto shape_a = tensor.shape();
-        auto shape_b = other.tensor.shape();
-
-        // Case 1: Both tensors are 2D
-        if (shape_a.size() == 2 && shape_b.size() == 2) {
-            size_t M = shape_a[0];  // rows in A
-            size_t K = shape_a[1];  // columns in A and rows in B
-            size_t N = shape_b[1];  // columns in B
-
-            if (K != shape_b[0]) {
-                throw std::invalid_argument("Inner dimensions must match for matrix multiplication.");
-            }
-
-            // Resulting matrix will have shape (M, N)
-            Tensor<T> result(std::vector<size_t>{M, N});
-            const xt::xarray<T>& A = this->tensor;   // Note the const-correctness
-            const xt::xarray<T>& B = other.tensor;   // Use const reference
-            xt::xarray<T>& C = result.tensor;
-
-            // Perform matrix multiplication: C = A * B
-            cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
-                        M, N, K, 1.0f, A.data(), K, B.data(), N, 0.0f, C.data(), N);
-
-            return result;
-        }
-        // Case 2: Both tensors have more than 2 dimensions (batch matmul)
-        else if (shape_a.size() > 2 && shape_b.size() > 2) {
-            // Ensure last two dimensions are valid for matmul
-            size_t K = shape_a[shape_a.size() - 1];
-            size_t N = shape_b[shape_b.size() - 1];
-            size_t M = shape_a[shape_a.size() - 2];
-
-            if (K != shape_b[shape_b.size() - 2]) {
-                throw std::invalid_argument("Inner dimensions must match for matrix multiplication.");
-            }
-
-            // Flatten the batch dimensions
-            size_t batch_size = 1;
-            for (size_t i = 0; i < shape_a.size() - 2; ++i) {
-                batch_size *= shape_a[i];
-            }
-
-            // Resulting tensor will have shape (batch_size, M, N)
-            std::vector<size_t> result_shape(shape_a.begin(), shape_a.end());
-            result_shape[result_shape.size() - 2] = M;
-            result_shape[result_shape.size() - 1] = N;
-            Tensor<T> result(result_shape);
-
-            const xt::xarray<T>& A = this->tensor;   // Use const reference
-            const xt::xarray<T>& B = other.tensor;   // Use const reference
-            xt::xarray<T>& C = result.tensor;
-
-            // Perform matrix multiplication for each batch
-            for (size_t batch = 0; batch < batch_size; ++batch) {
-                // Get pointers to the submatrices for the current batch
-                const T* A_ptr = A.data() + batch * M * K;
-                const T* B_ptr = B.data() + batch * K * N;
-                T* C_ptr = C.data() + batch * M * N;
-
-                // Perform matrix multiplication: C = A * B
-                cblas_sgemm(CblasRowMajor, CblasNoTrans, CblasNoTrans,
-                            M, N, K, 1.0f, A_ptr, K, B_ptr, N, 0.0f, C_ptr, N);
-            }
-
-            return result;
-        } else {
-            throw std::invalid_argument("Unsupported tensor dimensions for matmul.");
-        }
-    }
-
-    // Print tensor (for demonstration purposes)
-    void print() const {
-        std::cout << tensor << std::endl;
-    }
-};
+// Print function
+template <typename T>
+void Tensor<T>::print() const {
+    std::cout << array << std::endl;
+}
