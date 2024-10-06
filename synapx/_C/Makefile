@@ -2,11 +2,8 @@
 
 all: main test
 
-main:
-	g++ -std=c++17 -o main dtype.cpp tensor.cpp z_main.cpp utils.cpp
-
 test:
-	g++ -std=c++17 -o test dtype.cpp tensor.cpp z_test.cpp utils.cpp
+	g++ -std=c++17 -o test z_test.cpp -I "C:\Users\pablo\anaconda3\envs\base-3.9\Library\include" -O3 -I "C:\Users\pablo\anaconda3\envs\base-3.9\Library\include" -L "C:\Users\pablo\anaconda3\envs\base-3.9\Library\lib" -lopenblas
 
 clean:
-	del test.exe main.exe
+	del test.exe

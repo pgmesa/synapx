@@ -12,7 +12,7 @@ all: build run
 
 build:
     # Generate Visual Studio solution files with cmake
-	cmake -S . -B $(BUILD_DIR) -G "Visual Studio 17 2022" -A x64
+	cmake -S . -B $(BUILD_DIR) -G "Visual Studio 17 2022" -A x64 
 
     # Build the project using msbuild
 	msbuild $(BUILD_DIR)\$(PROJECT_NAME) /p:Configuration=$(CONFIGURATION)
