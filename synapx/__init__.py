@@ -1,1 +1,0 @@
-from synapx._C import *

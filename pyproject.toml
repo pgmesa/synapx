@@ -1,0 +1,41 @@
+[build-system]
+requires = ["setuptools", "wheel", "scikit-build", "pybind11"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "synapx"
+version = "0.1.0"
+description = "A Python library with a C++ core for tensor operations and deep learning"
+authors = [
+    {name = "Pablo García Mesa", email = "pgmesa.sm@gmail.com"}
+]
+readme = "README.md"
+license = {text = "MIT"}
+keywords = ["Autograd", "Tensor", "Machine Learning", "Deep Learning", "C++", "Python"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: C++",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent"
+]
+requires-python = ">=3.9"
+dependencies = [
+
+]
+
+[tool.setuptools]
+packages = ["synapx"]
+include-package-data = true
+
+[tool.setuptools.package-dir]
+torchx = "synapx"
+
+[tool.setuptools.cmdclass]
+build_ext = "pybind11.setup_helpers.build_ext"
+
+[tool.scikit-build]
+cmake_install_dir = "synapx"
+
+[tool.test]
+# Use pytest for testing
+framework = "pytest"

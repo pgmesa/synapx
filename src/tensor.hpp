@@ -43,7 +43,7 @@ public:
     Tensor<T> add(const Tensor<T>& other) const;
     Tensor<T> mul(const Tensor<T>& other) const;
     Tensor<T> matmul(const Tensor<T>& other) const;
-    static Tensor<T> matmul(const Tensor<T>& t1, const Tensor<T>& t2);
+    //static Tensor<T> matmul(const Tensor<T>& t1, const Tensor<T>& t2);
 
     template <typename U>
     Tensor<U> to() const;

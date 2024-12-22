@@ -1,6 +1,7 @@
 # Custom
 z_test*
 .vscode
+debug
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

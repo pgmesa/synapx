@@ -105,10 +105,10 @@ Tensor<T> Tensor<T>::matmul(const Tensor<T>& other) const {
     return F::matmul(*this, other);
 }
 
-template <typename T>
-Tensor<T> Tensor<T>::matmul(const Tensor<T>& t1, const Tensor<T>& t2) {
-    return F::matmul(t1, t2);
-}
+// template <typename T>
+// Tensor<T> Tensor<T>::matmul(const Tensor<T>& t1, const Tensor<T>& t2) {
+//     return F::matmul(t1, t2);
+// }
 
 template <typename T>
 template <typename U>

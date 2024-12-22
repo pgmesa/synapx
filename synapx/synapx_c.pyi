@@ -1,8 +1,12 @@
 from __future__ import annotations
+import numpy
 __all__ = ['Tensor']
 class Tensor:
     @staticmethod
     def _pybind11_conduit_v1_(*args, **kwargs):
+        ...
+    @staticmethod
+    def from_numpy(arg0: numpy.ndarray[numpy.float32]) -> Tensor:
         ...
     @staticmethod
     def ones(arg0: list[int]) -> Tensor:
@@ -17,4 +21,6 @@ class Tensor:
     def matmul(self, arg0: Tensor) -> Tensor:
         ...
     def print(self) -> None:
+        ...
+    def to_numpy(self) -> numpy.ndarray[numpy.float32]:
         ...

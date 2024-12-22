@@ -53,6 +53,7 @@ Tensor<T> matmul(Tensor<T> t1, Tensor<T> t2) {
 
     std::vector<int> out_shape(t1_shape.begin(), t1_shape.end() - 1);
     out_shape.push_back(t2_shape.back());
+
     result = xt::reshape_view(result, out_shape);
     Tensor<T> out(result);
 
