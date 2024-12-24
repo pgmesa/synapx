@@ -11,7 +11,7 @@ PYD_DESTINATION = $(TARGET_DIR)\$(PROJECT_NAME)
 
 CPP_COMPILER=g++
 
-all: build
+all: clean build
 
 build:
     # Generate Visual Studio solution files with cmake

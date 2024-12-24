@@ -1,18 +1,9 @@
 from __future__ import annotations
 import numpy
-__all__ = ['Tensor']
+__all__ = ['Tensor', 'from_numpy', 'ones', 'zeros']
 class Tensor:
     @staticmethod
     def _pybind11_conduit_v1_(*args, **kwargs):
-        ...
-    @staticmethod
-    def from_numpy(arg0: numpy.ndarray[numpy.float32]) -> Tensor:
-        ...
-    @staticmethod
-    def ones(arg0: list[int]) -> Tensor:
-        ...
-    @staticmethod
-    def zeros(arg0: list[int]) -> Tensor:
         ...
     def __init__(self, arg0: list[int]) -> None:
         ...
@@ -20,7 +11,19 @@ class Tensor:
         ...
     def matmul(self, arg0: Tensor) -> Tensor:
         ...
-    def print(self) -> None:
+    def mul(self, arg0: Tensor) -> Tensor:
         ...
-    def to_numpy(self) -> numpy.ndarray[numpy.float32]:
+    def numpy(self) -> numpy.ndarray[numpy.float32]:
         ...
+def from_numpy(arg0: numpy.ndarray[numpy.float32]) -> ...:
+    """
+    Create a tensor from a numpy array
+    """
+def ones(arg0: list[int]) -> ...:
+    """
+    Create a tensor filled with ones
+    """
+def zeros(arg0: list[int]) -> ...:
+    """
+    Create a tensor filled with zeros
+    """

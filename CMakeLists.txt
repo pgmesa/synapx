@@ -23,8 +23,12 @@ if(WIN32)
 endif()
 
 # Find dependencies
-find_package(pybind11 REQUIRED)  # Will find conda-installed pybind11
+# set(XTENSOR_USE_XSIMD 1)
+# set(XTENSOR_USE_TBB 1)
+# -- xsimd and TBB dependencies are automatically
+# -- searched when the following is executed
 find_package(xtensor REQUIRED)   # Will find conda-installed xtensor
+find_package(pybind11 REQUIRED)  # Will find conda-installed pybind11
 find_package(BLAS REQUIRED)      # Will find conda-installed OpenBLAS
 
 # Define project structure
