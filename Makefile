@@ -1,36 +1,54 @@
 # Variables
-TARGET_DIR = .
+TARGET_DIR = .\libsynapx
 BUILD_DIR = $(TARGET_DIR)\build
-PROJECT_NAME = synapx
-OUTPUT_NAME = synapx_c
-SOLUTION_FILE = $(PROJECT_NAME)_project.sln
 CONFIGURATION = Release
 PYD_OUTPUT_DIR = $(BUILD_DIR)\$(PROJECT_NAME)\$(CONFIGURATION)
-PYD_EXTENSION = *.pyd
 PYD_DESTINATION = $(TARGET_DIR)\$(PROJECT_NAME)
 
 CPP_COMPILER=g++
 
-all: clean build
+all: build
 
 build:
+	make clean
     # Generate Visual Studio solution files with cmake
-	cmake -S $(TARGET_DIR) -B $(BUILD_DIR) -G "Visual Studio 17 2022" -A x64 -DCMAKE_BUILD_TYPE=Release
+	cmake -S $(TARGET_DIR) -B $(BUILD_DIR) \
+		-DCMAKE_BUILD_TYPE=$(CONFIGURATION) \
+		-DBUILD_CPP_TESTS=ON \
+		-DBUILD_PYTHON_BINDINGS=ON
 
-    # Build the project using msbuild
-	msbuild $(BUILD_DIR)\$(SOLUTION_FILE) /p:Configuration=$(CONFIGURATION)
+    # Build the project
+	cmake --build $(BUILD_DIR) --config $(CONFIGURATION)
+	
+    # Setup Python Package
+	python scripts\setup_synapx_win.py
 
-    # Copy the generated .pyd file from the build directory to the current directory
-	cmd /C "copy $(PYD_OUTPUT_DIR)\$(PYD_EXTENSION) ."
+python:
+	make clean
+    # Generate Visual Studio solution files with cmake
+	cmake -S $(TARGET_DIR) -B $(BUILD_DIR) \
+		-DCMAKE_BUILD_TYPE=$(CONFIGURATION) \
+		-DBUILD_CPP_TESTS=OFF \
+		-DBUILD_PYTHON_BINDINGS=ON
 
-    # Generate .pyi file
-	pybind11-stubgen $(OUTPUT_NAME) --output .
-	cmd /C "move *.pyd .\synapx"
-	cmd /C "move *.pyi .\synapx"
+    # Build the project
+	cmake --build $(BUILD_DIR) --config $(CONFIGURATION)
+	
+    # Setup Python Package
+	python scripts\setup_synapx_win.py
+
+tests:
+	make clean
+    # Generate Visual Studio solution files with cmake
+	cmake -S $(TARGET_DIR) -B $(BUILD_DIR) \
+		-DCMAKE_BUILD_TYPE=$(CONFIGURATION) \
+		-DBUILD_CPP_TESTS=ON \
+		-DBUILD_PYTHON_BINDINGS=OFF
+
+    # Build the project
+	cmake --build $(BUILD_DIR)
 
 # Clean rule to remove build files and .pyd files
 clean:
     # Remove the build directory
 	@if exist $(BUILD_DIR) rmdir /s /q $(BUILD_DIR)
-    # Remove the .pyd file from the current directory
-	@if exist $(PYD_DESTINATION) del /q $(PYD_DESTINATION)\$(PYD_EXTENSION)

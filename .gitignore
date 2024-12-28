@@ -2,6 +2,7 @@
 z_test*
 .vscode
 debug
+libtorch
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
