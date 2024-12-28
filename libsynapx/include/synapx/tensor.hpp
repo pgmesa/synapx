@@ -23,6 +23,8 @@ public:
     // Member functions
     size_t numel() const;
     size_t ndim() const;
+
+    Tensor matmul(const Tensor& other) const;
 };
 
 } // namespace synapx

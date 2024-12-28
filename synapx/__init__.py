@@ -15,4 +15,4 @@ os.add_dll_directory(str(synapx_dll_dir))
 torch_dll_dir = package_path / '../libsynapx/external/libtorch/lib'
 os.add_dll_directory(str(torch_dll_dir))
 
-from synapx._C import Tensor, ones, zeros
+from synapx._C import *

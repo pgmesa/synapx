@@ -18,7 +18,7 @@ if(NOT DEFINED ENV{CONDA_PREFIX})
 endif()
 
 # Add conda environment to CMAKE_PREFIX_PATH
-list(APPEND CMAKE_PREFIX_PATH ${PROJECT_SOURCE_DIR}/external/libtorch)
+list(APPEND CMAKE_PREFIX_PATH ${PROJECT_SOURCE_DIR}/external/libtorch) # Can't build on Windows - No CUDA toolset found error #164
 list(APPEND CMAKE_PREFIX_PATH $ENV{CONDA_PREFIX})
 if(WIN32)
     list(APPEND CMAKE_PREFIX_PATH "$ENV{CONDA_PREFIX}\\Lib\\site-packages")
