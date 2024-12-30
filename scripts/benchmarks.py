@@ -5,15 +5,14 @@ from dataclasses import dataclass
 from abc import ABC, abstractmethod
 from typing import Optional, Dict, List
 
-sys.path.append(str(Path(__file__).parent))
+sys.path.append(str(Path(__file__).parent.parent.absolute()))
 
-
-# import torch
+import torch
 import synapx
 import synapgrad
 import numpy as np
 
-#import torch.nn.functional as F
+import torch.nn.functional as F
 import matplotlib.pyplot as plt
 
 
@@ -315,7 +314,7 @@ class BenchmarkSuite:
             # Run for each backend if implemented
             for backend, run_func in [
                 ("NumPy", test.run_numpy),
-                # ("PyTorch", test.run_torch),
+                ("PyTorch", test.run_torch),
                 ("Synapx", test.run_synapx),
                 ("Synapgrad", test.run_synapgrad)
             ]:

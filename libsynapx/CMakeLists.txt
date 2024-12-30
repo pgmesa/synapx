@@ -22,6 +22,8 @@ list(APPEND CMAKE_PREFIX_PATH ${PROJECT_SOURCE_DIR}/external/libtorch) # Can't b
 list(APPEND CMAKE_PREFIX_PATH $ENV{CONDA_PREFIX})
 if(WIN32)
     list(APPEND CMAKE_PREFIX_PATH "$ENV{CONDA_PREFIX}\\Lib\\site-packages")
+else()
+    list(APPEND CMAKE_PREFIX_PATH "$ENV{CONDA_PREFIX}/lib/python3.12/site-packages")
 endif()
 
 message(STATUS "${CMAKE_PREFIX_PATH}")
