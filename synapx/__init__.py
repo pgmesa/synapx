@@ -1,10 +1,8 @@
 
 import os
-import site
 import platform
 from pathlib import Path
 
-env_packages_path = site.getsitepackages()
 package_path = Path(__file__).parent.absolute()
 
 # Add synapx dlls

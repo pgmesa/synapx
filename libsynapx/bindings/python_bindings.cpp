@@ -6,7 +6,13 @@
 #include <torch/torch.h>
 #include <synapx/tensor.hpp>
 
+
 namespace py = pybind11;
+
+
+#if defined(_MSC_VER) && !defined(ssize_t)
+typedef std::ptrdiff_t ssize_t;
+#endif
 
 
 py::array tensor_to_numpy(const synapx::Tensor& tensor) {

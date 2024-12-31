@@ -89,6 +89,7 @@ class BenchmarkTest(ABC):
 @dataclass
 class MatmulConfig(TestConfig):
     input_size: int = (2, 2, 512, 512)
+    force_broadcasting: bool = True
 
 class MatmulTest(BenchmarkTest):
     def __init__(self, config:MatmulConfig):
@@ -107,9 +108,12 @@ class MatmulTest(BenchmarkTest):
     
     def _generate_data(self):
         shape_a = (*self._config.input_size,)
-        shape_b = (*self._config.input_size[:-2], 
-                  self._config.input_size[-1], 
-                  self._config.input_size[-2])
+        if self._config.force_broadcasting:
+            shape_b = (self._config.input_size[-1], self._config.input_size[-2])
+        else:
+            shape_b = (*self._config.input_size[:-2], 
+                    self._config.input_size[-1], 
+                    self._config.input_size[-2])
         return (
             np.random.randn(*shape_a).astype(self._config.dtype),
             np.random.randn(*shape_b).astype(self._config.dtype)
@@ -408,6 +412,7 @@ if __name__ == "__main__":
     # Add matrix multiplication test
     config = MatmulConfig(
         input_size=(2, 2, 512, 512),
+        force_broadcasting=True,
         num_runs=50,
         dtype=np.float32,
         device='cpu'
