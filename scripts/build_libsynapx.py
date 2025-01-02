@@ -1,8 +1,12 @@
-
+import sys
 import shutil
 import argparse
 import subprocess
 from pathlib import Path
+
+project_path = Path(__file__).parent.parent.absolute()
+if project_path not in sys.path:
+    sys.path.append(str(project_path))
 
 from scripts import setup_synapx
 

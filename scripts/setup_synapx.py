@@ -9,7 +9,8 @@ import pybind11_stubgen
 
 
 project_path = Path(__file__).parent.parent.absolute()
-sys.path.append(str(project_path))
+if project_path not in sys.path:
+    sys.path.append(str(project_path))
 
 package_name = "synapx"
 interface_name = '_C'
