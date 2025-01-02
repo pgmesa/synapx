@@ -1,8 +1,7 @@
 # Custom
-z_test*
+z_*
 .vscode
-debug
-libtorch
+notes.txt
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
