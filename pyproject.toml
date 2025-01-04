@@ -1,41 +1,54 @@
 [build-system]
-requires = ["setuptools", "wheel", "scikit-build", "pybind11"]
+requires = ["setuptools>=64.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "synapx"
 version = "0.1.0"
-description = "A Python library with a C++ core for tensor operations and deep learning"
+description = "A deep learning library with an autograd engine and core operations implemented in C++, featuring a Torch-like API."
+readme = "README.md"
+requires-python = ">=3.9, <3.13"
+license = {text = "MIT"}
+urls = {Homepage = "https://github.com/pgmesa/synapx"}
+keywords = ["Autograd", "Tensor", "Machine Learning", "Deep Learning", "C++", "Python"]
 authors = [
     {name = "Pablo García Mesa", email = "pgmesa.sm@gmail.com"}
 ]
-readme = "README.md"
-license = {text = "MIT"}
-keywords = ["Autograd", "Tensor", "Machine Learning", "Deep Learning", "C++", "Python"]
-classifiers = [
-    "Programming Language :: Python :: 3",
-    "Programming Language :: C++",
-    "License :: OSI Approved :: MIT License",
-    "Operating System :: OS Independent"
-]
-requires-python = ">=3.9"
-dependencies = [
 
+dependencies = [
+    "torch>=2.0.0,<3.0.0",
+]
+
+classifiers = [
+    "Development Status :: 1 - Planning",
+
+    "Intended Audience :: Developers",
+    "Intended Audience :: Education",
+    "Intended Audience :: Science/Research",
+
+    "License :: OSI Approved :: MIT License",
+
+    "Operating System :: Microsoft :: Windows",
+    "Operating System :: POSIX :: Linux",
+
+    "Programming Language :: C++",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Mathematics",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+    "Topic :: Software Development",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Python Modules",
 ]
 
 [tool.setuptools]
-packages = ["synapx"]
-include-package-data = true
-
-[tool.setuptools.package-dir]
-torchx = "synapx"
-
-[tool.setuptools.cmdclass]
-build_ext = "pybind11.setup_helpers.build_ext"
-
-[tool.scikit-build]
-cmake_install_dir = "synapx"
+packages = { find = { where = ["."], include = ["synapx", "synapx.*"]} }
+package-data = {"synapx" = ["*.pyd"], "synapx.lib" = ["**/*"]}
 
 [tool.test]
-# Use pytest for testing
 framework = "pytest"
