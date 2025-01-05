@@ -1,10 +1,10 @@
 
-
-#include <pybind11/pybind11.h>
-#include <pybind11/stl.h>
-#include <pybind11/numpy.h>
 #include <torch/torch.h>
 #include <synapx/tensor.hpp>
+
+#include <pybind11/stl.h>
+#include <pybind11/numpy.h>
+#include <pybind11/pybind11.h>
 
 
 namespace py = pybind11;
@@ -56,9 +56,19 @@ PYBIND11_MODULE(_C, m) {
 
     py::class_<synapx::Tensor>(m, "Tensor")
         .def(py::init<const torch::Tensor&>())
+        
         .def("numel", &synapx::Tensor::numel)
-        .def("ndim", &synapx::Tensor::ndim)
+        .def("dim", &synapx::Tensor::dim)
+        .def_property_readonly("shape", &synapx::Tensor::shape)
+
+        .def("add", &synapx::Tensor::add)
+        .def("mul", &synapx::Tensor::mul)
         .def("matmul", &synapx::Tensor::matmul)
+
+        .def("__add__", &synapx::Tensor::add)
+        .def("__mul__", &synapx::Tensor::mul)
+        .def("__matmul__", &synapx::Tensor::matmul)
+        
         .def("numpy", [](const synapx::Tensor& tensor) {
             return tensor_to_numpy(tensor);
         }, "Convert Tensor to NumPy array");
@@ -78,6 +88,14 @@ PYBIND11_MODULE(_C, m) {
         }
         return synapx::Tensor(torch::zeros(dims));
     }, "Create a tensor filled with zeros");
+
+    m.def("add", [](synapx::Tensor t1, synapx::Tensor t2) {
+        return t1.add(t2);
+    }, "Element-wise addition between two tensors");
+    
+    m.def("mul", [](synapx::Tensor t1, synapx::Tensor t2) {
+        return t1.mul(t2);
+    }, "Element-wise product between two tensors");
 
     m.def("matmul", [](synapx::Tensor t1, synapx::Tensor t2) {
         return t1.matmul(t2);

@@ -50,16 +50,19 @@ def build_bindings(python_exe):
     """Build only the Python bindings."""
     clean()
     print("Building Python bindings...")
-    python_arg = ''
-    if python_exe:
-        python_arg = f'-DPYTHON_EXECUTABLE={python_exe}'
-    run_command([
+    
+    command = [
         "cmake", "-S", str(TARGET_DIR), "-B", str(BUILD_DIR),
         f"-DCMAKE_BUILD_TYPE={CONFIGURATION}",
         "-DBUILD_CPP_TESTS=OFF",
-        "-DBUILD_PYTHON_BINDINGS=ON",
-        python_arg
-    ])
+        "-DBUILD_PYTHON_BINDINGS=ON"
+    ]
+    
+    if python_exe:
+        python_arg = f'-DPYTHON_EXECUTABLE={python_exe}'
+        command.append(python_arg) 
+        
+    run_command(command)
     run_command(["cmake", "--build", str(BUILD_DIR), "--config", CONFIGURATION])
     setup_synapx.main(python_exe)
 
