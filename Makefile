@@ -19,9 +19,9 @@ all:
 	$(PYTHON) $(BUILD_SCRIPT) all
 
 # Create python bindings
-python: 
+bindings: 
 	@echo "Creating Python bindings..."
-	$(PYTHON) $(BUILD_SCRIPT) "python"
+	$(PYTHON) $(BUILD_SCRIPT) bindings
 
 # Compile tests
 tests: 

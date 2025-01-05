@@ -13,11 +13,14 @@ elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Cla
 endif()
 
 # -------------------------------- Provide Custom Paths -------------------------------
-# Allow user to provide Torch and pybind11 paths
+set(PYTHON_EXECUTABLE "" CACHE STRING "Path to the Python executable to use")
 set(TORCH_PATH "" CACHE PATH "Path to Torch installation")
 set(PYBIND11_PATH "" CACHE PATH "Path to Pybind11 installation")
 
-# Add Torch and Pybind11 paths to CMAKE_PREFIX_PATH if provided
+if(PYTHON_EXECUTABLE)
+    set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
+endif()
+
 if(TORCH_PATH)
     list(APPEND CMAKE_PREFIX_PATH ${TORCH_PATH})
 endif()

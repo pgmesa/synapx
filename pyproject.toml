@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "synapx"
-version = "0.1.0"
+dynamic = ["version"]
 description = "A deep learning library with an autograd engine and core operations implemented in C++, featuring a Torch-like API."
 readme = "README.md"
 requires-python = ">=3.9, <3.13"
@@ -48,7 +48,10 @@ classifiers = [
 
 [tool.setuptools]
 packages = { find = { where = ["."], include = ["synapx", "synapx.*"]} }
-package-data = {"synapx" = ["*.pyd"], "synapx.lib" = ["**/*"]}
+package-data = {"synapx.lib" = ["**/*"]}
+
+[tool.setuptools.dynamic]
+version = {attr = "synapx.__version__"}
 
 [tool.test]
 framework = "pytest"
