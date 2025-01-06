@@ -69,7 +69,7 @@ class Wheel:
         self.libtorch_versions = libtorch_versions
         
     def install_requirements(self):
-        command = f"{self.python_env.exe()} -m pip install build numpy==1.23.0 pybind11 pybind11-stubgen"
+        command = f"{self.python_env.exe()} -m pip install build numpy==1.26.0 pybind11 pybind11-stubgen"
         subprocess.run(command, check=True, shell=True)
          
     def build(self):
