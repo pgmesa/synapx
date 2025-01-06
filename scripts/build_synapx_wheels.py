@@ -4,6 +4,7 @@ import re
 import sys
 import time
 import shutil
+import platform
 import subprocess
 from pathlib import Path
 
@@ -56,6 +57,8 @@ class PythonEnv:
     
     def __init__(self, env_path):
         self.env_path = Path(env_path)
+        if platform.system() == 'Linux':
+            self.env_path /= 'bin'
         self.executable = self.env_path / 'python'
     
     def exe(self) -> str:
