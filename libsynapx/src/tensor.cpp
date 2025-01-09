@@ -3,6 +3,8 @@
 #include <vector>
 #include <cstddef>
 
+#include ""
+
 #include <torch/torch.h>
 #include <synapx/tensor.hpp>
 
@@ -10,7 +12,7 @@
 namespace synapx {
 
 // Constructor implementation
-Tensor::Tensor(const torch::Tensor& tensor) : data(tensor) {}
+Tensor::Tensor(const torch::Tensor& tensor, bool requires_grad=false, Device device=Device::CPU) : data(tensor), _requires_grad(requires_grad), device(device)  {}
 
 size_t Tensor::numel() const {
     return data.numel();
@@ -34,7 +36,7 @@ Tensor Tensor::operator*(const Tensor& other) {
 }
 
 Tensor Tensor::add(const Tensor& other) const {
-    return Tensor(torch::add(this->data, other.data));
+    return 
 }
 
 Tensor Tensor::mul(const Tensor& other) const {

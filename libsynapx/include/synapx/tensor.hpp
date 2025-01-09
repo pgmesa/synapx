@@ -18,9 +18,11 @@ namespace synapx {
 class SYNAPX_API Tensor {
 public:
     torch::Tensor data;
+    bool _requires_grad;
+    Device device;
     
     // Constructor
-    Tensor(const torch::Tensor& tensor);
+    Tensor(const torch::Tensor& tensor, bool requires_grad=false, Device device=Device::CPU);
 
     // Member functions
     size_t numel() const;
