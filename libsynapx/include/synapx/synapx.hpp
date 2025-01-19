@@ -1,0 +1,33 @@
+
+#ifndef SYNAPX_HPP
+#define SYNAPX_HPP
+
+#include <synapx/core.hpp>
+#include <synapx/device.hpp>
+#include <synapx/tensor.hpp>
+#include <synapx/functional.hpp>
+
+/**
+ * @file synapx.hpp
+ * @brief Main include file for the synapx library
+ * 
+ * This is the primary header file for the synapx library that provides a convenient
+ * way to include all public components in a single import. Instead of including 
+ * individual headers, users can simply include this file to access all public 
+ * functionality.
+ * 
+ * Example usage:
+ *   #include <synapx/synapx.hpp>
+ */
+
+namespace synapx {
+    // Optional conveniences. Examples:
+    // using TensorVec = std::vector<Tensor>;
+    // constexpr Device default_device = Device::CPU();
+
+    namespace F {
+        // Optional conveniences
+    }
+}
+
+#endif // SYNAPX_HPP

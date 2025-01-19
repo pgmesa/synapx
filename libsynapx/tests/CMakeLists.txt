@@ -27,6 +27,7 @@ endfunction()
 
 # Add different test executables
 add_synapx_test(tensor_test "tensor_test.cpp")
+add_synapx_test(test_backward "test_backward.cpp")
 add_synapx_test(matmul_test "matmul_test.cpp")
 
 # Set working directory for tests if needed

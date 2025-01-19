@@ -1,7 +1,8 @@
 
 #include <chrono>
 #include <iostream>
-#include <torch/torch.h> // Include PyTorch
+
+#include <torch/torch.h> // Include libtorch
 
 
 // Function to measure time for matrix multiplication using torch::matmul

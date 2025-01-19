@@ -1,7 +1,8 @@
 
+#include <iostream>
+
 #include <torch/torch.h>
 #include <synapx/tensor.hpp>
-#include <iostream>
 
 
 int main() {
@@ -22,12 +23,12 @@ int main() {
     // Test our custom Tensor wrapper
     synapx::Tensor custom_tensor(a);
     std::cout << "\nTesting our custom Tensor wrapper:" << std::endl;
-    std::cout << "Number of dimensions: " << custom_tensor.ndim() << std::endl;
+    std::cout << "Number of dimensions: " << custom_tensor.dim() << std::endl;
     std::cout << "Number of elements: " << custom_tensor.numel() << std::endl;
     
     // Verify dimensions
-    if (custom_tensor.ndim() != 2) {
-        std::cerr << "Error: Expected 2 dimensions, got " << custom_tensor.ndim() << std::endl;
+    if (custom_tensor.dim() != 2) {
+        std::cerr << "Error: Expected 2 dimensions, got " << custom_tensor.dim() << std::endl;
         return 1;
     }
     
