@@ -29,13 +29,18 @@ Tensor add(const Tensor& t1, const Tensor& t2) {
 
     if (out.requires_grad()) {
         std::function<void()> backward = [&]() {
+            std::cout << "[DEBUG] Inside Backward" << std::endl;
             const std::optional<const torch::Tensor> out_grad_ = out.grad();
 
             if (!out_grad_.has_value()) {
                 throw std::runtime_error("Attempted to call backward on a Tensor with no gradient");
             }
 
+            std::cout << "[DEBUG] Before gradient" << std::endl;
+            
             const torch::Tensor out_grad = out_grad_.value();
+
+            std::cout << "[DEBUG] After gradient" << std::endl;
 
             torch::Tensor grad_t1, grad_t2;
             if (t1.device().type() == Device::Type::CPU) {
@@ -44,6 +49,8 @@ Tensor add(const Tensor& t1, const Tensor& t2) {
                 Device not_supported_device = t1.device();
                 throw std::runtime_error(not_supported_device.to_string() + " device not supported for backward");
             }
+
+            std::cout << "[DEBUG] After backward" << std::endl;
 
             if (t1.requires_grad()) {
                 if (t1.grad().has_value()) {
@@ -61,6 +68,8 @@ Tensor add(const Tensor& t1, const Tensor& t2) {
                     t2.set_grad(grad_t2);
                 }
             }
+
+            std::cout << "[DEBUG] After grad updates" << std::endl;
             
         };
 

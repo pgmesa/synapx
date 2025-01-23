@@ -19,6 +19,12 @@ function(add_synapx_test TEST_NAME SOURCE_FILES)
                           COMMAND ${CMAKE_COMMAND} -E copy_if_different
                           ${TORCH_DLLS}
                           $<TARGET_FILE_DIR:${TEST_NAME}>)
+        # Copy synapx.dll
+        add_custom_command(TARGET ${TEST_NAME}
+                          POST_BUILD
+                          COMMAND ${CMAKE_COMMAND} -E copy_if_different
+                          $<TARGET_FILE:synapx>  # Path to synapx.dll
+                          $<TARGET_FILE_DIR:${TEST_NAME}>)
     endif()
     
     # Add to CTest
@@ -26,8 +32,8 @@ function(add_synapx_test TEST_NAME SOURCE_FILES)
 endfunction()
 
 # Add different test executables
-add_synapx_test(tensor_test "tensor_test.cpp")
 add_synapx_test(test_backward "test_backward.cpp")
+add_synapx_test(tensor_test "tensor_test.cpp")
 add_synapx_test(matmul_test "matmul_test.cpp")
 
 # Set working directory for tests if needed

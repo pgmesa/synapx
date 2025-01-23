@@ -8,6 +8,7 @@
 int main() {
 
     try {
+        std::cout << "[%] Starting Program" << std::endl;
         // Create two tensors
         synapx::Tensor t1(torch::rand({3, 3}));
         synapx::Tensor t2(torch::rand({3, 3}), true);
@@ -16,6 +17,7 @@ int main() {
         auto start_forward = std::chrono::high_resolution_clock::now();
 
         // Perform forward operation
+        std::cout << "[%] Forward" << std::endl;
         synapx::Tensor out = t1.add(t2);
 
         auto end_forward = std::chrono::high_resolution_clock::now();
@@ -25,6 +27,7 @@ int main() {
         auto start_backward = std::chrono::high_resolution_clock::now();
 
         // Perform backward operation
+        std::cout << "[%] Backward" << std::endl;
         out.backward();
 
         auto end_backward = std::chrono::high_resolution_clock::now();

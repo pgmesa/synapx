@@ -15,7 +15,7 @@ from scripts import setup_synapx
 ROOT_DIR = Path(__file__).parent.parent
 TARGET_DIR = ROOT_DIR / "libsynapx"
 BUILD_DIR = TARGET_DIR / "build"
-CONFIGURATION = "Release"
+CONFIGURATION = "Debug"
 
 
 # Helper functions

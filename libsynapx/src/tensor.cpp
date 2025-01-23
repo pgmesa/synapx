@@ -46,6 +46,7 @@ std::vector<int64_t> Tensor::shape() const {
 
 void Tensor::backward() {
     if (this->_grad_fn.has_value()) {
+        std::cout << "[DEBUG] Backward called" << std::endl;
         std::function<void()> backward_fn = this->_grad_fn.value();
         backward_fn();
     } else {

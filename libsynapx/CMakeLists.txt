@@ -5,12 +5,18 @@ project(synapx VERSION 1.0.0 LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+
 # Set optimization flags based on the compiler
 if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /Zi")  # Debugging symbols for MSVC
     set(CMAKE_CXX_FLAGS_RELEASE "/O2 /Ob2 /DNDEBUG /arch:AVX2")
 elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
+    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")  # Debugging symbols for GCC/Clang
     set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -mavx2")
 endif()
+
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 
 # -------------------------------- Provide Custom Paths -------------------------------
 set(PYTHON_EXECUTABLE "" CACHE STRING "Path to the Python executable to use")
