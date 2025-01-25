@@ -32,6 +32,7 @@ torch::Tensor add_forward(const torch::Tensor& t1, const torch::Tensor& t2) {
 
 void add_backward(const torch::Tensor& grad, const std::vector<int64_t>& t1_shape, const std::vector<int64_t>& t2_shape,
                             torch::Tensor& grad_t1, torch::Tensor& grad_t2) {
+    std::cout << "[DEBUG] Inside add backward" << std::endl;
     grad_t1 = unbroadcast(grad.clone(), t1_shape);
     grad_t2 = unbroadcast(grad.clone(), t2_shape);
 }

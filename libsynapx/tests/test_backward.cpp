@@ -28,7 +28,8 @@ int main() {
 
         // Perform backward operation
         std::cout << "[%] Backward" << std::endl;
-        out.backward();
+        synapx::Tensor grad(torch::ones({3, 3}));
+        out.backward(grad);
 
         auto end_backward = std::chrono::high_resolution_clock::now();
         auto backward_duration = std::chrono::duration_cast<std::chrono::microseconds>(end_backward - start_backward);

@@ -58,7 +58,7 @@ public:
     size_t dim() const;
     std::vector<int64_t> shape() const;
 
-    void backward();
+    void backward(const std::optional<const Tensor>& grad=std::nullopt);
 
     Tensor operator+(const Tensor& other);
     Tensor operator*(const Tensor& other);

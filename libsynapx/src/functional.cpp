@@ -28,9 +28,13 @@ Tensor add(const Tensor& t1, const Tensor& t2) {
     Tensor out = Tensor(out_data, req_grad, t1.device(), "Add");
 
     if (out.requires_grad()) {
-        std::function<void()> backward = [&]() {
+        std::function<void()> backward = [t1, t2, out]() mutable { // TODO: Wrong, creating a copy is not a good approach
             std::cout << "[DEBUG] Inside Backward" << std::endl;
+            
+            out.set_grad(torch::ones(out.shape())); // NOTE: Just for debugging purposes
             const std::optional<const torch::Tensor> out_grad_ = out.grad();
+
+            std::cout << "[DEBUG] After getting grad" << '\n';
 
             if (!out_grad_.has_value()) {
                 throw std::runtime_error("Attempted to call backward on a Tensor with no gradient");

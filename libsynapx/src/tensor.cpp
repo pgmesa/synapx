@@ -12,7 +12,7 @@ namespace synapx {
 
 // Constructor implementation
 Tensor::Tensor(const torch::Tensor& tensor, bool requires_grad, Device device, std::optional<std::string> operation)
-    : _data(std::move(tensor)), _requires_grad(requires_grad), _device(device), _operation(operation) {}
+    : _data(std::move(tensor)), _requires_grad(requires_grad), _device(device), _operation(operation), _grad(std::nullopt), _grad_fn(std::nullopt) {}
 
 
 const torch::Tensor& Tensor::data() const { return this->_data; }
@@ -44,9 +44,13 @@ std::vector<int64_t> Tensor::shape() const {
     return std::vector<int64_t>(sizes.begin(), sizes.end());
 }
 
-void Tensor::backward() {
+void Tensor::backward(const std::optional<const Tensor>& grad) {
     if (this->_grad_fn.has_value()) {
         std::cout << "[DEBUG] Backward called" << std::endl;
+        if (grad.has_value()) {
+            set_grad(grad.value().data());
+            std::cout << "[DEBUG] Gradient Set" << std::endl;
+        }
         std::function<void()> backward_fn = this->_grad_fn.value();
         backward_fn();
     } else {
