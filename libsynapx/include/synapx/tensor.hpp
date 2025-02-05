@@ -1,6 +1,7 @@
 #ifndef TENSOR_HPP
 #define TENSOR_HPP
 
+#include <memory>
 #include <vector>
 #include <cstddef>  // for size_t
 
@@ -10,6 +11,9 @@
 
 
 namespace synapx {
+
+class Tensor; // Forward declaration
+using TensorPtr = std::shared_ptr<Tensor>;
 
 class SYNAPX_API BackwardFunction {
 
@@ -27,7 +31,7 @@ public:
 
 };
 
-class SYNAPX_API Tensor {
+class SYNAPX_API Tensor: public std::enable_shared_from_this<Tensor> {
 
 private:
     torch::Tensor _data;
@@ -40,7 +44,7 @@ private:
 
 public:
     // Constructor
-    explicit Tensor(const torch::Tensor& tensor, bool requires_grad=false, Device device=Device::CPU(), std::optional<std::string> operation=std::nullopt);
+    Tensor(const torch::Tensor& tensor, bool requires_grad=false, Device device=Device::CPU(), std::optional<std::string> operation=std::nullopt);
 
     const torch::Tensor& data() const;
     const bool requires_grad() const;
@@ -60,10 +64,10 @@ public:
 
     void backward(const std::optional<const Tensor>& grad=std::nullopt);
 
-    Tensor operator+(const Tensor& other);
-    Tensor operator*(const Tensor& other);
+    TensorPtr operator+(const TensorPtr& other);
+    TensorPtr operator*(const TensorPtr& other);
 
-    Tensor add(const Tensor& other) const;
+    TensorPtr add(const TensorPtr& other);
     // Tensor mul(const Tensor& other) const;
     // Tensor matmul(const Tensor& other) const;
 

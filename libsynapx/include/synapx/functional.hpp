@@ -9,7 +9,7 @@ namespace synapx
 namespace F
 {
 
-SYNAPX_API Tensor add(const Tensor& t1, const Tensor& t2);
+SYNAPX_API TensorPtr add(const TensorPtr& t1, const TensorPtr& t2);
 
 // tensor mul(const tensor& t1, const tensor& t2);
 

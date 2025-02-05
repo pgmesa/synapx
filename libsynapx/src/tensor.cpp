@@ -58,7 +58,7 @@ void Tensor::backward(const std::optional<const Tensor>& grad) {
     }
 }
 
-Tensor Tensor::operator+(const Tensor& other) {
+TensorPtr Tensor::operator+(const TensorPtr& other) {
     return this->add(other);
 }
 
@@ -66,8 +66,8 @@ Tensor Tensor::operator+(const Tensor& other) {
 //     return this->mul(other);
 // }
 
-Tensor Tensor::add(const Tensor& other) const {
-    return F::add(*this, other);
+TensorPtr Tensor::add(const TensorPtr& other) {
+    return F::add(shared_from_this(), other);
 }
 
 // Tensor Tensor::mul(const Tensor& other) const {
