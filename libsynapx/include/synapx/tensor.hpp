@@ -6,73 +6,55 @@
 #include <cstddef>  // for size_t
 
 #include <torch/torch.h>
+
 #include <synapx/core.hpp>
 #include <synapx/device.hpp>
 
 
 namespace synapx {
 
-class Tensor; // Forward declaration
-using TensorPtr = std::shared_ptr<Tensor>;
+    namespace autograd { class Function; }
+    class SYNAPX_API Tensor {
+    public:
+        // Constructor
+        Tensor();
+        Tensor(const torch::Tensor& data, bool requires_grad=false, Device device=Device::CPU());
 
-class SYNAPX_API BackwardFunction {
+        const torch::Tensor& data() const;
+        bool defined() const;
+        bool requires_grad() const;
+        const Device& device() const;
 
-public:
-    std::function<void()> backward;
-    std::string operation;
+        bool is_leaf() const;
+        void retain_grad();
+        bool retains_grad() const;
 
-    BackwardFunction(std::function<void()> backward, std::string operation);
+        const torch::Tensor grad() const;
+        void set_grad(const torch::Tensor& grad);
 
-    void operator()() const;
+        const std::shared_ptr<autograd::Function> grad_fn() const;
+        void set_grad_fn(const std::shared_ptr<autograd::Function> grad_fn);
 
-    std::string name() const;
+        size_t numel() const;
+        size_t dim() const;
+        std::vector<int64_t> shape() const;
 
-    std::string to_string() const;
+        void backward(const torch::Tensor& grad={});
 
-};
+        Tensor operator+(const Tensor& other);
+        // Tensor operator*(const Tensor& other);
 
-class SYNAPX_API Tensor: public std::enable_shared_from_this<Tensor> {
+        Tensor add(const Tensor& other);
+        // Tensor mul(const Tensor& other) const;
+        // Tensor matmul(const Tensor& other) const;
 
-private:
-    torch::Tensor _data;
-    bool _requires_grad;
-    Device _device;
-    
-    std::optional<std::string> _operation;
-    mutable std::optional<torch::Tensor> _grad;
-    std::optional<BackwardFunction> _grad_fn;
+        std::string to_string() const;
+        static std::string to_string(torch::Tensor tensor);
 
-public:
-    // Constructor
-    Tensor(const torch::Tensor& tensor, bool requires_grad=false, Device device=Device::CPU(), std::optional<std::string> operation=std::nullopt);
-
-    const torch::Tensor& data() const;
-    const bool requires_grad() const;
-    const Device device() const;
-
-    const std::optional<const std::string> operation() const;
-    const std::optional<const torch::Tensor>& grad() const;
-    void set_grad(const torch::Tensor& grad) const;
-
-    const std::optional<const BackwardFunction>& grad_fn() const;
-    void set_grad_fn(const BackwardFunction& grad_fn);
-
-
-    size_t numel() const;
-    size_t dim() const;
-    std::vector<int64_t> shape() const;
-
-    void backward(const std::optional<const Tensor>& grad=std::nullopt);
-
-    TensorPtr operator+(const TensorPtr& other);
-    TensorPtr operator*(const TensorPtr& other);
-
-    TensorPtr add(const TensorPtr& other);
-    // Tensor mul(const Tensor& other) const;
-    // Tensor matmul(const Tensor& other) const;
-
-    std::string to_string() const;
-};
+    private:
+        struct Impl;
+        std::shared_ptr<Impl> impl_;
+    };
 
 } // namespace synapx
 

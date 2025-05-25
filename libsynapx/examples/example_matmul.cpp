@@ -2,7 +2,7 @@
 #include <chrono>
 #include <iostream>
 
-#include <torch/torch.h> // Include libtorch
+#include <torch/torch.h>
 
 
 // Function to measure time for matrix multiplication using torch::matmul

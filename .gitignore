@@ -1,6 +1,14 @@
 # Custom
 z_*
 .vscode
+libtorch/
+debug/
+
+# CMake
+CMakeUserPresets.json
+
+# VCPKG
+vcpkg_installed/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

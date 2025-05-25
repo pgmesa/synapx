@@ -1,109 +1,145 @@
 
+#include <synapx/tensor.hpp>
+
 #include <iostream>
 #include <vector>
 #include <cstddef>
 
 #include <torch/torch.h>
-#include <synapx/tensor.hpp>
+#include <spdlog/spdlog.h>
+
 #include <synapx/functional.hpp>
+#include <synapx/autograd/engine.hpp>
 
 
 namespace synapx {
+    struct Tensor::Impl {
+        Impl() {};
+        Impl(const torch::Tensor& data, bool req_grad, Device device)
+            : data(data), requires_grad(req_grad), device(device) {};
 
-// Constructor implementation
-Tensor::Tensor(const torch::Tensor& tensor, bool requires_grad, Device device, std::optional<std::string> operation)
-    : _data(std::move(tensor)), _requires_grad(requires_grad), _device(device), _operation(operation), _grad(std::nullopt), _grad_fn(std::nullopt) {}
+        torch::Tensor data;
+        bool requires_grad;
+        Device device;
+        bool retains_grad;
+        
+        torch::Tensor grad;
+        std::shared_ptr<autograd::Function> grad_fn;
+    };
 
+    Tensor::Tensor() {}
 
-const torch::Tensor& Tensor::data() const { return this->_data; }
-const bool Tensor::requires_grad() const { return this->_requires_grad; }
-const Device Tensor::device() const { return this->_device; }
-const std::optional<const std::string> Tensor::operation() const { return this->_operation; }
-const std::optional<const torch::Tensor>& Tensor::grad() const { return this->_grad; }
-const std::optional<const BackwardFunction>& Tensor::grad_fn() const { return this->_grad_fn; }
+    Tensor::Tensor(const torch::Tensor& data,  bool requires_grad, Device device)
+        : impl_(std::make_shared<Impl>(data, requires_grad, device)) {}
 
-void Tensor::set_grad(const torch::Tensor& grad) const {
-    this->_grad = grad;
-}
+    const torch::Tensor& Tensor::data() const { 
+        return impl_->data; 
+    }
 
-void Tensor::set_grad_fn(const BackwardFunction& grad_fn) {
-    this->_grad_fn = std::move(grad_fn);
-}
+    bool Tensor::requires_grad() const { 
+        return impl_->requires_grad; 
+    }
 
+    bool Tensor::defined() const {
+        return impl_->data.defined();
+    }
 
-size_t Tensor::numel() const {
-    return this->_data.numel();
-}
+    const Device& Tensor::device() const { 
+        return impl_->device; 
+    }
 
-size_t Tensor::dim() const {
-    return this->_data.dim();
-}
+    bool Tensor::is_leaf() const {
+        return !requires_grad() || !grad_fn();
+    }
 
-std::vector<int64_t> Tensor::shape() const {
-    auto sizes = this->_data.sizes();
-    return std::vector<int64_t>(sizes.begin(), sizes.end());
-}
+    void Tensor::retain_grad() {
+        impl_->retains_grad = true;
+    }
 
-void Tensor::backward(const std::optional<const Tensor>& grad) {
-    if (this->_grad_fn.has_value()) {
-        std::cout << "[DEBUG] Backward called" << std::endl;
-        if (grad.has_value()) {
-            set_grad(grad.value().data());
-            std::cout << "[DEBUG] Gradient Set" << std::endl;
+    bool Tensor::retains_grad() const {
+        return impl_->retains_grad;
+    }
+
+    const torch::Tensor Tensor::grad() const {
+        const torch::Tensor& maybe_grad = impl_->grad;
+        if (!this->is_leaf() && !this->retains_grad() && !maybe_grad.defined()) {
+            std::cout << (
+                "The .grad attribute of a Tensor that is not a leaf Tensor is being accessed. Its .grad "
+                "attribute won't be populated during autograd.backward(). If you indeed want the .grad "
+                "field to be populated for a non-leaf Tensor, use .retain_grad() on the non-leaf Tensor. "
+                "If you access the non-leaf Tensor by mistake, make sure you access the leaf Tensor "
+                "instead."
+            ) << std::endl;
+        } 
+        return maybe_grad;
+    }
+
+    const std::shared_ptr<autograd::Function> Tensor::grad_fn() const {
+        return impl_->grad_fn; 
+    }
+
+    void Tensor::set_grad(const torch::Tensor& grad) {
+        impl_->grad = grad;
+    }
+
+    void Tensor::set_grad_fn(const std::shared_ptr<autograd::Function> grad_fn) {
+        impl_->grad_fn = grad_fn;
+    }
+
+    size_t Tensor::numel() const {
+        return impl_->data.numel();
+    }
+
+    size_t Tensor::dim() const {
+        return impl_->data.dim();
+    }
+
+    std::vector<int64_t> Tensor::shape() const {
+        auto sizes = impl_->data.sizes();
+        return std::vector<int64_t>(sizes.begin(), sizes.end());
+    }
+
+    void Tensor::backward(const torch::Tensor& grad) {
+        if (impl_->grad_fn) {
+            spdlog::debug("Backward called");
+            torch::Tensor grad_ = grad;
+            if (!grad_.defined()) grad_ = torch::ones_like(data());
+            autograd::backward(impl_->grad_fn, grad_);
+        } else {
+            spdlog::warn("No backward function defined for this tensor");
         }
-        std::function<void()> backward_fn = this->_grad_fn.value();
-        backward_fn();
-    } else {
-        std::cerr << "Warning: No backward function defined for this tensor." << std::endl;
     }
-}
 
-TensorPtr Tensor::operator+(const TensorPtr& other) {
-    return this->add(other);
-}
-
-// Tensor Tensor::operator*(const Tensor& other) {
-//     return this->mul(other);
-// }
-
-TensorPtr Tensor::add(const TensorPtr& other) {
-    return F::add(shared_from_this(), other);
-}
-
-// Tensor Tensor::mul(const Tensor& other) const {
-//     return F::mul(this->data, other);
-// }
-
-// Tensor Tensor::matmul(const Tensor& other) const {
-//     return F::matmul(this->data, other);
-//}
-
-std::string Tensor::to_string() const {
-    return this->_data.toString();
-}
-
-// --------------------------------------------------------------------------------
-
-BackwardFunction::BackwardFunction(std::function<void()> backward, std::string operation)
-    : backward(std::move(backward)), operation(operation) {}
-
-
-void BackwardFunction::operator()() const {
-    if (this->backward) {
-        this->backward();
-    } else {
-        throw std::runtime_error("Attempted to call an empty BackwardFunction");
+    Tensor Tensor::operator+(const Tensor& other) {
+        return add(other);
     }
-}
 
-std::string BackwardFunction::name() const {
-    return this->operation + "Backward";
-}
+    // Tensor Tensor::operator*(const Tensor& other) {
+    //     return this->mul(other);
+    // }
 
-std::string BackwardFunction::to_string() const {
-    return "<" + this->name() + ">";
-}
+    Tensor Tensor::add(const Tensor& other) {
+        return F::add(*this, other);
+    }
 
-// --------------------------------------------------------------------------------
+    // Tensor Tensor::mul(const Tensor& other) const {
+    //     return F::mul(this->data, other);
+    // }
 
+    // Tensor Tensor::matmul(const Tensor& other) const {
+    //     return F::matmul(this->data, other);
+    //}
+
+    std::string Tensor::to_string() const {
+        std::stringstream ss;
+        ss << impl_->data;
+        return ss.str();
+    }
+
+    std::string Tensor::to_string(torch::Tensor tensor) {
+        std::stringstream ss;
+        ss << tensor;
+        return ss.str();
+    }
+    
 } // namespace synapx

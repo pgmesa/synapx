@@ -1,42 +1,28 @@
-cmake_minimum_required(VERSION 3.18 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.22 FATAL_ERROR)
 project(synapx VERSION 1.0.0 LANGUAGES CXX)
 
 # Set C++ standard
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-
-message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
-
-# Set optimization flags based on the compiler
-if (CMAKE_CXX_COMPILER_ID MATCHES "MSVC")
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} /Zi")  # Debugging symbols for MSVC
-    set(CMAKE_CXX_FLAGS_RELEASE "/O2 /Ob2 /DNDEBUG /arch:AVX2")
-elseif(CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Clang")
-    set(CMAKE_CXX_FLAGS_DEBUG "${CMAKE_CXX_FLAGS_DEBUG} -g")  # Debugging symbols for GCC/Clang
-    set(CMAKE_CXX_FLAGS_RELEASE "-O3 -DNDEBUG -mavx2")
-endif()
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+option(CMAKE_INCREMENTAL_BUILD "Enable incremental builds" ON)
 
-# -------------------------------- Provide Custom Paths -------------------------------
-set(PYTHON_EXECUTABLE "" CACHE STRING "Path to the Python executable to use")
-set(TORCH_PATH "" CACHE PATH "Path to Torch installation")
-set(PYBIND11_PATH "" CACHE PATH "Path to Pybind11 installation")
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
+message(STATUS "Runtime output directory: ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
+message(STATUS "Debug flags:   ${CMAKE_CXX_FLAGS_DEBUG}")
+message(STATUS "Release flags: ${CMAKE_CXX_FLAGS_RELEASE}")
+
+# ========================= Python and site-packages =========================
+# Allow to provide a custom path
+set(PYTHON_EXECUTABLE "" STRING "Path to the Python executable to use")
 
 if(PYTHON_EXECUTABLE)
     set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
 endif()
 
-if(TORCH_PATH)
-    list(APPEND CMAKE_PREFIX_PATH ${TORCH_PATH})
-endif()
-
-if(PYBIND11_PATH)
-    list(APPEND CMAKE_PREFIX_PATH ${PYBIND11_PATH})
-endif()
-# --------------------------------------------------------------------------------------
-
-# ------------------------------ Python and site-packages ------------------------------
+# If not defined, find the current active Python environment 
 find_package(Python COMPONENTS Interpreter Development REQUIRED)
 
 # Print the result for verification
@@ -64,16 +50,18 @@ else()
             "${PYTHON_EXECUTABLE_DIR}/lib/python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}/site-packages")
     endif()
 endif()
-# --------------------------------------------------------------------------------------
+# ============================================================================
 
 message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
 
-find_package(Torch REQUIRED)
+find_package(Torch CONFIG REQUIRED)
+find_package(spdlog CONFIG REQUIRED)
 
 # Define project structure
-set(SYNAPX_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include/synapx)
+set(SYNAPX_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
 set(SYNAPX_SRC_DIR ${PROJECT_SOURCE_DIR}/src)
 set(SYNAPX_BINDINGS_DIR ${PROJECT_SOURCE_DIR}/bindings)
+set(SYNAPX_EXAMPLES_DIR ${PROJECT_SOURCE_DIR}/examples)
 
 # Collect source files (excluding bindings)
 file(GLOB_RECURSE SYNAPX_SOURCES "${SYNAPX_SRC_DIR}/*.cpp")
@@ -84,9 +72,7 @@ add_library(synapx SHARED ${SYNAPX_SOURCES})
 # Set include directories
 target_include_directories(synapx
     PUBLIC
-        $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
-        $<INSTALL_INTERFACE:include>
-    PRIVATE
+        ${SYNAPX_INCLUDE_DIR}
         ${TORCH_INCLUDE_DIRS}
 )
 
@@ -94,17 +80,20 @@ target_include_directories(synapx
 target_link_libraries(synapx
     PUBLIC
         ${TORCH_LIBRARIES}
+    PRIVATE
+        spdlog::spdlog
 )
 
-# Option to build tests
-option(BUILD_CPP_TESTS "Build C++ Tests" OFF)
-if(BUILD_CPP_TESTS)
-    add_subdirectory(tests)
+add_library(synapx::synapx ALIAS synapx)
+
+# Option to build examples
+option(BUILD_EXAMPLES "Build C++ Examples" ON)
+if(BUILD_EXAMPLES)
+    add_subdirectory("${SYNAPX_EXAMPLES_DIR}")
 endif()
 
 # Option to build Python bindings
 option(BUILD_PYTHON_BINDINGS "Build Python bindings" ON)
 if(BUILD_PYTHON_BINDINGS)
-    add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/bindings 
-                     ${CMAKE_CURRENT_BINARY_DIR}/bindings)
+    add_subdirectory("${SYNAPX_BINDINGS_DIR}")
 endif()

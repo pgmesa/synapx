@@ -1,10 +1,10 @@
 
-#include <torch/torch.h>
-#include <synapx/tensor.hpp>
-
 #include <pybind11/stl.h>
 #include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
+
+#include <torch/torch.h>
+#include <synapx/tensor.hpp>
 
 
 namespace py = pybind11;
@@ -17,7 +17,7 @@ typedef std::ptrdiff_t ssize_t;
 
 py::array tensor_to_numpy(const synapx::Tensor& tensor) {
     // Get the underlying torch::Tensor
-    const auto& torch_tensor = tensor.data;
+    const auto& torch_tensor = tensor.data();
 
     // Ensure the tensor is contiguous
     auto contiguous_tensor = torch_tensor.contiguous();
@@ -52,7 +52,7 @@ py::array tensor_to_numpy(const synapx::Tensor& tensor) {
 
 
 PYBIND11_MODULE(_C, m) {
-    m.doc() = "Synapx tensor operations";
+    m.doc() = "Synapx core C++ bindings";
 
     py::class_<synapx::Tensor>(m, "Tensor")
         .def(py::init<const torch::Tensor&>())
@@ -62,12 +62,12 @@ PYBIND11_MODULE(_C, m) {
         .def_property_readonly("shape", &synapx::Tensor::shape)
 
         .def("add", &synapx::Tensor::add)
-        .def("mul", &synapx::Tensor::mul)
-        .def("matmul", &synapx::Tensor::matmul)
+        // .def("mul", &synapx::Tensor::mul)
+        // .def("matmul", &synapx::Tensor::matmul)
 
         .def("__add__", &synapx::Tensor::add)
-        .def("__mul__", &synapx::Tensor::mul)
-        .def("__matmul__", &synapx::Tensor::matmul)
+        // .def("__mul__", &synapx::Tensor::mul)
+        // .def("__matmul__", &synapx::Tensor::matmul)
         
         .def("numpy", [](const synapx::Tensor& tensor) {
             return tensor_to_numpy(tensor);
@@ -93,13 +93,13 @@ PYBIND11_MODULE(_C, m) {
         return t1.add(t2);
     }, "Element-wise addition between two tensors");
     
-    m.def("mul", [](synapx::Tensor t1, synapx::Tensor t2) {
-        return t1.mul(t2);
-    }, "Element-wise product between two tensors");
+    // m.def("mul", [](synapx::Tensor t1, synapx::Tensor t2) {
+    //     return t1.mul(t2);
+    // }, "Element-wise product between two tensors");
 
-    m.def("matmul", [](synapx::Tensor t1, synapx::Tensor t2) {
-        return t1.matmul(t2);
-    }, "Matmul between two tensors");
+    // m.def("matmul", [](synapx::Tensor t1, synapx::Tensor t2) {
+    //     return t1.matmul(t2);
+    // }, "Matmul between two tensors");
 
     m.def("from_numpy", [](py::array array) {
         // Ensure the input is a contiguous array
@@ -128,8 +128,7 @@ PYBIND11_MODULE(_C, m) {
         // Create the PyTorch tensor from the NumPy array buffer
         auto tensor = torch::from_blob(data_ptr, shape, dtype);
 
-        // Set the tensor to share memory with the NumPy array
-        tensor = tensor.clone(); // Optional: Clone to decouple memory if needed
+        tensor = tensor.clone(); // Clone to decouple memory (optional)
 
         return synapx::Tensor(tensor);
     }, "Create a tensor from numpy array");

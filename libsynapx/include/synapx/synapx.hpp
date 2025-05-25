@@ -2,7 +2,7 @@
 #ifndef SYNAPX_HPP
 #define SYNAPX_HPP
 
-#include <synapx/core.hpp>
+#include <synapx/core.hpp"
 #include <synapx/device.hpp>
 #include <synapx/tensor.hpp>
 #include <synapx/functional.hpp>
@@ -19,15 +19,5 @@
  * Example usage:
  *   #include <synapx/synapx.hpp>
  */
-
-namespace synapx {
-    // Optional conveniences. Examples:
-    // using TensorVec = std::vector<Tensor>;
-    // constexpr Device default_device = Device::CPU();
-
-    namespace F {
-        // Optional conveniences
-    }
-}
 
 #endif // SYNAPX_HPP
