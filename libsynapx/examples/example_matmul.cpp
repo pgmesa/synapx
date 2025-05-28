@@ -5,6 +5,7 @@
 #include <synapx/tensor.hpp>
 #include <argparse/argparse.hpp>
 #include <spdlog/spdlog.h>
+#include <spdlog/pattern_formatter.h>
 
 
 // Helper: parse shape string like "2,2,3,3" → vector<int64_t>
@@ -37,6 +38,8 @@ std::string shape_to_string(c10::IntArrayRef sizes) {
 }
 
 int main(int argc, char** argv) {
+    spdlog::set_pattern("[%Y-%m-%d %H:%M:%S.%e] [%^%l%$] %v");
+
     // Setup argparse
     argparse::ArgumentParser program("synapx_test");
 
@@ -59,8 +62,8 @@ int main(int argc, char** argv) {
         std::vector<int64_t> t2_shape = parse_shape(t2_shape_str);
 
         spdlog::info("Starting Program");
-        spdlog::info("t1 shape: " + t1_shape_str);
-        spdlog::info("t2 shape: " + t2_shape_str);
+        spdlog::info("t1 shape: {}", t1_shape_str);
+        spdlog::info("t2 shape: {}", t2_shape_str);
 
         // Create two tensors
         synapx::Tensor t1(torch::rand(t1_shape, torch::kFloat), true);
@@ -89,17 +92,16 @@ int main(int argc, char** argv) {
         );
 
         if (t1.grad().defined()) {
-            spdlog::info("T1 has gradient with shape " + shape_to_string(t1.grad().sizes()));
+            spdlog::info("T1 has gradient with shape {}", shape_to_string(t1.grad().sizes()));
         }
         if (t2.grad().defined()) {
-            spdlog::info("T2 has gradient with shape " + shape_to_string(t2.grad().sizes()));
+            spdlog::info("T2 has gradient with shape {}", shape_to_string(t2.grad().sizes()));
         }
-        spdlog::info("Forward Time: " + std::to_string(forward_duration.count()) + " ms");
-        spdlog::info("Backward Time: " + std::to_string(backward_duration.count()) + " ms");
+        spdlog::info("Forward Time: {} ms", forward_duration.count());
+        spdlog::info("Backward Time: {} ms", backward_duration.count());
 
     } catch (const std::exception& e) {
-        std::string err_msg = e.what();
-        spdlog::error("Exception caught: " + err_msg);
+        spdlog::error("Exception caught: {}", e.what());
     } catch (...) {
         spdlog::error("An unknown exception occurred!");
     }

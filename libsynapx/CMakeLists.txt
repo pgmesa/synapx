@@ -69,6 +69,13 @@ file(GLOB_RECURSE SYNAPX_SOURCES "${SYNAPX_SRC_DIR}/*.cpp")
 # Create the core library
 add_library(synapx SHARED ${SYNAPX_SOURCES})
 
+target_compile_definitions(synapx
+  PUBLIC
+    SPDLOG_HEADER_ONLY
+    SPDLOG_FMT_EXTERNAL  # use external fmt headers
+    FMT_HEADER_ONLY      # fmt header-only
+)
+
 # Set include directories
 target_include_directories(synapx
     PUBLIC
@@ -80,8 +87,7 @@ target_include_directories(synapx
 target_link_libraries(synapx
     PUBLIC
         ${TORCH_LIBRARIES}
-    PRIVATE
-        spdlog::spdlog
+        spdlog::spdlog_header_only
 )
 
 add_library(synapx::synapx ALIAS synapx)

@@ -17,7 +17,6 @@ function(add_synapx_example EXAMPLE_NAME SOURCE_FILE)
     target_link_libraries(${EXAMPLE_NAME}
         PRIVATE
             synapx::synapx
-            spdlog::spdlog
             argparse::argparse
     )
 
