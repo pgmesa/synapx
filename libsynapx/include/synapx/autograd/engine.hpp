@@ -7,7 +7,6 @@
 
 
 namespace synapx::autograd {
-
     class Function {
     public:
         struct BackwardEdge {

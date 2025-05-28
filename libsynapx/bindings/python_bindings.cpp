@@ -62,12 +62,12 @@ PYBIND11_MODULE(_C, m) {
         .def_property_readonly("shape", &synapx::Tensor::shape)
 
         .def("add", &synapx::Tensor::add)
-        // .def("mul", &synapx::Tensor::mul)
-        // .def("matmul", &synapx::Tensor::matmul)
+        .def("mul", &synapx::Tensor::mul)
+        .def("matmul", &synapx::Tensor::matmul)
 
         .def("__add__", &synapx::Tensor::add)
-        // .def("__mul__", &synapx::Tensor::mul)
-        // .def("__matmul__", &synapx::Tensor::matmul)
+        .def("__mul__", &synapx::Tensor::mul)
+        .def("__matmul__", &synapx::Tensor::matmul)
         
         .def("numpy", [](const synapx::Tensor& tensor) {
             return tensor_to_numpy(tensor);
@@ -93,13 +93,13 @@ PYBIND11_MODULE(_C, m) {
         return t1.add(t2);
     }, "Element-wise addition between two tensors");
     
-    // m.def("mul", [](synapx::Tensor t1, synapx::Tensor t2) {
-    //     return t1.mul(t2);
-    // }, "Element-wise product between two tensors");
+    m.def("mul", [](synapx::Tensor t1, synapx::Tensor t2) {
+        return t1.mul(t2);
+    }, "Element-wise product between two tensors");
 
-    // m.def("matmul", [](synapx::Tensor t1, synapx::Tensor t2) {
-    //     return t1.matmul(t2);
-    // }, "Matmul between two tensors");
+    m.def("matmul", [](synapx::Tensor t1, synapx::Tensor t2) {
+        return t1.matmul(t2);
+    }, "Matmul between two tensors");
 
     m.def("from_numpy", [](py::array array) {
         // Ensure the input is a contiguous array

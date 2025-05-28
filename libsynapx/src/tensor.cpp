@@ -110,25 +110,25 @@ namespace synapx {
         }
     }
 
-    Tensor Tensor::operator+(const Tensor& other) {
+    Tensor Tensor::operator+(const Tensor& other) const {
         return add(other);
     }
 
-    // Tensor Tensor::operator*(const Tensor& other) {
-    //     return this->mul(other);
-    // }
+    Tensor Tensor::operator*(const Tensor& other) const {
+        return mul(other);
+    }
 
-    Tensor Tensor::add(const Tensor& other) {
+    Tensor Tensor::add(const Tensor& other) const {
         return F::add(*this, other);
     }
 
-    // Tensor Tensor::mul(const Tensor& other) const {
-    //     return F::mul(this->data, other);
-    // }
+    Tensor Tensor::mul(const Tensor& other) const {
+        return F::mul(*this, other);
+    }
 
-    // Tensor Tensor::matmul(const Tensor& other) const {
-    //     return F::matmul(this->data, other);
-    //}
+    Tensor Tensor::matmul(const Tensor& other) const {
+        return F::matmul(*this, other);
+    }
 
     std::string Tensor::to_string() const {
         std::stringstream ss;

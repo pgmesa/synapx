@@ -1,4 +1,6 @@
 
+find_package(argparse CONFIG REQUIRED)
+
 # On Windows/MSVC, grab all the Torch DLLs so we can bundle them per‐example
 if(MSVC)
     file(GLOB TORCH_DLLS
@@ -14,6 +16,7 @@ function(add_synapx_example EXAMPLE_NAME SOURCE_FILE)
         PRIVATE
             synapx::synapx
             spdlog::spdlog
+            argparse::argparse
     )
 
     if(MSVC)
@@ -38,3 +41,4 @@ endfunction()
 # Build each example
 add_synapx_example(example_add    example_add.cpp)
 add_synapx_example(example_matmul example_matmul.cpp)
+# add_synapx_example(example_torch_matmul example_torch_matmul.cpp)

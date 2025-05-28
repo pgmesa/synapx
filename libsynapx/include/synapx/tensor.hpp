@@ -41,12 +41,12 @@ namespace synapx {
 
         void backward(const torch::Tensor& grad={});
 
-        Tensor operator+(const Tensor& other);
-        // Tensor operator*(const Tensor& other);
+        Tensor operator+(const Tensor& other) const;
+        Tensor operator*(const Tensor& other) const;
 
-        Tensor add(const Tensor& other);
-        // Tensor mul(const Tensor& other) const;
-        // Tensor matmul(const Tensor& other) const;
+        Tensor add(const Tensor& other) const;
+        Tensor mul(const Tensor& other) const;
+        Tensor matmul(const Tensor& other) const;
 
         std::string to_string() const;
         static std::string to_string(torch::Tensor tensor);
