@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.22 FATAL_ERROR)
 project(synapx VERSION 1.0.0 LANGUAGES CXX)
 
 # Set C++ standard
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -72,6 +72,13 @@ file(GLOB_RECURSE SYNAPX_SOURCES "${SYNAPX_SRC_DIR}/*.cpp")
 # Create the core library
 add_library(synapx SHARED ${SYNAPX_SOURCES})
 
+target_compile_definitions(synapx
+  PUBLIC
+    SPDLOG_HEADER_ONLY
+    SPDLOG_FMT_EXTERNAL  # use external fmt headers
+    FMT_HEADER_ONLY      # fmt header-only
+)
+
 # Set include directories
 target_include_directories(synapx
     PUBLIC
@@ -84,8 +91,7 @@ target_include_directories(synapx
 target_link_libraries(synapx
     PUBLIC
         ${TORCH_LIBRARIES}
-    PRIVATE
-        spdlog::spdlog
+        spdlog::spdlog_header_only
 )
 
 add_library(synapx::synapx ALIAS synapx)
