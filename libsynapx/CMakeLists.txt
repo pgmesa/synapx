@@ -14,7 +14,8 @@ message(STATUS "Runtime output directory: ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}")
 message(STATUS "Debug flags:   ${CMAKE_CXX_FLAGS_DEBUG}")
 message(STATUS "Release flags: ${CMAKE_CXX_FLAGS_RELEASE}")
 
-# ========================= Python and site-packages =========================
+# ========================= Python and site-packages ==========================
+# ─────────────────────────────────────────────────────────────────────────────
 # Allow to provide a custom path
 set(PYTHON_EXECUTABLE "" STRING "Path to the Python executable to use")
 
@@ -50,8 +51,10 @@ else()
             "${PYTHON_EXECUTABLE_DIR}/lib/python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}/site-packages")
     endif()
 endif()
-# ============================================================================
+# =============================================================================
 
+# ============================== SynapX Library ===============================
+# ─────────────────────────────────────────────────────────────────────────────
 message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
 
 find_package(Torch CONFIG REQUIRED)
@@ -72,7 +75,8 @@ add_library(synapx SHARED ${SYNAPX_SOURCES})
 # Set include directories
 target_include_directories(synapx
     PUBLIC
-        ${SYNAPX_INCLUDE_DIR}
+        $<BUILD_INTERFACE:${SYNAPX_INCLUDE_DIR}>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/synapx>
         ${TORCH_INCLUDE_DIRS}
 )
 
@@ -85,15 +89,72 @@ target_link_libraries(synapx
 )
 
 add_library(synapx::synapx ALIAS synapx)
+# ─────────────────────────────────────────────────────────────────────────────
 
+# ─────────────────────────────────────────────────────────────────────────────
 # Option to build examples
 option(BUILD_EXAMPLES "Build C++ Examples" ON)
 if(BUILD_EXAMPLES)
     add_subdirectory("${SYNAPX_EXAMPLES_DIR}")
 endif()
+# ─────────────────────────────────────────────────────────────────────────────
 
+# ─────────────────────────────────────────────────────────────────────────────
 # Option to build Python bindings
 option(BUILD_PYTHON_BINDINGS "Build Python bindings" ON)
 if(BUILD_PYTHON_BINDINGS)
     add_subdirectory("${SYNAPX_BINDINGS_DIR}")
 endif()
+# ─────────────────────────────────────────────────────────────────────────────
+
+# =============================== Installation ================================
+# ─────────────────────────────────────────────────────────────────────────────
+# 1) standard install dirs and package‐config helpers
+include(GNUInstallDirs)
+include(CMakePackageConfigHelpers)
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 2) install libraries and headers
+install(TARGETS synapx synapx_bindings
+    EXPORT      synapxTargets
+    RUNTIME     DESTINATION ${CMAKE_INSTALL_BINDIR}   # .dll / .pyd on Windows
+    LIBRARY     DESTINATION ${CMAKE_INSTALL_LIBDIR}   # .so on UNIX
+    ARCHIVE     DESTINATION ${CMAKE_INSTALL_LIBDIR}   # .lib on Windows, .a on UNIX
+)
+
+install(DIRECTORY ${SYNAPX_INCLUDE_DIR}/
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/synapx
+    FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp"
+)
+# ─────────────────────────────────────────────────────────────────────────────
+
+# ─────────────────────────────────────────────────────────────────────────────
+# 3) write out version-compat file
+write_basic_package_version_file(
+    "${CMAKE_CURRENT_BINARY_DIR}/SynapxConfigVersion.cmake"
+    VERSION       ${PROJECT_VERSION}
+    COMPATIBILITY AnyNewerVersion
+)
+
+# 4) configure main Config file from template
+configure_package_config_file(
+    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/SynapxConfig.cmake.in"
+    "${CMAKE_CURRENT_BINARY_DIR}/SynapxConfig.cmake"
+    INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/synapx"
+)
+
+# 5) install the generated Config files
+install(FILES
+    "${CMAKE_CURRENT_BINARY_DIR}/SynapxConfig.cmake"
+    "${CMAKE_CURRENT_BINARY_DIR}/SynapxConfigVersion.cmake"
+  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/synapx"
+)
+
+# 6) install the exported targets under the synapx:: namespace
+install(EXPORT synapxTargets
+    FILE      "SynapxTargets.cmake"
+    NAMESPACE synapx::
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/synapx"
+)
+# ─────────────────────────────────────────────────────────────────────────────

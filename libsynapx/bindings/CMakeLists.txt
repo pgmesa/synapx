@@ -11,6 +11,7 @@ find_package(pybind11 REQUIRED)
 
 # Create Python module
 pybind11_add_module(synapx_bindings python_bindings.cpp)
+add_library(synapx::synapx_bindings ALIAS synapx_bindings)
 
 # Link against core library
 target_link_libraries(synapx_bindings PRIVATE synapx::synapx)

@@ -1,0 +1,5 @@
+
+@PACKAGE_INIT@
+
+# Load the exported targets (synapx::synapx and synapx::synapx_bindings)
+include("${CMAKE_CURRENT_LIST_DIR}/SynapxTargets.cmake")
