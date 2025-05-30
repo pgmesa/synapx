@@ -30,7 +30,7 @@ help:
 	@echo ""
 	@echo "Available targets:"
 	@echo "  configure  - Configure the project (CMake configure step)"
-	@echo "  build      - Build the project (CMake build step)"
+	@echo "  build      - Build the project (CMake build step). Use target=install to install"
 	@echo "  rebuild    - Clean, configure, and build"
 	@echo "  clean      - Remove build directory"
 	@echo ""
