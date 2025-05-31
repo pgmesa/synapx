@@ -65,4 +65,21 @@ namespace synapx::autograd::cpu {
         return {unbroadcast(grad_t1, t1.sizes()), unbroadcast(grad_t2, t2.sizes())};
     }
 
+
+    std::vector<torch::Tensor> Pow::forward(const std::vector<torch::Tensor>& inputs) { 
+        const torch::Tensor& t1 = inputs[0];
+        const torch::Tensor& exp = inputs[1];
+
+        torch::Tensor out = torch::pow(t1, exp);
+        
+        this->t1 = t1;
+        this->exp = exp;
+
+        return {out};
+    }
+
+    std::vector<torch::Tensor> Pow::backward(const std::vector<torch::Tensor>& grad_outputs) {
+        return {exp * (t1.pow(exp - 1)) * grad_outputs[0]};
+    }
+
 }

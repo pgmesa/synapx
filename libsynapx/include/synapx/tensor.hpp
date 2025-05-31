@@ -43,10 +43,16 @@ namespace synapx {
 
         Tensor operator+(const Tensor& other) const;
         Tensor operator*(const Tensor& other) const;
+        Tensor operator-(const Tensor& other) const;
+        Tensor operator/(const Tensor& other) const;
+        Tensor operator-() const;
 
         Tensor add(const Tensor& other) const;
         Tensor mul(const Tensor& other) const;
         Tensor matmul(const Tensor& other) const;
+        Tensor pow(const Tensor& exponent) const;
+        Tensor pow(double exponent) const;
+        
 
         std::string to_string() const;
         static std::string to_string(torch::Tensor tensor);

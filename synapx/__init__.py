@@ -38,9 +38,9 @@ torch_version = '.'.join(torch.__version__.split('.')[:2])
 if torch_version in libtorch_supported_versions:
     target_synapx_lib_dir = synapx_lib_dir / libtorch_supported_versions[torch_version]
 else:
-    print(f"[x] Current installed torch version ({torch_version}.x) is not supported")
+    print(f"[x] Current installed torch version ({torch.__version__}) is not supported")
     print_supported_versions()
-    raise RuntimeError("Not supported torch version")
+    raise RuntimeError(f"Not supported torch version ({torch.__version__})")
 
 # Platform-specific shared library loading
 if platform.system() == 'Windows':

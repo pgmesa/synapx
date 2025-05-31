@@ -89,38 +89,108 @@ inline synapx::Device string_to_device(const std::string& device_str) {
     }
 }
 
-// Convert a PyObject (list, numpy.ndarray, torch.Tensor, or synapx.Tensor) → torch::Tensor
-inline torch::Tensor pydata_to_torch(py::object data) {
+// Convert a PyObject (scalar, list, numpy.ndarray, torch.Tensor, or synapx.Tensor) → torch::Tensor
+inline torch::Tensor pyobject_to_torch(py::object data) {
     torch::Tensor tensor;
 
-    // 1) If it’s a Python list, first convert to NumPy:
-    if (py::isinstance<py::list>(data)) {
+    // Handle Python scalars (int, float, bool)
+    if (py::isinstance<py::int_>(data)) {
+        int64_t value = py::cast<int64_t>(data);
+        tensor = torch::tensor(value);
+    }
+    else if (py::isinstance<py::float_>(data)) {
+        double value = py::cast<double>(data);
+        tensor = torch::tensor(value);
+    }
+    else if (py::isinstance<py::bool_>(data)) {
+        bool value = py::cast<bool>(data);
+        tensor = torch::tensor(value);
+    }
+    // If it's a Python list, first convert to NumPy:
+    else if (py::isinstance<py::list>(data)) {
         py::list py_list = py::cast<py::list>(data);
         py::array numpy_array = py::array(py_list);
         tensor = numpy_to_torch(numpy_array);
     }
-    // 2) If it’s a NumPy array:
+    // If it's a NumPy array:
     else if (py::isinstance<py::array>(data)) {
         py::array numpy_array = py::cast<py::array>(data);
         tensor = numpy_to_torch(numpy_array);
     }
     else {
-        // 3) Attempt to see if it’s a *Python* torch.Tensor
+        // Attempt to see if it's a *Python* torch.Tensor
         py::object torch_mod   = py::module_::import("torch");
         py::object torch_class = torch_mod.attr("Tensor");
         if (py::isinstance(data, torch_class)) {
             tensor = py::cast<torch::Tensor>(data);
         }
-        // 4) Or if it’s already a synapx::Tensor
+        // Or if it's already a synapx::Tensor
         else if (py::isinstance<synapx::Tensor>(data)) {
             synapx::Tensor syn_t = py::cast<synapx::Tensor>(data);
             tensor = syn_t.data();
         }
         else {
             throw std::runtime_error(
-                "Data must be a Python list, NumPy array, Python torch.Tensor, or SynapX Tensor"
+                "Data must be a scalar, Python list, NumPy array, Python torch.Tensor, or SynapX Tensor"
             );
         }
     }
     return tensor;
+}
+
+// Convert a Python torch.dtype → torch::Dtype
+inline torch::Dtype pyobject_to_torch_dtype(py::object dtype_obj) {
+    py::object torch_mod = py::module_::import("torch");
+    
+    // Check common dtypes by comparing to torch module attributes
+    if (dtype_obj.is(torch_mod.attr("float32"))) {
+        return torch::kFloat32;
+    } else if (dtype_obj.is(torch_mod.attr("float64"))) {
+        return torch::kFloat64;
+    } else if (dtype_obj.is(torch_mod.attr("int32"))) {
+        return torch::kInt32;
+    } else if (dtype_obj.is(torch_mod.attr("int64"))) {
+        return torch::kInt64;
+    } else if (dtype_obj.is(torch_mod.attr("uint8"))) {
+        return torch::kUInt8;
+    } else if (dtype_obj.is(torch_mod.attr("int8"))) {
+        return torch::kInt8;
+    } else if (dtype_obj.is(torch_mod.attr("int16"))) {
+        return torch::kInt16;
+    } else if (dtype_obj.is(torch_mod.attr("bool"))) {
+        return torch::kBool;
+    } else if (dtype_obj.is(torch_mod.attr("float16"))) {
+        return torch::kFloat16;
+    } else {
+        throw std::runtime_error("Unsupported torch dtype");
+    }
+}
+
+// Convert a torch::Dtype → Python torch.dtype
+inline py::object torch_dtype_to_pyobject(torch::Dtype torch_dtype) {
+    py::object torch_mod = py::module_::import("torch");
+    
+    switch (torch_dtype) {
+        case torch::kFloat32: return torch_mod.attr("float32");
+        case torch::kFloat64: return torch_mod.attr("float64");
+        case torch::kInt32:   return torch_mod.attr("int32");
+        case torch::kInt64:   return torch_mod.attr("int64");
+        case torch::kUInt8:   return torch_mod.attr("uint8");
+        case torch::kInt8:    return torch_mod.attr("int8");
+        case torch::kInt16:   return torch_mod.attr("int16");
+        case torch::kBool:    return torch_mod.attr("bool");
+        case torch::kFloat16: return torch_mod.attr("float16");
+        default:
+            throw std::runtime_error("Unsupported torch dtype for conversion to Python");
+    }
+}
+
+inline synapx::Tensor pyobject_to_synapx(py::object obj, const synapx::Device& device) {
+    if (py::isinstance<synapx::Tensor>(obj)) {
+        return py::cast<synapx::Tensor>(obj);
+    }
+    
+    // Convert scalar or other types to tensor
+    torch::Tensor tensor = pyobject_to_torch(obj);
+    return synapx::Tensor(tensor, false, device);
 }

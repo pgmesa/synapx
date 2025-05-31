@@ -118,6 +118,18 @@ namespace synapx {
         return mul(other);
     }
 
+    Tensor Tensor::operator-(const Tensor& other) const {
+        return add((-other));
+    }
+
+    Tensor Tensor::operator/(const Tensor& other) const {
+        return mul(other.pow(-1.0));
+    }
+
+    Tensor Tensor::operator-() const {
+        return mul(Tensor(torch::tensor(-1.0), false, device()));
+    }
+
     Tensor Tensor::add(const Tensor& other) const {
         return F::add(*this, other);
     }
@@ -128,6 +140,14 @@ namespace synapx {
 
     Tensor Tensor::matmul(const Tensor& other) const {
         return F::matmul(*this, other);
+    }
+
+    Tensor Tensor::pow(const Tensor& exponent) const {
+        return F::pow(*this, exponent);
+    }
+
+    Tensor Tensor::pow(double exponent) const {
+        return F::pow(*this, Tensor(torch::tensor(exponent), false, device()));
     }
 
     std::string Tensor::to_string() const {

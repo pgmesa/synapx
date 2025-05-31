@@ -7,6 +7,7 @@ dev_notes.md
 synapx/lib/
 synapx/include/
 synapx/share/
+synapx/_C.pyi
 
 # CMake
 CMakeUserPresets.json

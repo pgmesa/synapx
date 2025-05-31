@@ -9,6 +9,7 @@ namespace synapx::F {
     SYNAPX_API Tensor add(const Tensor& t1, const Tensor& t2);
     SYNAPX_API Tensor mul(const Tensor& t1, const Tensor& t2);
     SYNAPX_API Tensor matmul(const Tensor& t1, const Tensor& t2);
+    SYNAPX_API Tensor pow(const Tensor& t1, const Tensor& exp);
 
     namespace detail {
 
