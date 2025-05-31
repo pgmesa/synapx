@@ -156,13 +156,18 @@ class MatmulTest(BenchmarkTest):
         result = BenchmarkResult(self.name + " (Synapx)", self.description)
         a, b = self._generate_data()
         
-        synapx_a = synapx.from_numpy(a)
-        synapx_b = synapx.from_numpy(b)
+        synapx_a = synapx.tensor(a, requires_grad=True)
+        synapx_b = synapx.tensor(b, requires_grad=True)
         
         for _ in range(self._config.num_runs):
             start = time.perf_counter()
-            _ = synapx_a.matmul(synapx_b)
+            out = synapx.matmul(synapx_a, synapx_b)
             result.forward_times.append((time.perf_counter() - start) * 1000)
+            
+            start = time.perf_counter()
+            grad = synapx.tensor(np.ones_like(out.numpy()))
+            out.backward(grad)
+            result.backward_times.append((time.perf_counter() - start) * 1000)
             
         return result
     
