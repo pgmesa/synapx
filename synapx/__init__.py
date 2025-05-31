@@ -18,7 +18,7 @@ libtorch_supported_versions = {
 def print_supported_versions():
     print(f"\nThis SynapX version ({__version__}) supports:")
     for v in libtorch_supported_versions:
-        print(f"- torch {v}.x")
+        print(f"- torch {v}.X")
     print()
 
 # Ensures libtorch shared libraries are loaded
