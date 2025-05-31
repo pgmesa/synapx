@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.22 FATAL_ERROR)
-project(synapx VERSION 1.0.0 LANGUAGES CXX)
+project(synapx VERSION 0.1.0 LANGUAGES CXX)
 
 # Set C++ standard
 set(CMAKE_CXX_STANDARD 17)
@@ -59,6 +59,15 @@ message(STATUS "CMAKE_PREFIX_PATH: ${CMAKE_PREFIX_PATH}")
 
 find_package(Torch CONFIG REQUIRED)
 find_package(spdlog CONFIG REQUIRED)
+
+# Parse major and minor version from Torch_VERSION
+string(REGEX MATCH "^[0-9]+" TORCH_VERSION_MAJOR "${Torch_VERSION}")
+string(REGEX MATCH "^[0-9]+\\.([0-9]+)" _match "${Torch_VERSION}")
+string(REGEX REPLACE "^[0-9]+\\.([0-9]+).*" "\\1" TORCH_VERSION_MINOR "${Torch_VERSION}")
+
+message(STATUS "Torch version: ${Torch_VERSION}")
+message(STATUS "Torch major version: ${TORCH_VERSION_MAJOR}")
+message(STATUS "Torch minor version: ${TORCH_VERSION_MINOR}")
 
 # Define project structure
 set(SYNAPX_INCLUDE_DIR ${PROJECT_SOURCE_DIR}/include)
@@ -122,11 +131,13 @@ include(CMakePackageConfigHelpers)
 
 # ─────────────────────────────────────────────────────────────────────────────
 # 2) install libraries and headers
+set(LIBTORCH_VERSIONED_DIR "libtorch-${TORCH_VERSION_MAJOR}.${TORCH_VERSION_MINOR}.X")
+set(SYNAPX_INSTALL_LIBDIR "${CMAKE_INSTALL_LIBDIR}/${LIBTORCH_VERSIONED_DIR}")
 install(TARGETS synapx synapx_bindings
     EXPORT      synapxTargets
-    RUNTIME     DESTINATION ${CMAKE_INSTALL_BINDIR}   # .dll / .pyd on Windows
-    LIBRARY     DESTINATION ${CMAKE_INSTALL_LIBDIR}   # .so on UNIX
-    ARCHIVE     DESTINATION ${CMAKE_INSTALL_LIBDIR}   # .lib on Windows, .a on UNIX
+    RUNTIME     DESTINATION ${SYNAPX_INSTALL_LIBDIR}   # .dll / .pyd on Windows
+    LIBRARY     DESTINATION ${SYNAPX_INSTALL_LIBDIR}   # .so on UNIX
+    ARCHIVE     DESTINATION ${SYNAPX_INSTALL_LIBDIR}   # .lib on Windows, .a on UNIX
 )
 
 install(DIRECTORY ${SYNAPX_INCLUDE_DIR}/
@@ -147,20 +158,13 @@ write_basic_package_version_file(
 configure_package_config_file(
     "${CMAKE_CURRENT_SOURCE_DIR}/cmake/SynapxConfig.cmake.in"
     "${CMAKE_CURRENT_BINARY_DIR}/SynapxConfig.cmake"
-    INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/synapx"
+    INSTALL_DESTINATION "${CMAKE_INSTALL_DATADIR}/cmake/synapx"
 )
 
 # 5) install the generated Config files
 install(FILES
     "${CMAKE_CURRENT_BINARY_DIR}/SynapxConfig.cmake"
     "${CMAKE_CURRENT_BINARY_DIR}/SynapxConfigVersion.cmake"
-  DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/synapx"
-)
-
-# 6) install the exported targets under the synapx:: namespace
-install(EXPORT synapxTargets
-    FILE      "SynapxTargets.cmake"
-    NAMESPACE synapx::
-    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/synapx"
+  DESTINATION "${CMAKE_INSTALL_DATADIR}/cmake/synapx"
 )
 # ─────────────────────────────────────────────────────────────────────────────

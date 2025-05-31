@@ -5,7 +5,7 @@ import importlib.util
 from pathlib import Path
 
 
-__version__ = "0.1.0-alpha"
+__version__ = "0.1.0-alpha.1"
 
 package_path = Path(__file__).parent.absolute()
 

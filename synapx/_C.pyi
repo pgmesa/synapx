@@ -1,5 +1,5 @@
 """
-Synapx tensor operations
+Synapx core C++ bindings
 """
 from __future__ import annotations
 import numpy

@@ -4,6 +4,9 @@ z_*
 libtorch/
 debug/
 dev_notes.md
+synapx/lib/
+synapx/include/
+synapx/share/
 
 # CMake
 CMakeUserPresets.json
