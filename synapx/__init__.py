@@ -25,7 +25,7 @@ def print_supported_versions():
 try:
     import torch
 except Exception as e:
-    print("[x] Could not load 'torch' module")
+    print("\n[x] Could not load 'torch' module")
     print("SynapX requires LibTorch compiled shared libraries to be installed and available in the environment.")
     print("Please ensure you have a supported PyTorch version installed.")
     print_supported_versions()
@@ -38,7 +38,7 @@ torch_version = '.'.join(torch.__version__.split('.')[:2])
 if torch_version in libtorch_supported_versions:
     target_synapx_lib_dir = synapx_lib_dir / libtorch_supported_versions[torch_version]
 else:
-    print(f"[x] Current installed torch version ({torch.__version__}) is not supported")
+    print(f"\n[x] Current installed torch version ({torch.__version__}) is not supported")
     print_supported_versions()
     raise RuntimeError(f"Not supported torch version ({torch.__version__})")
 
@@ -58,7 +58,7 @@ for file in target_synapx_lib_dir.iterdir():
         break
 
 if not _C_module_file:
-    raise ImportError(f"Cannot find the _C shared library file for torch {torch_version} in {target_synapx_lib_dir}")
+    raise ImportError(f"Cannot find the synapx._C shared library file for libtorch {torch_version} in {target_synapx_lib_dir}")
 
 # Dynamically load the identified `_C` module
 spec = importlib.util.spec_from_file_location("synapx._C", _C_module_file)
