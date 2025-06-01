@@ -76,8 +76,8 @@ def test_div():
 def test_matmul():
     op_tester([(3, 512, 512), (3, 512, 512)], lambda x,y: x@y, name='matmul')
     
-# def test_addmm():
-#     op_tester([(10, 10), (10, 10), (10, 10)], lambda engine, x, y, z: engine.addmm(x, y, z), name='addmm', module_func=True)
+def test_addmm():
+    op_tester([(10, 10), (10, 10), (10, 10)], lambda engine, x, y, z: engine.addmm(x, y, z), name='addmm', module_func=True)
 
 def test_rsub():
     op_tester([(500, 400, 3)], lambda x: 234 - x, name='rsub')
@@ -99,3 +99,11 @@ def test_mul_broadcast():
 
 def test_div_broadcast():
     op_tester([(1000, 1000), (1000, 1)], lambda x,y: x/y, name='div_broadcast')
+    
+def test_neg():
+    op_tester([(1000, 1500)], lambda x: -x, name='neg')
+
+def test_pow():
+    op_tester([(1000, 1000)], lambda x: x ** 1.1, name='pow')
+    op_tester([(1000, 1000)], lambda x: x ** -2.2, name='pow')
+    op_tester([(1000, 1000)], lambda x: x ** 0.7, name='pow')

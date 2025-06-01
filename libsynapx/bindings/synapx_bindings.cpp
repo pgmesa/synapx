@@ -5,7 +5,7 @@
 
 #include <torch/extension.h>
 #include <torch/torch.h>
-#include <synapx/tensor.hpp>
+#include <synapx/synapx.hpp>
 
 #include "parsers.hpp"
 
@@ -217,14 +217,28 @@ PYBIND11_MODULE(_C, m) {
     }, py::arg("input"), py::arg("requires_grad") = false, py::arg("device") = "cpu", py::arg("dtype") = py::none());
         
     m.def("add", [](synapx::Tensor t1, synapx::Tensor t2) {
-        return t1.add(t2);
+        return synapx::F::add(t1, t2);
     }, py::arg("t1"), py::arg("t2"));
     
     m.def("mul", [](synapx::Tensor t1, synapx::Tensor t2) {
-        return t1.mul(t2);
+        return synapx::F::mul(t1, t2);
     }, py::arg("t1"), py::arg("t2"));
     
     m.def("matmul", [](synapx::Tensor t1, synapx::Tensor t2) {
-        return t1.matmul(t2);
+        return synapx::F::matmul(t1, t2);
     }, py::arg("t1"), py::arg("t2"));
+
+    m.def("addmm", [](synapx::Tensor inp, synapx::Tensor mat1, synapx::Tensor mat2) {
+        return synapx::F::addmm(inp, mat1, mat2);
+    }, py::arg("inp"), py::arg("mat1"), py::arg("mat2"));
+
+    m.def("pow", [](synapx::Tensor t1, py::object exponent) {
+        if (py::isinstance<py::float_>(exponent) || py::isinstance<py::int_>(exponent)) {
+            double exp_val = py::cast<double>(exponent);
+            return synapx::F::pow(t1, exp_val);
+        } else {
+            synapx::Tensor exp_tensor = pyobject_to_synapx(exponent, t1.device());
+            return synapx::F::pow(t1, exp_tensor);
+        }
+    }, py::arg("t1"), py::arg("exponent"));
 }

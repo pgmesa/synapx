@@ -36,6 +36,17 @@ namespace synapx::autograd::cpu {
         torch::Tensor t2;
     };
 
+    class Addmm: public Function {
+    public:
+        std::vector<torch::Tensor> forward(const std::vector<torch::Tensor>& inputs) override;
+        std::vector<torch::Tensor> backward(const std::vector<torch::Tensor>& grad_outputs) override;
+    
+    private:
+        torch::Tensor inp;
+        torch::Tensor mat1;
+        torch::Tensor mat2;
+    };
+
     class Pow: public Function {
     public:
         std::vector<torch::Tensor> forward(const std::vector<torch::Tensor>& inputs) override;

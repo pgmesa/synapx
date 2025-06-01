@@ -147,7 +147,7 @@ namespace synapx {
     }
 
     Tensor Tensor::pow(double exponent) const {
-        return F::pow(*this, Tensor(torch::tensor(exponent), false, device()));
+        return F::pow(*this, exponent);
     }
 
     std::string Tensor::to_string() const {

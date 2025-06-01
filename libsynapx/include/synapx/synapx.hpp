@@ -2,7 +2,7 @@
 #ifndef SYNAPX_HPP
 #define SYNAPX_HPP
 
-#include <synapx/core.hpp"
+#include <synapx/core.hpp>
 #include <synapx/device.hpp>
 #include <synapx/tensor.hpp>
 #include <synapx/functional.hpp>

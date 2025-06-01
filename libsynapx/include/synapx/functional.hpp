@@ -9,7 +9,9 @@ namespace synapx::F {
     SYNAPX_API Tensor add(const Tensor& t1, const Tensor& t2);
     SYNAPX_API Tensor mul(const Tensor& t1, const Tensor& t2);
     SYNAPX_API Tensor matmul(const Tensor& t1, const Tensor& t2);
+    SYNAPX_API Tensor addmm(const Tensor& inp, const Tensor& mat1, const Tensor& mat2);
     SYNAPX_API Tensor pow(const Tensor& t1, const Tensor& exp);
+    SYNAPX_API Tensor pow(const Tensor& t1, double exp);
 
     namespace detail {
 
@@ -58,7 +60,9 @@ namespace synapx::F {
 
                 // record one backward‐edge per input slot
                 for (size_t i = 0; i < inputs.size(); ++i) {
-                    fn->backward_edges.push_back({inputs[i].grad_fn(), i, inputs[i]});
+                    Tensor input = inputs[i];
+                    if (input.requires_grad())
+                        fn->backward_edges.push_back({input.grad_fn(), i, input});
                 }
             }
 
