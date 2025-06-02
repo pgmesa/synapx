@@ -53,16 +53,17 @@ namespace synapx::autograd {
                 if (!in_tensor.requires_grad())
                     continue;
 
-                if (in_tensor.is_leaf()) {
-                    // Accumulate into the Tensor’s own .grad
-                    if (in_tensor.retains_grad() && in_tensor.grad().defined()) {
-                        in_tensor.set_grad(in_tensor.grad() + grad_input);
+                if (edge.variable.is_leaf() || edge.variable.retains_grad()) {
+                    // Leaf tensors always accumulate gradients
+                    if (edge.variable.grad().defined()) {
+                        edge.variable.set_grad(edge.variable.grad() + grad_input);
                     } else {
-                        in_tensor.set_grad(grad_input);
+                        edge.variable.set_grad(grad_input);
                     }
-                } else {
-                    // Route on to the next Function in the graph
-                    auto next_fn = in_tensor.grad_fn();
+                }
+                // Also propagate to next function in computation graph
+                auto next_fn = edge.variable.grad_fn();
+                if (next_fn) {
                     auto& accumulated = grad_map[next_fn.get()];
                     if (accumulated.defined()) {
                         accumulated = accumulated + grad_input;
