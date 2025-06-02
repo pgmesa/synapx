@@ -12,6 +12,11 @@ namespace synapx::F {
     SYNAPX_API Tensor addmm(const Tensor& inp, const Tensor& mat1, const Tensor& mat2);
     SYNAPX_API Tensor pow(const Tensor& t1, const Tensor& exp);
     SYNAPX_API Tensor pow(const Tensor& t1, double exp);
+    SYNAPX_API Tensor clone(const Tensor& t1);
+    SYNAPX_API Tensor exp(const Tensor& t1);
+    SYNAPX_API Tensor log(const Tensor& t1);
+    SYNAPX_API Tensor sqrt(const Tensor& t1);
+
 
     namespace detail {
 

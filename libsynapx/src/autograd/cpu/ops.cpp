@@ -110,4 +110,49 @@ namespace synapx::autograd::cpu {
         return {exp * (t1.pow(exp - 1)) * grad_outputs[0]};
     }
 
+
+    std::vector<torch::Tensor> Clone::forward(const std::vector<torch::Tensor>& inputs) { 
+        return {inputs[0].clone()};
+    }
+
+    std::vector<torch::Tensor> Clone::backward(const std::vector<torch::Tensor>& grad_outputs) {
+        return grad_outputs;
+    }
+
+
+    std::vector<torch::Tensor> Exp::forward(const std::vector<torch::Tensor>& inputs) { 
+        const torch::Tensor& t1 = inputs[0];
+        torch::Tensor out = torch::exp(t1);
+        this->forward_result = out;
+        return {out};
+    }
+
+    std::vector<torch::Tensor> Exp::backward(const std::vector<torch::Tensor>& grad_outputs) {
+        return {forward_result * grad_outputs[0]};
+    }
+
+
+    std::vector<torch::Tensor> Log::forward(const std::vector<torch::Tensor>& inputs) { 
+        const torch::Tensor& t1 = inputs[0];
+        torch::Tensor out = torch::log(t1 + epsilon);
+        this->t1 = t1;
+        return {out};
+    }
+
+    std::vector<torch::Tensor> Log::backward(const std::vector<torch::Tensor>& grad_outputs) {
+        return {grad_outputs[0] / (t1 + epsilon)};
+    }
+
+
+    std::vector<torch::Tensor> Sqrt::forward(const std::vector<torch::Tensor>& inputs) { 
+        const torch::Tensor& t1 = inputs[0];
+        torch::Tensor out = torch::sqrt(t1);
+        this->forward_result = out;
+        return {out};
+    }
+
+    std::vector<torch::Tensor> Sqrt::backward(const std::vector<torch::Tensor>& grad_outputs) {
+        return {grad_outputs[0] / (2 * forward_result)};
+    }
+    
 }

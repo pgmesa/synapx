@@ -71,4 +71,48 @@ namespace synapx::F {
         return pow(t1, Tensor(torch::tensor(exp), false, t1.device()));
     }
 
+    Tensor clone(const Tensor& t1) {
+        std::vector<Tensor> outs = detail::dispatch_op(
+            {t1}, 
+            [](Device dev) -> std::shared_ptr<autograd::Function> {
+                if (dev.type() == Device::Type::CPU)  return std::make_shared<autograd::cpu::Clone>();
+                throw std::runtime_error("Clone: unsupported device");
+            }
+        );
+        return outs[0];
+    }
+
+    Tensor exp(const Tensor& t1) {
+        std::vector<Tensor> outs = detail::dispatch_op(
+            {t1}, 
+            [](Device dev) -> std::shared_ptr<autograd::Function> {
+                if (dev.type() == Device::Type::CPU)  return std::make_shared<autograd::cpu::Exp>();
+                throw std::runtime_error("Exp: unsupported device");
+            }
+        );
+        return outs[0];
+    }
+
+    Tensor log(const Tensor& t1) {
+        std::vector<Tensor> outs = detail::dispatch_op(
+            {t1}, 
+            [](Device dev) -> std::shared_ptr<autograd::Function> {
+                if (dev.type() == Device::Type::CPU)  return std::make_shared<autograd::cpu::Log>();
+                throw std::runtime_error("Log: unsupported device");
+            }
+        );
+        return outs[0];
+    }
+
+    Tensor sqrt(const Tensor& t1) {
+        std::vector<Tensor> outs = detail::dispatch_op(
+            {t1}, 
+            [](Device dev) -> std::shared_ptr<autograd::Function> {
+                if (dev.type() == Device::Type::CPU)  return std::make_shared<autograd::cpu::Sqrt>();
+                throw std::runtime_error("Sqrt: unsupported device");
+            }
+        );
+        return outs[0];
+    }
+
 } // namespace synapx

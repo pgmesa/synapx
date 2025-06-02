@@ -107,3 +107,106 @@ def test_pow():
     op_tester([(1000, 1000)], lambda x: x ** 1.1, name='pow')
     op_tester([(1000, 1000)], lambda x: x ** -2.2, name='pow')
     op_tester([(1000, 1000)], lambda x: x ** 0.7, name='pow')
+    
+# def test_slice():
+#     op_tester([(30, 40, 20, 10)], lambda x: x[10:14, 3:, :, :], name='slice')
+#     op_tester([(30, 40, 20, 10)], lambda x: x[10:25, :5, :12, 4:], name='slice')
+#     op_tester([(30, 40, 20, 10)], lambda x: x[10:11, 4:8, :12, 0:-1], name='slice')
+    
+# # *************************
+# # ******* Other ops *******
+# # *************************
+
+def test_clone():
+    op_tester([(1000, 1000)], lambda x: x.clone(), name='clone')
+
+def test_log():
+    op_tester([(1000, 1000)], lambda x: x.log(), name='log', factor=5, offset=0.1)
+
+def test_exp():
+    op_tester([(1000, 1000)], lambda x: x.exp(), name='exp')
+
+def test_sqrt():
+    op_tester([(1000, 1000)], lambda x: x.sqrt(), name='sqrt')
+
+# def test_sum():
+#     op_tester([(1000, 1500)], lambda x: x.sum(), name='sum')
+#     op_tester([(1000, 1500)], lambda x: x.sum(dim=1), name='sum')
+#     op_tester([(1000, 1500, 3)], lambda x: x.sum(dim=(1, 2)), name='sum')
+#     op_tester([(1000, 1500, 3)], lambda x: x.sum(dim=-1), name='sum')
+
+# def test_mean():
+#     op_tester([(1000, 1500)], lambda x: x.mean(dim=0), name='mean')
+#     op_tester([(1000, 1500)], lambda x: x.mean(dim=1), name='mean')
+#     op_tester([(1000, 1500)], lambda x: x.mean(dim=-1), name='mean')
+
+# def test_min():
+#     op_tester([(100, 150)], lambda x: x.min(), name='min')
+#     op_tester([(1000, 1500)], lambda x: x.min(dim=0), name='min_d0')
+#     op_tester([(1000, 1500)], lambda x: x.min(dim=1), name='min_d1')
+#     op_tester([(1000, 1500)], lambda x: x.min(dim=1, keepdims=True), name='min_d1')
+#     op_tester([(1000, 3, 4, 5)], lambda x: x.min(dim=2), name='min_d2')
+#     op_tester([(1000, 3, 4, 5)], lambda x: x.min(dim=3), name='min_d3')
+#     op_tester([(1000, 3, 4, 5)], lambda x: x.min(dim=-1), name='min_d3')
+#     op_tester([(1000, 3, 4, 5)], lambda x: x.min(dim=-2), name='min_d3')
+
+# def test_max():
+#     op_tester([(100, 150)], lambda x: x.max(), name='max')
+#     op_tester([(1000, 1500)], lambda x: x.max(dim=0), name='max_d0')
+#     op_tester([(1000, 1500)], lambda x: x.max(dim=1), name='max_d1')
+#     op_tester([(1000, 1500)], lambda x: x.max(dim=1, keepdims=True), name='max_d1')
+#     op_tester([(1000, 3, 4, 5)], lambda x: x.max(dim=2), name='max_d2')
+#     op_tester([(1000, 3, 4, 5)], lambda x: x.max(dim=3), name='max_d3')
+#     op_tester([(1000, 3, 4, 5)], lambda x: x.max(dim=-1), name='max_d3')
+#     op_tester([(1000, 3, 4, 5)], lambda x: x.max(dim=-2), name='max_d3')
+
+# def test_squeeze():
+#     op_tester([(100, 1)], lambda x: x.squeeze(dim=1), name='squeeze')
+#     op_tester([(1, 3)], lambda x: x.squeeze(dim=0), name='squeeze')
+    
+# def test_unsqueeze():
+#     op_tester([(1000,)], lambda x: x.unsqueeze(dim=1), name='unsqueeze')
+
+# def test_reshape():
+#     op_tester([(100000,)], lambda x: x.reshape((1000, 100)), name='reshape')
+#     op_tester([(10000, 200)], lambda x: x.reshape((-1, 50)), name='reshape')
+    
+# def test_movedim():
+#     op_tester([(100, 200, 300)], lambda x: x.movedim(0, 1), name='movedim')
+#     op_tester([(10000, 200)], lambda x: x.movedim(-1, -2), name='movedim')
+    
+# def test_flatten():
+#     op_tester([(100, 200, 300)], lambda x: x.flatten(), name='flatten')
+#     op_tester([(100, 200, 300)], lambda x: x.flatten(start_dim=0, end_dim=1), name='flatten_0_1')
+#     op_tester([(100, 200, 300)], lambda x: x.flatten(start_dim=1, end_dim=2), name='flatten_1_2')
+#     op_tester([(100, 200, 300)], lambda x: x.flatten(start_dim=0, end_dim=2), name='flatten_0_2')
+
+# def test_transpose():
+#     op_tester([(100, 200, 300)], lambda x: x.transpose(2, 1), name='transpose')
+#     op_tester([(100, 200, 300)], lambda x: x.transpose(0, 1), name='transpose')
+
+# # **********************************
+# # ******* Array manipulation *******
+# # **********************************
+
+# def test_stack():
+#     op_tester([(100,), (100,), (100,)], lambda engine, *x: engine.stack(x, dim=0), name='stack', module_func=True)
+#     op_tester([(100, 100), (100, 100), (100, 100)], lambda engine, *x: engine.stack(x, dim=1), name='stack', module_func=True)
+#     op_tester([(100, 100, 100), (100, 100, 100), (100, 100, 100)], lambda engine, *x: engine.stack(x, dim=2), name='stack',module_func=True)
+
+# def test_concat():
+#     op_tester([(100, 200, 4), (100, 200, 3)], lambda engine, *x: engine.concat(x, dim=-1), name='concat', module_func=True)
+#     op_tester([(100, 200, 4), (22, 200, 4)], lambda engine, *x: engine.concat(x, dim=0), name='concat', module_func=True)
+
+# def test_unbind():
+#     op_tester([(100, 200, 300)], lambda engine, x: engine.unbind(x, dim=-1), name='unbind', module_func=True)
+#     op_tester([(100, 200, 300)], lambda engine, x: engine.unbind(x, dim=1), name='unbind', module_func=True)
+
+# # **************************
+# # ******* Linear ops *******
+# # **************************
+
+# def test_linear():
+#     op_tester([(100, 200), (300, 200)], lambda F, x, w: F.linear(x, w), name='linear', module_func=True, nn_functional=True)
+#     op_tester([(100, 200), (300, 200)], lambda F, x, w: F.linear(x, w), name='linear', module_func=True, nn_functional=True)
+#     op_tester([(100, 200), (300, 200), (100, 300)], lambda F, x, w, b: F.linear(x, w, b), name='linear', module_func=True, nn_functional=True)

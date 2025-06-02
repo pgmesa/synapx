@@ -6,6 +6,8 @@
 
 namespace synapx::autograd::cpu {
 
+    constexpr double epsilon = 1e-12;
+
     class Add: public Function {
     public:
         std::vector<torch::Tensor> forward(const std::vector<torch::Tensor>& inputs) override;
@@ -55,6 +57,39 @@ namespace synapx::autograd::cpu {
     private:
         torch::Tensor t1;
         torch::Tensor exp;
+    };
+
+    class Clone: public Function {
+    public:
+        std::vector<torch::Tensor> forward(const std::vector<torch::Tensor>& inputs) override;
+        std::vector<torch::Tensor> backward(const std::vector<torch::Tensor>& grad_outputs) override;
+    };
+
+    class Exp: public Function {
+    public:
+        std::vector<torch::Tensor> forward(const std::vector<torch::Tensor>& inputs) override;
+        std::vector<torch::Tensor> backward(const std::vector<torch::Tensor>& grad_outputs) override;
+    
+    private:
+        torch::Tensor forward_result;
+    };
+
+    class Log: public Function {
+    public:
+        std::vector<torch::Tensor> forward(const std::vector<torch::Tensor>& inputs) override;
+        std::vector<torch::Tensor> backward(const std::vector<torch::Tensor>& grad_outputs) override;
+    
+    private:
+        torch::Tensor t1;
+    };
+
+    class Sqrt: public Function {
+    public:
+        std::vector<torch::Tensor> forward(const std::vector<torch::Tensor>& inputs) override;
+        std::vector<torch::Tensor> backward(const std::vector<torch::Tensor>& grad_outputs) override;
+    
+    private:
+        torch::Tensor forward_result;
     };
 
 }

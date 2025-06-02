@@ -1,7 +1,6 @@
 
 #include <synapx/tensor.hpp>
 
-#include <iostream>
 #include <vector>
 #include <cstddef>
 
@@ -40,6 +39,59 @@ namespace synapx {
         return impl_->requires_grad; 
     }
 
+    void Tensor::requires_grad_(bool _requires_grad) {
+        if (!is_leaf()) {
+            throw std::runtime_error(
+                "You can only change requires_grad flags of leaf variables. "
+                "If you want to use a computed variable in a subgraph that doesn't require "
+                "differentiation use var_no_grad = var.detach()"
+            );
+        }
+            
+        if (_requires_grad && !is_floating_point()){
+            throw std::runtime_error("Only floating point Tensors can require gradients");
+        }
+            
+        impl_->requires_grad = _requires_grad;
+    }
+
+    bool Tensor::is_floating_point() const {
+        return impl_->data.is_floating_point();
+    }
+
+    size_t Tensor::numel() const {
+        return impl_->data.numel();
+    }
+
+    size_t Tensor::dim() const {
+        return impl_->data.dim();
+    }
+
+    std::vector<int64_t> Tensor::shape() const {
+        auto sizes = impl_->data.sizes();
+        return std::vector<int64_t>(sizes.begin(), sizes.end());
+    }
+
+    Tensor Tensor::detach() const {
+        return Tensor(impl_->data.clone(), false, impl_->device);
+    }
+
+    torch::Scalar Tensor::item() const {
+        return impl_->data.item();
+    }
+
+    void Tensor::zero_() {
+        set_grad(torch::ones_like(impl_->data));
+    }
+    
+    Tensor Tensor::to(Device device) const {
+        return *this;
+    }
+
+    Tensor Tensor::cpu() const {
+        return *this;
+    }
+
     bool Tensor::defined() const {
         return impl_->data.defined();
     }
@@ -63,14 +115,14 @@ namespace synapx {
     const torch::Tensor Tensor::grad() const {
         const torch::Tensor& maybe_grad = impl_->grad;
         if (!this->is_leaf() && !this->retains_grad() && !maybe_grad.defined()) {
-            std::cout << (
+            spdlog::warn(
                 "The .grad attribute of a Tensor that is not a leaf Tensor is being accessed. Its .grad "
                 "attribute won't be populated during autograd.backward(). If you indeed want the .grad "
                 "field to be populated for a non-leaf Tensor, use .retain_grad() on the non-leaf Tensor. "
                 "If you access the non-leaf Tensor by mistake, make sure you access the leaf Tensor "
                 "instead."
-            ) << std::endl;
-        } 
+            );
+        }
         return maybe_grad;
     }
 
@@ -84,19 +136,6 @@ namespace synapx {
 
     void Tensor::set_grad_fn(const std::shared_ptr<autograd::Function> grad_fn) {
         impl_->grad_fn = grad_fn;
-    }
-
-    size_t Tensor::numel() const {
-        return impl_->data.numel();
-    }
-
-    size_t Tensor::dim() const {
-        return impl_->data.dim();
-    }
-
-    std::vector<int64_t> Tensor::shape() const {
-        auto sizes = impl_->data.sizes();
-        return std::vector<int64_t>(sizes.begin(), sizes.end());
     }
 
     void Tensor::backward(const torch::Tensor& grad) {
@@ -148,6 +187,22 @@ namespace synapx {
 
     Tensor Tensor::pow(double exponent) const {
         return F::pow(*this, exponent);
+    }
+
+    Tensor Tensor::clone() const {
+        return F::clone(*this);
+    }
+
+    Tensor Tensor::exp() const {
+        return F::exp(*this);
+    }
+
+    Tensor Tensor::log() const {
+        return F::log(*this);
+    }
+
+    Tensor Tensor::sqrt() const {
+        return F::sqrt(*this);
     }
 
     std::string Tensor::to_string() const {

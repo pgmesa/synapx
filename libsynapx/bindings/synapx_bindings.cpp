@@ -14,7 +14,7 @@ namespace py = pybind11;
 
 
 PYBIND11_MODULE(_C, m) {
-    m.doc() = "Synapx core C++ bindings";
+    m.doc() = "Synapx C++ bindings";
 
     py::register_exception_translator([](std::exception_ptr p) {
         // Clean exceptions from libtorch 
@@ -88,18 +88,11 @@ PYBIND11_MODULE(_C, m) {
             synapx::Tensor base_tensor = pyobject_to_synapx(base, self.device());
             return base_tensor.pow(self);
         }, py::arg("base"))
-        .def("add", [](const synapx::Tensor& self, py::object other) {
-            synapx::Tensor other_tensor = pyobject_to_synapx(other, self.device());
-            return self + other_tensor;
-        }, py::arg("other"))
-        .def("mul", [](const synapx::Tensor& self, py::object other) {
-            synapx::Tensor other_tensor = pyobject_to_synapx(other, self.device());
-            return self * other_tensor;
-        }, py::arg("other"))
-        .def("matmul", [](const synapx::Tensor& self, py::object other) {
-            synapx::Tensor other_tensor = pyobject_to_synapx(other, self.device());
-            return self.matmul(other_tensor);
-        }, py::arg("other"))
+        .def("detach", &synapx::Tensor::detach)
+        .def("clone", &synapx::Tensor::clone)
+        .def("add", &synapx::Tensor::add)
+        .def("mul", &synapx::Tensor::mul)
+        .def("matmul", &synapx::Tensor::matmul)
         .def("pow", [](const synapx::Tensor& self, py::object exponent) {
             if (py::isinstance<py::float_>(exponent) || py::isinstance<py::int_>(exponent)) {
                 double exp_val = py::cast<double>(exponent);
@@ -109,10 +102,24 @@ PYBIND11_MODULE(_C, m) {
                 return self.pow(exp_tensor);
             }
         }, py::arg("exponent"))
-        .def("requires_grad", &synapx::Tensor::requires_grad)
+        .def("exp", &synapx::Tensor::exp)
+        .def("log", &synapx::Tensor::log)
+        .def("sqrt", &synapx::Tensor::sqrt)
+        .def_property_readonly("requires_grad", &synapx::Tensor::requires_grad)
+        .def("requires_grad_", &synapx::Tensor::requires_grad_)
+        .def("is_floating_point", &synapx::Tensor::is_floating_point)
+        .def("item", [](const synapx::Tensor& self) -> py::object {
+            return py::cast(self.data().item());
+        })
+        .def("zero_", &synapx::Tensor::zero_)
+        .def("to", [](const synapx::Tensor& self, py::str device) {
+            synapx::Device dev = string_to_device(device);
+            return self.to(dev);
+        }, py::arg("device"))
+        .def("cpu", &synapx::Tensor::cpu)
         .def("is_leaf", &synapx::Tensor::is_leaf)
         .def("retain_grad", &synapx::Tensor::retain_grad)
-        .def("retains_grad", &synapx::Tensor::retains_grad)
+        .def_property_readonly("retains_grad", &synapx::Tensor::retains_grad)
         .def_property_readonly("dtype", [](const synapx::Tensor& self) -> py::object {
             torch::Dtype torch_dtype = self.data().scalar_type();
             return torch_dtype_to_pyobject(torch_dtype);
@@ -241,4 +248,20 @@ PYBIND11_MODULE(_C, m) {
             return synapx::F::pow(t1, exp_tensor);
         }
     }, py::arg("t1"), py::arg("exponent"));
+
+    m.def("clone", [](synapx::Tensor t1) {
+        return synapx::F::clone(t1);  
+    }, py::arg("t1"));
+
+    m.def("exp", [](synapx::Tensor t1) {
+        return synapx::F::exp(t1);  
+    }, py::arg("t1"));
+
+    m.def("log", [](synapx::Tensor t1) {
+        return synapx::F::log(t1);  
+    }, py::arg("t1"));
+
+    m.def("sqrt", [](synapx::Tensor t1) {
+        return synapx::F::sqrt(t1);  
+    }, py::arg("t1"));
 }
