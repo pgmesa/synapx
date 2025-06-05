@@ -1,4 +1,6 @@
 
+#include <memory>
+
 #include <pybind11/stl.h>
 #include <pybind11/numpy.h>
 #include <pybind11/pybind11.h>
@@ -11,6 +13,24 @@
 
 
 namespace py = pybind11;
+
+
+// Context manager
+class NoGradContext {
+public:
+    NoGradContext() : guard_(nullptr) {}
+    
+    void __enter__() {
+        guard_ = std::make_unique<synapx::autograd::NoGradGuard>();
+    }
+    
+    void __exit__(py::object exc_type, py::object exc_value, py::object traceback) {
+        guard_.reset(); // This will call destructor and restore state
+    }
+    
+private:
+    std::unique_ptr<synapx::autograd::NoGradGuard> guard_;
+};
 
 
 PYBIND11_MODULE(_C, m) {
@@ -26,6 +46,21 @@ PYBIND11_MODULE(_C, m) {
             PyErr_SetString(PyExc_RuntimeError, e.what());
         }
     });
+
+    py::class_<NoGradContext>(m, "NoGradContext")
+        .def(py::init<>())
+        .def("__enter__", &NoGradContext::__enter__)
+        .def("__exit__", &NoGradContext::__exit__);
+
+    // Convenience function to create context manager
+    m.def("no_grad", []() {
+        return NoGradContext();
+    }, "Create a context manager that disables gradient computation");
+    
+    // Utility functions
+    
+    m.def("is_grad_enabled", &synapx::autograd::is_grad_enabled, "Check if gradients are enabled");
+    m.def("set_grad_enabled", &synapx::autograd::set_grad_enabled, "Set gradient enabled state");
 
     py::class_<synapx::Tensor>(m, "Tensor")
         .def("numel", &synapx::Tensor::numel)
@@ -105,6 +140,22 @@ PYBIND11_MODULE(_C, m) {
         .def("exp", &synapx::Tensor::exp)
         .def("log", &synapx::Tensor::log)
         .def("sqrt", &synapx::Tensor::sqrt)
+        .def("sum", [](synapx::Tensor self, py::object dim, bool keepdim = false) {
+            std::vector<int64_t> dims_vec;
+            if (!dim.is_none()) {
+                if (py::isinstance<py::int_>(dim)) {
+                    int64_t dim_value = py::cast<int64_t>(dim);
+                    dims_vec = {dim_value};
+                } else if (py::isinstance<py::iterable>(dim)) {
+                    for (auto item : py::cast<py::iterable>(dim)) {
+                        dims_vec.push_back(py::cast<int64_t>(item));
+                    }
+                } else {
+                    throw std::invalid_argument("Invalid dimension type");
+                }
+            }
+            return synapx::F::sum(self, dims_vec, keepdim);
+        }, py::arg("dim") = py::none(), py::arg("keepdim") = false)
         .def_property_readonly("requires_grad", &synapx::Tensor::requires_grad)
         .def("requires_grad_", &synapx::Tensor::requires_grad_)
         .def("is_floating_point", &synapx::Tensor::is_floating_point)
@@ -264,4 +315,22 @@ PYBIND11_MODULE(_C, m) {
     m.def("sqrt", [](synapx::Tensor t1) {
         return synapx::F::sqrt(t1);  
     }, py::arg("t1"));
+
+    m.def("sum", [](synapx::Tensor t1, py::object dim, bool keepdim = false) {
+        std::vector<int64_t> dims_vec;
+        if (!dim.is_none()) {
+            if (py::isinstance<py::int_>(dim)) {
+                int64_t dim_value = py::cast<int64_t>(dim);
+                dims_vec = {dim_value};
+            } else if (py::isinstance<py::iterable>(dim)) {
+                for (auto item : py::cast<py::iterable>(dim)) {
+                    dims_vec.push_back(py::cast<int64_t>(item));
+                }
+            } else {
+                throw std::invalid_argument("Invalid dimension type");
+            }
+        }
+        return synapx::F::sum(t1, dims_vec, keepdim);
+    }, py::arg("t1"), py::arg("dim") = py::none(), py::arg("keepdim") = false);
+
 }

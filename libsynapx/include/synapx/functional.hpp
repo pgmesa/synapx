@@ -16,6 +16,7 @@ namespace synapx::F {
     SYNAPX_API Tensor exp(const Tensor& t1);
     SYNAPX_API Tensor log(const Tensor& t1);
     SYNAPX_API Tensor sqrt(const Tensor& t1);
+    SYNAPX_API Tensor sum(const Tensor& t1, const torch::IntArrayRef& dim = {}, bool keepdim = false);
 
 
     namespace detail {

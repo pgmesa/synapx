@@ -6,6 +6,7 @@
 #include <sstream>
 
 #include <synapx/tensor.hpp>
+#include <synapx/synapx.hpp>
 #include <argparse/argparse.hpp>
 #include <spdlog/spdlog.h>
 #include <spdlog/pattern_formatter.h>
@@ -44,6 +45,14 @@ int main(int argc, char** argv) {
 
     try {
         program.parse_args(argc, argv);
+        
+        spdlog::info("Testing NoGradGuard");
+        synapx::Tensor x = synapx::Tensor(torch::ones({3, 4}), true);
+        {
+            synapx::autograd::NoGradGuard guard;
+            auto y = x + x;
+            spdlog::info("Requires grad after operation? {}", y.requires_grad());
+        }
 
         std::string t1_shape_str = program.get<std::string>("--t1-shape");
         std::string t2_shape_str = program.get<std::string>("--t2-shape");

@@ -75,4 +75,48 @@ namespace synapx::autograd {
         }
     }
 
+    AutogradState& AutogradState::getInstance() {
+        // Thread-local singleton for thread safety
+        thread_local static AutogradState instance;
+        return instance;
+    }
+
+    bool AutogradState::is_grad_enabled() const {
+        return grad_enabled_stack_.empty() ? true : grad_enabled_stack_.top();
+    }
+
+    void AutogradState::push_grad_state(bool enabled) {
+        grad_enabled_stack_.push(enabled);
+    }
+
+    void AutogradState::pop_grad_state() {
+        if (!grad_enabled_stack_.empty()) {
+            grad_enabled_stack_.pop();
+        }
+    }
+
+    void AutogradState::set_grad_enabled(bool enabled) {
+        if (grad_enabled_stack_.empty()) {
+            grad_enabled_stack_.push(enabled);
+        } else {
+            grad_enabled_stack_.top() = enabled;
+        }
+    }
+
+    NoGradGuard::NoGradGuard() : prev_state_(AutogradState::getInstance().is_grad_enabled()) {
+        AutogradState::getInstance().push_grad_state(false);
+    }
+
+    NoGradGuard::~NoGradGuard() {
+        AutogradState::getInstance().pop_grad_state();
+    }
+
+    bool is_grad_enabled() {
+        return AutogradState::getInstance().is_grad_enabled();
+    }
+
+    void set_grad_enabled(bool enabled) {
+        AutogradState::getInstance().set_grad_enabled(enabled);
+    }
+
 }

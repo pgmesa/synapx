@@ -65,6 +65,7 @@ namespace synapx {
         Tensor exp() const;
         Tensor log() const;
         Tensor sqrt() const;
+        Tensor sum(const torch::IntArrayRef& dim = {}, bool keepdim = false) const;
 
         std::string to_string() const;
         static std::string to_string(torch::Tensor tensor);

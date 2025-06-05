@@ -37,4 +37,20 @@ namespace synapx::autograd::cpu {
     }
 
 
+    torch::Tensor expand_dims(torch::Tensor tensor, const torch::IntArrayRef& dims) {
+        std::vector<int64_t> dims_vec(dims.begin(), dims.end());
+        
+        // Sort in ascending order and adjust indices as we go
+        std::sort(dims_vec.begin(), dims_vec.end());
+        
+        torch::Tensor result = tensor;
+        for (size_t i = 0; i < dims_vec.size(); ++i) {
+            // Adjust axis for previously added dimensions
+            int64_t adjusted_axis = dims_vec[i] + static_cast<int64_t>(i);
+            result = result.unsqueeze(adjusted_axis);
+        }
+        return result;
+    }
+
+
 }

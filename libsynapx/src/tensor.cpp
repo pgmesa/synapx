@@ -29,7 +29,7 @@ namespace synapx {
     Tensor::Tensor() {}
 
     Tensor::Tensor(const torch::Tensor& data,  bool requires_grad, Device device)
-        : impl_(std::make_shared<Impl>(data, requires_grad, device)) {}
+        : impl_(std::make_shared<Impl>(data, requires_grad && autograd::is_grad_enabled(), device)) {}
 
     const torch::Tensor& Tensor::data() const { 
         return impl_->data; 
@@ -204,6 +204,10 @@ namespace synapx {
     Tensor Tensor::sqrt() const {
         return F::sqrt(*this);
     }
+
+    Tensor Tensor::sum(const torch::IntArrayRef& dim, bool keepdim) const {
+        return F::sum(*this, dim, keepdim);
+    };
 
     std::string Tensor::to_string() const {
         std::stringstream ss;

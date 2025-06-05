@@ -154,5 +154,25 @@ namespace synapx::autograd::cpu {
     std::vector<torch::Tensor> Sqrt::backward(const std::vector<torch::Tensor>& grad_outputs) {
         return {grad_outputs[0] / (2 * forward_result)};
     }
+
+
+    Sum::Sum(const torch::IntArrayRef& dim, bool keepdim): dim(dim), keepdim(keepdim) {}
+
+    std::vector<torch::Tensor> Sum::forward(const std::vector<torch::Tensor>& inputs) {
+        const torch::Tensor& t1 = inputs[0];
+        t1_shape = t1.sizes();
+        return {torch::sum(t1, dim, keepdim)}; 
+    }
+
+    std::vector<torch::Tensor> Sum::backward(const std::vector<torch::Tensor>& grad_outputs) {
+        torch::Tensor grad = grad_outputs[0];
+        torch::Tensor grad_result = torch::zeros(t1_shape);
+
+        if(!keepdim && !(dim.size() == 0)) {
+            grad = expand_dims(grad, dim);
+        }
+
+        return {grad_result + grad};
+    }
     
 }

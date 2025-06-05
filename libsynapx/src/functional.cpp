@@ -115,4 +115,15 @@ namespace synapx::F {
         return outs[0];
     }
 
+    Tensor sum(const Tensor& t1, const torch::IntArrayRef& dim, bool keepdim) {
+        std::vector<Tensor> outs = detail::dispatch_op(
+            {t1}, 
+            [dim, keepdim](Device dev) -> std::shared_ptr<autograd::Function> {
+                if (dev.type() == Device::Type::CPU)  return std::make_shared<autograd::cpu::Sum>(dim, keepdim);
+                throw std::runtime_error("Sum: unsupported device");
+            }
+        );
+        return outs[0];
+    }
+
 } // namespace synapx

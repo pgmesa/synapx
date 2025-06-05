@@ -82,11 +82,18 @@ file(GLOB_RECURSE SYNAPX_SOURCES "${SYNAPX_SRC_DIR}/*.cpp")
 add_library(synapx SHARED ${SYNAPX_SOURCES})
 
 target_compile_definitions(synapx
-  PUBLIC
-    SPDLOG_HEADER_ONLY
-    SPDLOG_FMT_EXTERNAL  # use external fmt headers
-    FMT_HEADER_ONLY      # fmt header-only
+    PRIVATE
+        SYNAPX_EXPORTS
+    PUBLIC
+        SPDLOG_HEADER_ONLY
+        SPDLOG_FMT_EXTERNAL  # use external fmt headers
+        FMT_HEADER_ONLY      # fmt header-only
 )
+
+# Set symbol visibility to hidden by default
+if(NOT WIN32)
+    target_compile_options(synapx PRIVATE -fvisibility=hidden)
+endif()
 
 # Set include directories
 target_include_directories(synapx

@@ -6,6 +6,7 @@
 #include <synapx/device.hpp>
 #include <synapx/tensor.hpp>
 #include <synapx/functional.hpp>
+#include <synapx/autograd/engine.hpp>
 
 /**
  * @file synapx.hpp
