@@ -80,17 +80,8 @@ inline py::array torch_to_numpy(const torch::Tensor& torch_tensor) {
     );
 }
 
-// Convert a std::string (e.g. "cpu") → synapx::Device
-inline synapx::Device string_to_device(const std::string& device_str) {
-    if (device_str == "cpu" || device_str == "CPU") {
-        return synapx::Device::CPU();
-    } else {
-        throw std::runtime_error("Unsupported device: " + device_str + ". Use 'cpu'");
-    }
-}
-
 // Convert a PyObject (scalar, list, numpy.ndarray, torch.Tensor, or synapx.Tensor) → torch::Tensor
-inline torch::Tensor pyobject_to_torch(py::object data) {
+inline torch::Tensor pyobj_to_torch(py::object data) {
     torch::Tensor tensor;
 
     // Handle Python scalars (int, float, bool)
@@ -139,7 +130,7 @@ inline torch::Tensor pyobject_to_torch(py::object data) {
 }
 
 // Convert a Python torch.dtype → torch::Dtype
-inline torch::Dtype pyobject_to_torch_dtype(py::object dtype_obj) {
+inline torch::Dtype pyobj_to_torch_dtype(py::object dtype_obj) {
     py::object torch_mod = py::module_::import("torch");
     
     // Check common dtypes by comparing to torch module attributes
@@ -185,12 +176,30 @@ inline py::object torch_dtype_to_pyobject(torch::Dtype torch_dtype) {
     }
 }
 
-inline synapx::Tensor pyobject_to_synapx(py::object obj, const synapx::Device& device) {
-    if (py::isinstance<synapx::Tensor>(obj)) {
-        return py::cast<synapx::Tensor>(obj);
+// Convert a std::string (e.g. "cpu") → synapx::Device
+inline synapx::Device string_to_device(const std::string& device_str) {
+    if (device_str == "cpu" || device_str == "CPU") {
+        return synapx::Device::CPU();
+    } else {
+        throw std::runtime_error("Unsupported device: " + device_str + ". Use 'cpu'");
     }
-    
-    // Convert scalar or other types to tensor
-    torch::Tensor tensor = pyobject_to_torch(obj);
-    return synapx::Tensor(tensor, false, device);
 }
+
+inline std::vector<int64_t> pyobj_to_dims(const py::object& dim) {
+    std::vector<int64_t> dims_vec;
+    if (!dim.is_none()) {
+        if (py::isinstance<py::int_>(dim)) {
+            int64_t dim_value = py::cast<int64_t>(dim);
+            dims_vec = {dim_value};
+        } else if (py::isinstance<py::iterable>(dim)) {
+            for (auto item : py::cast<py::iterable>(dim)) {
+                dims_vec.push_back(py::cast<int64_t>(item));
+            }
+        } else {
+            throw std::invalid_argument("Invalid dimension type");
+        }
+    }
+    return dims_vec;
+}
+
+

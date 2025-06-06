@@ -71,6 +71,26 @@ namespace synapx::autograd::cpu {
         return {unbroadcast(grad_t1, t1.sizes()), unbroadcast(grad_t2, t2.sizes())};
     }
 
+    std::vector<torch::Tensor> Pow::forward(const std::vector<torch::Tensor>& inputs) { 
+        const torch::Tensor& base = inputs[0];
+        const torch::Tensor& exp = inputs[1];
+
+        torch::Tensor out = torch::pow(base, exp);
+        
+        this->base = base;
+        this->exp = exp;
+        this->forward_result = out;
+
+        return {out};
+    }
+
+    std::vector<torch::Tensor> Pow::backward(const std::vector<torch::Tensor>& grad_outputs) {
+        const torch::Tensor& grad = grad_outputs[0];
+        torch::Tensor grad_base = exp * base.pow(exp - 1) * grad;
+        // torch::Tensor grad_exp = forward_result * base.log() * grad;
+        return {grad_base};
+    }
+
 
     std::vector<torch::Tensor> Addmm::forward(const std::vector<torch::Tensor>& inputs) { 
         const torch::Tensor& inp = inputs[0];
@@ -95,24 +115,6 @@ namespace synapx::autograd::cpu {
 
         return {grad_inp, grad_mat1, grad_mat2};
     }
-
-
-    std::vector<torch::Tensor> Pow::forward(const std::vector<torch::Tensor>& inputs) { 
-        const torch::Tensor& t1 = inputs[0];
-        const torch::Tensor& exp = inputs[1];
-
-        torch::Tensor out = torch::pow(t1, exp);
-        
-        this->t1 = t1;
-        this->exp = exp;
-
-        return {out};
-    }
-
-    std::vector<torch::Tensor> Pow::backward(const std::vector<torch::Tensor>& grad_outputs) {
-        return {exp * (t1.pow(exp - 1)) * grad_outputs[0]};
-    }
-
 
     std::vector<torch::Tensor> Clone::forward(const std::vector<torch::Tensor>& inputs) { 
         return {inputs[0].clone()};

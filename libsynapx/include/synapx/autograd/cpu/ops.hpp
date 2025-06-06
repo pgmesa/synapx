@@ -55,8 +55,9 @@ namespace synapx::autograd::cpu {
         std::vector<torch::Tensor> backward(const std::vector<torch::Tensor>& grad_outputs) override;
     
     private:
-        torch::Tensor t1;
+        torch::Tensor base;
         torch::Tensor exp;
+        torch::Tensor forward_result;
     };
 
     class Clone: public Function {

@@ -1,8 +1,10 @@
 
 import warnings
 from time import time
+from typing import Union
 
 import torch
+import synapx
 
 
 def time_fun(function, *args, **kwargs):
@@ -12,13 +14,21 @@ def time_fun(function, *args, **kwargs):
     
     return out, tf - t0 
 
-def check_tensors(t1:torch.Tensor, t2:torch.Tensor, atol=1e-5, rtol=1e-4) -> bool:
+Tensor = Union[torch.Tensor, synapx.Tensor]
+
+def check_tensors(t1: Tensor, t2: Tensor, atol=1e-5, rtol=1e-4) -> bool:
     """Returns if 2 tensors have the same values and shape
 
     Args:
         t1 (Tensor): Tensor1
         t2 (Tensor): Tensor2
     """
+    if isinstance(t1, synapx.Tensor):
+        t1 = t1.torch()
+        
+    if isinstance(t2, synapx.Tensor):
+        t2 = t2.torch()
+    
     if t1 is None or t2 is None: 
         return t1 is t2
     

@@ -7,11 +7,27 @@
 namespace synapx::F {
 
     SYNAPX_API Tensor add(const Tensor& t1, const Tensor& t2);
+    SYNAPX_API Tensor add(const Tensor& t1, double t2);
+    SYNAPX_API Tensor sub(const Tensor& t1, const Tensor& t2);
+    SYNAPX_API Tensor sub(const Tensor& t1, double t2);
     SYNAPX_API Tensor mul(const Tensor& t1, const Tensor& t2);
-    SYNAPX_API Tensor matmul(const Tensor& t1, const Tensor& t2);
-    SYNAPX_API Tensor addmm(const Tensor& inp, const Tensor& mat1, const Tensor& mat2);
+    SYNAPX_API Tensor mul(const Tensor& t1, double t2);
     SYNAPX_API Tensor pow(const Tensor& t1, const Tensor& exp);
     SYNAPX_API Tensor pow(const Tensor& t1, double exp);
+    SYNAPX_API Tensor div(const Tensor& t1, const Tensor& t2);
+    SYNAPX_API Tensor div(const Tensor& t1, double t2);
+    SYNAPX_API Tensor matmul(const Tensor& t1, const Tensor& t2);
+    SYNAPX_API Tensor neg(const Tensor& t1);
+
+    SYNAPX_API Tensor rsub(const Tensor& t1, const Tensor& t2);
+    SYNAPX_API Tensor rsub(const Tensor& t1, double t2);
+    SYNAPX_API Tensor rpow(const Tensor& t1, const Tensor& exp);
+    SYNAPX_API Tensor rpow(const Tensor& t1, double exp);
+    SYNAPX_API Tensor rdiv(const Tensor& t1, const Tensor& t2);
+    SYNAPX_API Tensor rdiv(const Tensor& t1, double t2);
+    SYNAPX_API Tensor rmatmul(const Tensor& t1, const Tensor& t2);
+
+    SYNAPX_API Tensor addmm(const Tensor& inp, const Tensor& mat1, const Tensor& mat2);
     SYNAPX_API Tensor clone(const Tensor& t1);
     SYNAPX_API Tensor exp(const Tensor& t1);
     SYNAPX_API Tensor log(const Tensor& t1);

@@ -12,6 +12,16 @@
 
 
 namespace synapx {
+
+    namespace {
+        void in_place_check(const Tensor& tensor) {
+            if (autograd::is_grad_enabled() && tensor.requires_grad() && tensor.is_leaf())
+                throw std::runtime_error(
+                    "A leaf Tensor that requires grad is being " 
+                    "used in an in-place operation"
+                );
+        }
+    }
     struct Tensor::Impl {
         Impl() {};
         Impl(const torch::Tensor& data, bool req_grad, Device device)
@@ -79,10 +89,6 @@ namespace synapx {
     torch::Scalar Tensor::item() const {
         return impl_->data.item();
     }
-
-    void Tensor::zero_() {
-        set_grad(torch::ones_like(impl_->data));
-    }
     
     Tensor Tensor::to(Device device) const {
         return *this;
@@ -142,32 +148,107 @@ namespace synapx {
         autograd::backward(*this, grad);
     }
 
+    // Operators
     Tensor Tensor::operator+(const Tensor& other) const {
         return add(other);
+    }
+
+    Tensor Tensor::operator+(double other) const {
+        return add(other);
+    }
+
+    Tensor Tensor::operator-(const Tensor& other) const {
+        return sub(other);
+    }
+
+    Tensor Tensor::operator-(double other) const {
+        return sub(other);
     }
 
     Tensor Tensor::operator*(const Tensor& other) const {
         return mul(other);
     }
 
-    Tensor Tensor::operator-(const Tensor& other) const {
-        return add((-other));
+    Tensor Tensor::operator*(double other) const {
+        return mul(other);
     }
 
     Tensor Tensor::operator/(const Tensor& other) const {
-        return mul(other.pow(-1.0));
+        return div(other);
+    }
+
+    Tensor Tensor::operator/(double other) const {
+        return div(other);
     }
 
     Tensor Tensor::operator-() const {
-        return mul(Tensor(torch::tensor(-1.0), false, device()));
+        return neg();
     }
 
+    // Inplace operators
+    Tensor& Tensor::operator+=(const Tensor& other) {
+        return add_(other);
+    }
+
+    Tensor& Tensor::operator+=(double other) {
+        return add_(other);
+    }
+
+    Tensor& Tensor::operator-=(const Tensor& other) {
+        return sub_(other);
+    }
+
+    Tensor& Tensor::operator-=(double other) {
+        return sub_(other);
+    }
+
+    Tensor& Tensor::operator*=(const Tensor& other) {
+        return mul_(other);
+    }
+
+    Tensor& Tensor::operator*=(double other) {
+        return mul_(other);
+    }
+
+    Tensor& Tensor::operator/=(const Tensor& other) {
+        return div_(other);
+    }
+
+    Tensor& Tensor::operator/=(double other) {
+        return div_(other);
+    }
+
+    // Funtions
     Tensor Tensor::add(const Tensor& other) const {
         return F::add(*this, other);
     }
 
+    Tensor Tensor::add(double other) const {
+        return F::add(*this, other);
+    }
+
+    Tensor Tensor::sub(const Tensor& other) const {
+        return F::sub(*this, other);
+    }
+
+    Tensor Tensor::sub(double other) const {
+        return F::sub(*this, other);
+    }
+
     Tensor Tensor::mul(const Tensor& other) const {
         return F::mul(*this, other);
+    }
+
+    Tensor Tensor::mul(double other) const {
+        return F::mul(*this, other);
+    }
+
+    Tensor Tensor::div(const Tensor& other) const {
+        return F::div(*this, other);
+    }
+
+    Tensor Tensor::div(double other) const {
+        return F::div(*this, other);
     }
 
     Tensor Tensor::matmul(const Tensor& other) const {
@@ -182,6 +263,113 @@ namespace synapx {
         return F::pow(*this, exponent);
     }
 
+    Tensor Tensor::neg() const {
+        return F::neg(*this);
+    }
+
+    // In-place functions
+    Tensor& Tensor::add_(const Tensor& other) {
+        in_place_check(*this);
+        impl_->data.add_(other.data());
+        return *this;
+    }
+
+    Tensor& Tensor::add_(double other) {
+        in_place_check(*this);
+        impl_->data.add_(other);
+        return *this;
+    }
+
+    Tensor& Tensor::sub_(const Tensor& other) {
+        in_place_check(*this);
+        impl_->data.sub_(other.data());
+        return *this;
+    }
+
+    Tensor& Tensor::sub_(double other) {
+        in_place_check(*this);
+        impl_->data.sub_(other);
+        return *this;
+    }
+
+    Tensor& Tensor::mul_(const Tensor& other) {
+        in_place_check(*this);
+        impl_->data.mul_(other.data());
+        return *this;
+    }
+
+    Tensor& Tensor::mul_(double other) {
+        in_place_check(*this);
+        impl_->data.mul_(other);
+        return *this;
+    }
+
+    Tensor& Tensor::pow_(const Tensor& exponent) {
+        in_place_check(*this);
+        impl_->data.pow_(exponent.data());
+        return *this;
+    }
+
+    Tensor& Tensor::pow_(double exponent) {
+        in_place_check(*this);
+        impl_->data.pow_(exponent);
+        return *this;
+    }
+
+    Tensor& Tensor::div_(const Tensor& other) {
+        in_place_check(*this);
+        impl_->data.div_(other.data());
+        return *this;
+    }
+
+    Tensor& Tensor::div_(double other) {
+        in_place_check(*this);
+        impl_->data.div_(other);
+        return *this;
+    }
+
+    Tensor& Tensor::neg_() {
+        in_place_check(*this);
+        impl_->data.neg_();
+        return *this;
+    }
+
+    Tensor& Tensor::zero_() {
+        in_place_check(*this);
+        impl_->data.zero_();
+        return *this;
+    }
+
+    // Reverse functions
+    Tensor Tensor::rsub(const Tensor& other) const {
+        return F::rsub(*this, other);
+    };
+
+    Tensor Tensor::rsub(double other) const {
+        return F::rsub(*this, other);
+    };
+
+    Tensor Tensor::rpow(const Tensor& exponent) const {
+        return F::rpow(*this, exponent);
+    };
+
+    Tensor Tensor::rpow(double exponent) const {
+        return F::rpow(*this, exponent);
+    };
+    
+    Tensor Tensor::rdiv(const Tensor& other) const {
+        return F::rdiv(*this, other);
+    };
+
+    Tensor Tensor::rdiv(double other) const {
+        return F::rdiv(*this, other);
+    };
+
+    Tensor Tensor::rmatmul(const Tensor& other) const {
+        return F::matmul(*this, other);
+    };
+
+    // Other functions
     Tensor Tensor::clone() const {
         return F::clone(*this);
     }

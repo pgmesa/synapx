@@ -27,10 +27,6 @@ namespace synapx {
         void requires_grad_(bool _requires_grad);
         const Device& device() const;
 
-        Tensor detach() const;
-        torch::Scalar item() const;
-        void zero_();
-
         size_t numel() const;
         size_t dim() const;
         std::vector<int64_t> shape() const;
@@ -40,8 +36,10 @@ namespace synapx {
         bool retains_grad() const;
         bool is_floating_point() const;
 
+        torch::Scalar item() const;
         Tensor to(Device device) const;
         Tensor cpu() const;
+        Tensor detach() const;
 
         const torch::Tensor grad() const;
         void set_grad(const torch::Tensor& grad);
@@ -52,16 +50,62 @@ namespace synapx {
         void backward(const torch::Tensor& grad={});
 
         Tensor operator+(const Tensor& other) const;
+        Tensor operator+(double other) const;
         Tensor operator*(const Tensor& other) const;
+        Tensor operator*(double other) const;
         Tensor operator-(const Tensor& other) const;
+        Tensor operator-(double other) const;
         Tensor operator/(const Tensor& other) const;
+        Tensor operator/(double other) const;
         Tensor operator-() const;
 
+        Tensor& operator+=(const Tensor& other);
+        Tensor& operator+=(double other);
+        Tensor& operator-=(const Tensor& other);
+        Tensor& operator-=(double other);
+        Tensor& operator*=(const Tensor& other);
+        Tensor& operator*=(double other);
+        Tensor& operator/=(const Tensor& other);
+        Tensor& operator/=(double other);
+
+        // Subscript operators for indexing
+        // Tensor operator[](int index) const;
+        // Tensor operator[](const std::vector<int>& indices) const;
+
         Tensor add(const Tensor& other) const;
+        Tensor add(double other) const;
+        Tensor sub(const Tensor& other) const;
+        Tensor sub(double other) const;
         Tensor mul(const Tensor& other) const;
-        Tensor matmul(const Tensor& other) const;
+        Tensor mul(double other) const;
         Tensor pow(const Tensor& exponent) const;
         Tensor pow(double exponent) const;
+        Tensor div(const Tensor& other) const;
+        Tensor div(double other) const;
+        Tensor matmul(const Tensor& other) const;
+        Tensor neg() const;
+
+        Tensor& add_(const Tensor& other);
+        Tensor& add_(double other);
+        Tensor& sub_(const Tensor& other);
+        Tensor& sub_(double other);
+        Tensor& mul_(const Tensor& other);
+        Tensor& mul_(double other);
+        Tensor& pow_(const Tensor& exponent);
+        Tensor& pow_(double exponent);
+        Tensor& div_(const Tensor& other);
+        Tensor& div_(double other);
+        Tensor& neg_();
+        Tensor& zero_();
+
+        Tensor rsub(const Tensor& other) const;
+        Tensor rsub(double other) const;
+        Tensor rpow(const Tensor& exponent) const;
+        Tensor rpow(double exponent) const;
+        Tensor rdiv(const Tensor& exponent) const;
+        Tensor rdiv(double exponent) const;
+        Tensor rmatmul(const Tensor& exponent) const;
+        
         Tensor clone() const;
         Tensor exp() const;
         Tensor log() const;
