@@ -14,8 +14,8 @@ namespace synapx::autograd::cpu {
         std::vector<torch::Tensor> backward(const std::vector<torch::Tensor>& grad_outputs) override;
     
     private:
-        torch::IntArrayRef shape_t1;
-        torch::IntArrayRef shape_t2;
+        std::vector<int64_t> shape_t1;
+        std::vector<int64_t> shape_t2;
     };
 
     class Mul: public Function {
@@ -100,9 +100,9 @@ namespace synapx::autograd::cpu {
         std::vector<torch::Tensor> backward(const std::vector<torch::Tensor>& grad_outputs) override;
     
     private:
-       const torch::IntArrayRef dim;
+       const std::vector<int64_t> dim;
        const bool keepdim;
-       torch::IntArrayRef t1_shape;
+       std::vector<int64_t> t1_shape;
     };
 
 }

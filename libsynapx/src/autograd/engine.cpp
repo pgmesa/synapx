@@ -9,7 +9,31 @@
 
 namespace synapx::autograd {
 
-    void backward(std::shared_ptr<Function> grad_fn, const torch::Tensor& grad_output) {
+    void backward(const synapx::Tensor& tensor, const torch::Tensor& grad) {
+        spdlog::debug("Backward called");
+
+        if (!tensor.defined())
+            throw std::runtime_error("Tensor passed to compute backward pass is not defined");
+
+        std::shared_ptr<Function> grad_fn = tensor.grad_fn();
+
+        if (!grad_fn) {
+            throw std::runtime_error("No backward function defined for this tensor");
+        }
+
+        // Validate grad_output shape
+        torch::Tensor grad_output = grad;
+        if (!grad.defined()) {
+            if (tensor.numel() == 1) 
+                grad_output = torch::ones_like(tensor.data());
+            else
+                throw std::runtime_error("Grad can be implicitly created only for scalar outputs");
+        }
+
+        if (!grad_output.sizes().equals(tensor.data().sizes())) {
+            throw std::runtime_error("Shape mismatch between input gradient and tensor");
+        }
+
         // 1) Build topo order
         std::vector<std::shared_ptr<Function>> topo;
         std::unordered_set<Function*> seen;

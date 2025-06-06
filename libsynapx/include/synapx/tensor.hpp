@@ -14,6 +14,7 @@
 namespace synapx {
 
     namespace autograd { class Function; }
+    
     class SYNAPX_API Tensor {
     public:
         // Constructor

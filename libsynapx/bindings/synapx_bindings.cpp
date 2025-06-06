@@ -8,6 +8,7 @@
 #include <torch/extension.h>
 #include <torch/torch.h>
 #include <synapx/synapx.hpp>
+#include <spdlog/spdlog.h>
 
 #include "parsers.hpp"
 
@@ -32,10 +33,40 @@ private:
     std::unique_ptr<synapx::autograd::NoGradGuard> guard_;
 };
 
+// enum class LogLevel {
+//     DEBUG,
+//     INFO,
+//     WARNING,
+//     ERROR,
+//     NONE
+// };
+
+// void set_log_level(LogLevel level) {
+//     switch (level) {
+//         case LogLevel::DEBUG:
+//             spdlog::set_level(spdlog::level::debug);
+//             break;
+//         case LogLevel::INFO:
+//             spdlog::set_level(spdlog::level::info);
+//             break;
+//         case LogLevel::WARNING:
+//             spdlog::set_level(spdlog::level::warn);
+//             break;
+//         case LogLevel::ERROR:
+//             spdlog::set_level(spdlog::level::err);
+//             break;
+//         case LogLevel::NONE:
+//             spdlog::set_level(spdlog::level::off);
+//             break;
+//         default:
+//             throw std::invalid_argument("Unknown logging level");
+//     }
+// }
 
 PYBIND11_MODULE(_C, m) {
     m.doc() = "Synapx C++ bindings";
 
+    // Exceptions
     py::register_exception_translator([](std::exception_ptr p) {
         // Clean exceptions from libtorch 
         try {
@@ -47,25 +78,51 @@ PYBIND11_MODULE(_C, m) {
         }
     });
 
+    // No grad
     py::class_<NoGradContext>(m, "NoGradContext")
         .def(py::init<>())
         .def("__enter__", &NoGradContext::__enter__)
         .def("__exit__", &NoGradContext::__exit__);
 
-    // Convenience function to create context manager
     m.def("no_grad", []() {
         return NoGradContext();
     }, "Create a context manager that disables gradient computation");
     
-    // Utility functions
-    
     m.def("is_grad_enabled", &synapx::autograd::is_grad_enabled, "Check if gradients are enabled");
     m.def("set_grad_enabled", &synapx::autograd::set_grad_enabled, "Set gradient enabled state");
 
+    // Logging
+    // py::enum_<LogLevel>(m, "LogLevel")
+    //     .value("DEBUG", LogLevel::DEBUG)
+    //     .value("INFO", LogLevel::INFO)
+    //     .value("WARNING", LogLevel::WARNING)
+    //     .value("ERROR", LogLevel::ERROR)
+    //     .value("NONE", LogLevel::NONE)
+    //     .export_values();
+
+    // m.def("set_log_level", &set_log_level, "Set the current logging level.");
+
+    // SynapX Tensor class
     py::class_<synapx::Tensor>(m, "Tensor")
         .def("numel", &synapx::Tensor::numel)
         .def("dim", &synapx::Tensor::dim)
         .def_property_readonly("shape", &synapx::Tensor::shape)
+        .def("__repr__", [](const synapx::Tensor& self) -> std::string {
+            py::gil_scoped_acquire gil;
+            py::object py_t = py::cast(self.data());
+            py::object py_repr = py::repr(py_t);
+            std::string repr_str = py_repr.cast<std::string>();
+
+            const std::string from = "tensor(";
+            const std::string to = "synapx(";
+
+            size_t pos = repr_str.find(from);
+            if (pos != std::string::npos) {
+                repr_str.replace(pos, from.length(), to);
+            }
+
+            return repr_str;
+        })
         .def("__add__", [](const synapx::Tensor& self, py::object other) {
             synapx::Tensor other_tensor = pyobject_to_synapx(other, self.device());
             return self + other_tensor;

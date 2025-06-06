@@ -30,7 +30,7 @@ namespace synapx::autograd {
         virtual ~Function() = default;
     };
 
-    SYNAPX_API void backward(std::shared_ptr<Function> grad_fn, const torch::Tensor& grad_output);
+    SYNAPX_API void backward(const synapx::Tensor& tensor, const torch::Tensor& grad);
     
     class SYNAPX_API AutogradState {
     public:

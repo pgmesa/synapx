@@ -3,6 +3,8 @@
 
 #include <vector>
 
+#include <spdlog/spdlog.h>
+
 #include <synapx/autograd/cpu/utils.hpp>
 
 
@@ -14,9 +16,10 @@ namespace synapx::autograd::cpu {
 
         torch::Tensor out = torch::add(t1, t2);
         
-        shape_t1 = t1.sizes();
-        shape_t2 = t2.sizes();
-
+        shape_t1.reserve(t1.dim());
+        shape_t1 = t1.sizes().vec();
+        shape_t2.reserve(t2.dim());
+        shape_t2 = t2.sizes().vec();
         return {out};
     }
 
@@ -156,23 +159,22 @@ namespace synapx::autograd::cpu {
     }
 
 
-    Sum::Sum(const torch::IntArrayRef& dim, bool keepdim): dim(dim), keepdim(keepdim) {}
+    Sum::Sum(const torch::IntArrayRef& dim, bool keepdim): dim(dim.vec()), keepdim(keepdim) {}
 
     std::vector<torch::Tensor> Sum::forward(const std::vector<torch::Tensor>& inputs) {
         const torch::Tensor& t1 = inputs[0];
-        t1_shape = t1.sizes();
+        t1_shape.reserve(t1.dim());
+        t1_shape = t1.sizes().vec();
         return {torch::sum(t1, dim, keepdim)}; 
     }
 
     std::vector<torch::Tensor> Sum::backward(const std::vector<torch::Tensor>& grad_outputs) {
         torch::Tensor grad = grad_outputs[0];
-        torch::Tensor grad_result = torch::zeros(t1_shape);
 
-        if(!keepdim && !(dim.size() == 0)) {
+        if(!keepdim && !dim.empty())
             grad = expand_dims(grad, dim);
-        }
-
-        return {grad_result + grad};
+        
+        return {torch::broadcast_to(grad, t1_shape)};
     }
     
 }

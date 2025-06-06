@@ -37,19 +37,27 @@ namespace synapx::autograd::cpu {
     }
 
 
-    torch::Tensor expand_dims(torch::Tensor tensor, const torch::IntArrayRef& dims) {
-        std::vector<int64_t> dims_vec(dims.begin(), dims.end());
-        
-        // Sort in ascending order and adjust indices as we go
-        std::sort(dims_vec.begin(), dims_vec.end());
-        
-        torch::Tensor result = tensor;
-        for (size_t i = 0; i < dims_vec.size(); ++i) {
-            // Adjust axis for previously added dimensions
-            int64_t adjusted_axis = dims_vec[i] + static_cast<int64_t>(i);
-            result = result.unsqueeze(adjusted_axis);
+    torch::Tensor expand_dims(torch::Tensor tensor, const torch::IntArrayRef& dim) {
+        int64_t k = tensor.dim();
+        int64_t m = static_cast<int64_t>(dim.size());
+        int64_t new_rank = k + m;
+
+        std::vector<int64_t> normalized;
+        normalized.reserve(dim.size());
+        for (auto d : dim) {
+            int64_t d_norm = d;
+            if (d_norm < 0) {
+                d_norm += new_rank;
+            }
+            normalized.push_back(d_norm);
         }
-        return result;
+
+        std::sort(normalized.begin(), normalized.end());
+
+        for (auto axis : normalized) {
+            tensor = tensor.unsqueeze(axis);
+        }
+        return tensor;
     }
 
 

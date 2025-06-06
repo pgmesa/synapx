@@ -139,14 +139,7 @@ namespace synapx {
     }
 
     void Tensor::backward(const torch::Tensor& grad) {
-        if (impl_->grad_fn) {
-            spdlog::debug("Backward called");
-            torch::Tensor grad_ = grad;
-            if (!grad_.defined()) grad_ = torch::ones_like(data());
-            autograd::backward(impl_->grad_fn, grad_);
-        } else {
-            spdlog::warn("No backward function defined for this tensor");
-        }
+        autograd::backward(*this, grad);
     }
 
     Tensor Tensor::operator+(const Tensor& other) const {

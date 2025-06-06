@@ -7,7 +7,7 @@
 namespace synapx::autograd::cpu {
 
     torch::Tensor unbroadcast(torch::Tensor grad, const torch::IntArrayRef& original_shape);
-    torch::Tensor expand_dims(torch::Tensor tensor, const torch::IntArrayRef& dims);
+    torch::Tensor expand_dims(torch::Tensor tensor, const torch::IntArrayRef& dim);
 }
 
 #endif
