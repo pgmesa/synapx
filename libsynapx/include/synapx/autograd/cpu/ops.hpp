@@ -14,8 +14,8 @@ namespace synapx::autograd::cpu {
         std::vector<torch::Tensor> backward(const std::vector<torch::Tensor>& grad_outputs) override;
     
     private:
-        std::vector<int64_t> shape_t1;
-        std::vector<int64_t> shape_t2;
+        std::vector<int64_t> t1_shape;
+        std::vector<int64_t> t2_shape;
     };
 
     class Mul: public Function {
@@ -26,6 +26,21 @@ namespace synapx::autograd::cpu {
     private:
         torch::Tensor t1;
         torch::Tensor t2;
+
+        std::vector<int64_t> t1_shape;
+        std::vector<int64_t> t2_shape;
+    };
+
+    class Div: public Function {
+    public:
+        std::vector<torch::Tensor> forward(const std::vector<torch::Tensor>& inputs) override;
+        std::vector<torch::Tensor> backward(const std::vector<torch::Tensor>& grad_outputs) override;
+    
+    private:
+        torch::Tensor t1;
+        torch::Tensor t2;
+
+        std::vector<int64_t> t1_shape;
     };
 
     class Matmul: public Function {
@@ -36,17 +51,9 @@ namespace synapx::autograd::cpu {
     private:
         torch::Tensor t1;
         torch::Tensor t2;
-    };
 
-    class Addmm: public Function {
-    public:
-        std::vector<torch::Tensor> forward(const std::vector<torch::Tensor>& inputs) override;
-        std::vector<torch::Tensor> backward(const std::vector<torch::Tensor>& grad_outputs) override;
-    
-    private:
-        torch::Tensor inp;
-        torch::Tensor mat1;
-        torch::Tensor mat2;
+        std::vector<int64_t> t1_shape;
+        std::vector<int64_t> t2_shape;
     };
 
     class Pow: public Function {
@@ -58,6 +65,18 @@ namespace synapx::autograd::cpu {
         torch::Tensor base;
         torch::Tensor exp;
         torch::Tensor forward_result;
+    };
+
+
+    class Addmm: public Function {
+    public:
+        std::vector<torch::Tensor> forward(const std::vector<torch::Tensor>& inputs) override;
+        std::vector<torch::Tensor> backward(const std::vector<torch::Tensor>& grad_outputs) override;
+    
+    private:
+        std::vector<int64_t> inp_shape;
+        torch::Tensor mat1;
+        torch::Tensor mat2;
     };
 
     class Clone: public Function {

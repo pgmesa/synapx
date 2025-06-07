@@ -106,7 +106,6 @@ def test_pow():
     op_tester([(1000, 1000)], lambda x: x ** 0.7, name='pow')
     op_tester([(1000, 1500)], lambda x: x.pow(2), name='tensor.pow(scalar)')
     op_tester([(1000, 1500)], lambda engine, x: engine.pow(x, 2), name='engine.pow(scalar)', module_func=True)
-    # op_tester([(1000, 1000), ], lambda x: -2 ** x, name='pow')
     
 def test_addmm():
     op_tester([(10, 10), (10, 10), (10, 10)], lambda engine, x, y, z: engine.addmm(x, y, z), name='addmm', module_func=True)
@@ -120,6 +119,9 @@ def test_rsub():
 
 def test_rmul():
     op_tester([(500, 400, 3)], lambda x: 6.4 * x, name='rmul')
+    
+def test_rpow():
+    op_tester([(1000, 1000)], lambda x: -2 ** x, name='rpow')
 
 def test_neg():
     op_tester([(1000, 1500)], lambda x: -x, name='neg')

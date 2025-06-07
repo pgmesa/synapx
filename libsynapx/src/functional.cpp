@@ -36,7 +36,7 @@ namespace synapx::F {
     }
 
     Tensor mul(const Tensor& t1, const Tensor& t2) {
-         std::vector<Tensor> outs = detail::dispatch_op(
+        std::vector<Tensor> outs = detail::dispatch_op(
             {t1, t2}, 
             [](Device dev) -> std::shared_ptr<autograd::Function> {
                 if (dev.type() == Device::Type::CPU)  return std::make_shared<autograd::cpu::Mul>();
@@ -51,7 +51,14 @@ namespace synapx::F {
     }
 
     Tensor div(const Tensor& t1, const Tensor& t2) {
-        return mul(t1, t2.pow(-1.0));
+        std::vector<Tensor> outs = detail::dispatch_op(
+            {t1, t2}, 
+            [](Device dev) -> std::shared_ptr<autograd::Function> {
+                if (dev.type() == Device::Type::CPU)  return std::make_shared<autograd::cpu::Div>();
+                throw std::runtime_error("Div: unsupported device");
+            }
+        );
+        return outs[0];
     }
 
     Tensor div(const Tensor& t1, double t2) {

@@ -22,6 +22,7 @@ namespace synapx::autograd {
             Tensor variable; // the Tensor/Variable to accumulate grad into
         };
 
+        std::vector<bool> requires_grad_flags;
         std::vector<BackwardEdge> backward_edges;
 
         virtual std::vector<torch::Tensor> forward(const std::vector<torch::Tensor>& inputs) = 0;

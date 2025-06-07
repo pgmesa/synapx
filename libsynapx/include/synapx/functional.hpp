@@ -43,9 +43,14 @@ namespace synapx::F {
                 throw std::invalid_argument("dispatch_op: at least one input required");
 
             // 1) all inputs must be defined and on the same device
-            auto dev = inputs[0].device();
+            std::vector<torch::Tensor> raw_in; 
+            raw_in.reserve(inputs.size());
+            std::vector<bool> grad_flags; 
+            grad_flags.reserve(inputs.size());
+
+            Device dev = inputs[0].device();
             bool any_grad = false;
-            for (auto& t : inputs) {
+            for (const Tensor& t : inputs) {
                 if (!t.defined())
                     throw std::invalid_argument("Input tensors must be valid");
                     
@@ -53,31 +58,28 @@ namespace synapx::F {
                     throw std::invalid_argument("All inputs must be on the same device");
                 
                 any_grad = any_grad || t.requires_grad();
+                grad_flags.push_back(t.requires_grad());
+                raw_in.push_back(t.data());
             }
 
-            // 2) raw torch::Tensor inputs
-            std::vector<torch::Tensor> raw_in;
-            raw_in.reserve(inputs.size());
-            for (auto& t : inputs)
-                raw_in.push_back(t.data());
-
             // 3) pick/construct the right Function
-            auto fn = make_fn(dev);
+            std::shared_ptr<autograd::Function> fn = make_fn(dev);
             if (!fn)
-                throw std::runtime_error("dispatch_op: factory returned nullptr");
+                throw std::runtime_error("Internal error in 'dispatch_op': factory returned nullptr");
 
             // 4) forward-compute
-            auto raw_out = fn->forward(raw_in);
+            fn->requires_grad_flags = grad_flags;
+            std::vector<torch::Tensor> raw_out = fn->forward(raw_in);
 
             // 5) wrap outputs & hook up grad_fn/backward_edges
             std::vector<Tensor> outputs;
             outputs.reserve(raw_out.size());
-            for (auto& ro : raw_out)
+            for (torch::Tensor& ro : raw_out)
                 outputs.emplace_back(ro, any_grad, dev);
 
             if (any_grad) {
                 // set the same grad_fn on each output
-                for (auto& out : outputs)
+                for (Tensor& out : outputs)
                     out.set_grad_fn(fn);
 
                 // record one backward‐edge per input slot

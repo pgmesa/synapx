@@ -16,17 +16,25 @@ namespace synapx::autograd::cpu {
 
         torch::Tensor out = torch::add(t1, t2);
         
-        shape_t1.reserve(t1.dim());
-        shape_t1 = t1.sizes().vec();
-        shape_t2.reserve(t2.dim());
-        shape_t2 = t2.sizes().vec();
+        if (requires_grad_flags[0]) {
+            t1_shape.reserve(t1.dim());
+            t1_shape = t1.sizes().vec();
+        }
+        if (requires_grad_flags[1]) {
+            t2_shape.reserve(t2.dim());
+            t2_shape = t2.sizes().vec();
+        }
+        
         return {out};
     }
 
     std::vector<torch::Tensor> Add::backward(const std::vector<torch::Tensor>& grad_outputs) {
         const torch::Tensor& grad = grad_outputs[0];
-        torch::Tensor grad_t1 = unbroadcast(grad, shape_t1);
-        torch::Tensor grad_t2 = unbroadcast(grad, shape_t2);
+
+        torch::Tensor grad_t1, grad_t2;
+        if (requires_grad_flags[0]) grad_t1 = unbroadcast(grad, t1_shape);
+        if (requires_grad_flags[1]) grad_t2 = unbroadcast(grad, t2_shape);
+
         return {grad_t1, grad_t2};
     }
 
@@ -37,16 +45,67 @@ namespace synapx::autograd::cpu {
 
         torch::Tensor out = torch::mul(t1, t2);
         
-        this->t1 = t1;
-        this->t2 = t2;
+        if (requires_grad_flags[0]) {
+            this->t2 = t2;
+            t1_shape.reserve(t1.dim());
+            t1_shape = t1.sizes().vec();
+        }
+        
+        if (requires_grad_flags[1]) {
+            this->t1 = t1;
+            t2_shape.reserve(t2.dim());
+            t2_shape = t2.sizes().vec();
+        }
 
         return {out};
     }
 
     std::vector<torch::Tensor> Mul::backward(const std::vector<torch::Tensor>& grad_outputs) {
         const torch::Tensor& grad = grad_outputs[0];
-        torch::Tensor grad_t1 = unbroadcast(grad * t2, t1.sizes());
-        torch::Tensor grad_t2 = unbroadcast(grad * t1, t2.sizes());
+
+        torch::Tensor grad_t1, grad_t2;
+
+        if (requires_grad_flags[0])
+            grad_t1 = unbroadcast(grad * t2, t1_shape);
+        
+        if (requires_grad_flags[1])
+            grad_t2 = unbroadcast(grad * t1, t2_shape);
+
+        return {grad_t1, grad_t2};
+    }
+
+
+    std::vector<torch::Tensor> Div::forward(const std::vector<torch::Tensor>& inputs) { 
+        const torch::Tensor& t1 = inputs[0];
+        const torch::Tensor& t2 = inputs[1];
+
+        torch::Tensor out = torch::div(t1, t2);
+        
+        if (requires_grad_flags[0]) {
+            this->t2 = t2;
+            t1_shape.reserve(t1.dim());
+            t1_shape = t1.sizes().vec();
+        }
+        
+        if (requires_grad_flags[1]) {
+            this->t1 = t1;
+            this->t2 = t2;
+        }
+
+        return {out};
+    }
+
+    std::vector<torch::Tensor> Div::backward(const std::vector<torch::Tensor>& grad_outputs) {
+        const torch::Tensor& grad = grad_outputs[0];
+
+        torch::Tensor grad_t1, grad_t2;
+
+        if (requires_grad_flags[0])
+            grad_t1 = unbroadcast(grad / t2, t1_shape);
+        
+        if (requires_grad_flags[1])
+            grad_t2 = unbroadcast((-grad * t1) / (t2 * t2), t2.sizes());
+
         return {grad_t1, grad_t2};
     }
 
@@ -56,19 +115,38 @@ namespace synapx::autograd::cpu {
         const torch::Tensor& t2 = inputs[1];
 
         torch::Tensor out = torch::matmul(t1, t2);
-        
-        this->t1 = t1;
-        this->t2 = t2;
+
+        if (requires_grad_flags[0]){
+            this->t2 = t2;
+            t1_shape.reserve(t1.dim());
+            t1_shape = t1.sizes().vec();
+        }
+
+        if (requires_grad_flags[1]) {
+            this->t1 = t1;
+            t2_shape.reserve(t2.dim());
+            t2_shape = t2.sizes().vec();
+        } 
 
         return {out};
     }
 
     std::vector<torch::Tensor> Matmul::backward(const std::vector<torch::Tensor>& grad_outputs) {
         const torch::Tensor& grad = grad_outputs[0];
-        torch::Tensor grad_t1 = torch::matmul(grad, torch::swapdims(t2, -2, -1));
-        torch::Tensor grad_t2 = torch::matmul(torch::swapdims(t1, -2, -1), grad);
+        
+        torch::Tensor grad_t1, grad_t2;
 
-        return {unbroadcast(grad_t1, t1.sizes()), unbroadcast(grad_t2, t2.sizes())};
+        if (requires_grad_flags[0]) {
+            grad_t1 = torch::matmul(grad, torch::swapdims(t2, -2, -1));
+            grad_t1 = unbroadcast(grad_t1, t1_shape);
+        }
+
+        if (requires_grad_flags[1]) {
+            grad_t2 = torch::matmul(torch::swapdims(t1, -2, -1), grad);
+            grad_t2 = unbroadcast(grad_t2, t2_shape);
+        } 
+
+        return {grad_t1, grad_t2};
     }
 
     std::vector<torch::Tensor> Pow::forward(const std::vector<torch::Tensor>& inputs) { 
@@ -76,19 +154,27 @@ namespace synapx::autograd::cpu {
         const torch::Tensor& exp = inputs[1];
 
         torch::Tensor out = torch::pow(base, exp);
-        
+
         this->base = base;
-        this->exp = exp;
         this->forward_result = out;
+        if (requires_grad_flags[0])
+            this->exp = exp;
 
         return {out};
     }
 
     std::vector<torch::Tensor> Pow::backward(const std::vector<torch::Tensor>& grad_outputs) {
         const torch::Tensor& grad = grad_outputs[0];
-        torch::Tensor grad_base = exp * base.pow(exp - 1) * grad;
-        // torch::Tensor grad_exp = forward_result * base.log() * grad;
-        return {grad_base};
+
+        torch::Tensor grad_base, grad_exp;
+
+        if (requires_grad_flags[0])
+            grad_base = exp * forward_result.div(base) * grad;
+        
+        if (requires_grad_flags[1])
+            grad_exp = forward_result * base.log() * grad;
+        
+        return {grad_base, grad_exp};
     }
 
 
@@ -99,9 +185,16 @@ namespace synapx::autograd::cpu {
 
         torch::Tensor out = torch::addmm(inp, mat1, mat2);
         
-        this->inp = inp;
-        this->mat1 = mat1;
-        this->mat2 = mat2;
+        if (requires_grad_flags[0]) {
+            inp_shape.reserve(inp.dim());
+            inp_shape = inp.sizes().vec();
+        }
+        
+        if (requires_grad_flags[1])
+            this->mat2 = mat2;
+        
+        if (requires_grad_flags[2])
+            this->mat1 = mat1;
 
         return {out};
     }
@@ -109,9 +202,16 @@ namespace synapx::autograd::cpu {
     std::vector<torch::Tensor> Addmm::backward(const std::vector<torch::Tensor>& grad_outputs) {
         const torch::Tensor& grad = grad_outputs[0];
         
-        torch::Tensor grad_inp = unbroadcast(grad, inp.sizes());
-        torch::Tensor grad_mat1 = torch::matmul(grad, torch::swapdims(mat2, -2, -1));
-        torch::Tensor grad_mat2 = torch::matmul(torch::swapdims(mat1, -2, -1), grad);
+        torch::Tensor grad_inp, grad_mat1, grad_mat2;
+
+        if (requires_grad_flags[0]) 
+            grad_inp = unbroadcast(grad, inp_shape);
+        
+        if (requires_grad_flags[1]) 
+            grad_mat1 = torch::matmul(grad, torch::swapdims(mat2, -2, -1));
+        
+        if (requires_grad_flags[2]) 
+            grad_mat2 = torch::matmul(torch::swapdims(mat1, -2, -1), grad);
 
         return {grad_inp, grad_mat1, grad_mat2};
     }
