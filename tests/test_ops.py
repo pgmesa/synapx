@@ -264,13 +264,14 @@ def test_sum():
     op_tester([(1000, 1500)], lambda x: x.sum(), name='sum')
     op_tester([(1000, 1500)], lambda x: x.sum(dim=1), name='sum')
     op_tester([(1000, 1500, 3)], lambda x: x.sum(dim=(-2, 2)), name='sum')
-    op_tester([(1000, 1500, 3)], lambda x: x.sum(dim=-1), name='sum')
-    
+    op_tester([(1000, 1500)], lambda x: x.sum(dim=-1), name='sum')
+    op_tester([(1000, 1500, 3)], lambda engine, x: engine.sum(x, dim=-1), name='engine.sum', module_func=True)
 
-# def test_mean():
-#     op_tester([(1000, 1500)], lambda x: x.mean(dim=0), name='mean')
-#     op_tester([(1000, 1500)], lambda x: x.mean(dim=1), name='mean')
-#     op_tester([(1000, 1500)], lambda x: x.mean(dim=-1), name='mean')
+def test_mean():
+    op_tester([(1000, 1500)], lambda x: x.mean(dim=0), name='mean')
+    op_tester([(1000, 1500)], lambda x: x.mean(dim=1), name='mean')
+    op_tester([(1000, 1500)], lambda x: x.mean(dim=-1), name='mean')
+    op_tester([(1000, 1500, 3)], lambda engine, x: engine.mean(x, dim=(1,2)), name='engine.mean', module_func=True)
 
 # def test_min():
 #     op_tester([(100, 150)], lambda x: x.min(), name='min')

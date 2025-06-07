@@ -28,11 +28,12 @@ namespace synapx::F {
     SYNAPX_API Tensor rmatmul(const Tensor& t1, const Tensor& t2);
 
     SYNAPX_API Tensor addmm(const Tensor& inp, const Tensor& mat1, const Tensor& mat2);
-    SYNAPX_API Tensor clone(const Tensor& t1);
-    SYNAPX_API Tensor exp(const Tensor& t1);
-    SYNAPX_API Tensor log(const Tensor& t1);
-    SYNAPX_API Tensor sqrt(const Tensor& t1);
-    SYNAPX_API Tensor sum(const Tensor& t1, const torch::IntArrayRef& dim = {}, bool keepdim = false);
+    SYNAPX_API Tensor clone(const Tensor& t);
+    SYNAPX_API Tensor exp(const Tensor& t);
+    SYNAPX_API Tensor log(const Tensor& t);
+    SYNAPX_API Tensor sqrt(const Tensor& t);
+    SYNAPX_API Tensor sum(const Tensor& t, const torch::IntArrayRef& dim = {}, bool keepdim = false);
+    SYNAPX_API Tensor mean(const Tensor& t, const torch::IntArrayRef& dim = {}, bool keepdim = false);
 
 
     namespace detail {

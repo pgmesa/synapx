@@ -138,9 +138,9 @@ namespace synapx::F {
         return outs[0];
     }
 
-    Tensor clone(const Tensor& t1) {
+    Tensor clone(const Tensor& t) {
         std::vector<Tensor> outs = detail::dispatch_op(
-            {t1}, 
+            {t}, 
             [](Device dev) -> std::shared_ptr<autograd::Function> {
                 if (dev.type() == Device::Type::CPU)  return std::make_shared<autograd::cpu::Clone>();
                 throw std::runtime_error("Clone: unsupported device");
@@ -149,9 +149,9 @@ namespace synapx::F {
         return outs[0];
     }
 
-    Tensor exp(const Tensor& t1) {
+    Tensor exp(const Tensor& t) {
         std::vector<Tensor> outs = detail::dispatch_op(
-            {t1}, 
+            {t}, 
             [](Device dev) -> std::shared_ptr<autograd::Function> {
                 if (dev.type() == Device::Type::CPU)  return std::make_shared<autograd::cpu::Exp>();
                 throw std::runtime_error("Exp: unsupported device");
@@ -160,9 +160,9 @@ namespace synapx::F {
         return outs[0];
     }
 
-    Tensor log(const Tensor& t1) {
+    Tensor log(const Tensor& t) {
         std::vector<Tensor> outs = detail::dispatch_op(
-            {t1}, 
+            {t}, 
             [](Device dev) -> std::shared_ptr<autograd::Function> {
                 if (dev.type() == Device::Type::CPU)  return std::make_shared<autograd::cpu::Log>();
                 throw std::runtime_error("Log: unsupported device");
@@ -171,9 +171,9 @@ namespace synapx::F {
         return outs[0];
     }
 
-    Tensor sqrt(const Tensor& t1) {
+    Tensor sqrt(const Tensor& t) {
         std::vector<Tensor> outs = detail::dispatch_op(
-            {t1}, 
+            {t}, 
             [](Device dev) -> std::shared_ptr<autograd::Function> {
                 if (dev.type() == Device::Type::CPU)  return std::make_shared<autograd::cpu::Sqrt>();
                 throw std::runtime_error("Sqrt: unsupported device");
@@ -182,12 +182,23 @@ namespace synapx::F {
         return outs[0];
     }
 
-    Tensor sum(const Tensor& t1, const torch::IntArrayRef& dim, bool keepdim) {
+    Tensor sum(const Tensor& t, const torch::IntArrayRef& dim, bool keepdim) {
         std::vector<Tensor> outs = detail::dispatch_op(
-            {t1}, 
+            {t}, 
             [dim, keepdim](Device dev) -> std::shared_ptr<autograd::Function> {
                 if (dev.type() == Device::Type::CPU)  return std::make_shared<autograd::cpu::Sum>(dim, keepdim);
                 throw std::runtime_error("Sum: unsupported device");
+            }
+        );
+        return outs[0];
+    }
+
+    Tensor mean(const Tensor& t, const torch::IntArrayRef& dim, bool keepdim) {
+        std::vector<Tensor> outs = detail::dispatch_op(
+            {t}, 
+            [dim, keepdim](Device dev) -> std::shared_ptr<autograd::Function> {
+                if (dev.type() == Device::Type::CPU)  return std::make_shared<autograd::cpu::Mean>(dim, keepdim);
+                throw std::runtime_error("Mean: unsupported device");
             }
         );
         return outs[0];

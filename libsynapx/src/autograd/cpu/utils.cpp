@@ -36,29 +36,43 @@ namespace synapx::autograd::cpu {
         return grad.reshape(original_shape);
     }
 
-
-    torch::Tensor expand_dims(torch::Tensor tensor, const torch::IntArrayRef& dim) {
+    torch::Tensor expand_dims(torch::Tensor tensor, const torch::IntArrayRef& dim, bool normalized) {
         int64_t k = tensor.dim();
         int64_t m = static_cast<int64_t>(dim.size());
         int64_t new_rank = k + m;
+        
+        std::vector<int64_t> normalized_dims = normalized? dim.vec() : normalize_dims(new_rank, dim);
 
-        std::vector<int64_t> normalized;
-        normalized.reserve(dim.size());
-        for (auto d : dim) {
-            int64_t d_norm = d;
-            if (d_norm < 0) {
-                d_norm += new_rank;
-            }
-            normalized.push_back(d_norm);
+        for (auto d : normalized_dims) {
+            tensor = tensor.unsqueeze(d);
         }
-
-        std::sort(normalized.begin(), normalized.end());
-
-        for (auto axis : normalized) {
-            tensor = tensor.unsqueeze(axis);
-        }
+        
         return tensor;
     }
 
+    // Normalizes dimension indices. Converts negative indices to positive and sorts them.
+    std::vector<int64_t> normalize_dims(int64_t tensor_dim, const torch::IntArrayRef& dim) {
+        std::vector<int64_t> normalized;
+
+        if (dim.empty()) {
+            // All dimensions selected
+            normalized.reserve(tensor_dim);
+            for (int i = 0; i < tensor_dim; i++)
+                normalized.push_back(i);
+        } else {
+            normalized.reserve(dim.size());
+            for (auto d : dim) {
+                int64_t d_norm = d;
+                if (d_norm < 0) {
+                    d_norm += tensor_dim;
+                }
+                normalized.push_back(d_norm);
+            }
+
+            std::sort(normalized.begin(), normalized.end());
+        }
+
+        return normalized;
+    }
 
 }

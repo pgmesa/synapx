@@ -226,10 +226,14 @@ namespace synapx::autograd::cpu {
 
 
     std::vector<torch::Tensor> Exp::forward(const std::vector<torch::Tensor>& inputs) { 
-        const torch::Tensor& t1 = inputs[0];
-        torch::Tensor out = torch::exp(t1);
-        this->forward_result = out;
-        return {out};
+        const torch::Tensor& t = inputs[0];
+        
+        torch::Tensor out = torch::exp(t);
+        
+        if (requires_grad_flags[0])
+            this->forward_result = out;
+        
+            return {out};
     }
 
     std::vector<torch::Tensor> Exp::backward(const std::vector<torch::Tensor>& grad_outputs) {
@@ -238,21 +242,29 @@ namespace synapx::autograd::cpu {
 
 
     std::vector<torch::Tensor> Log::forward(const std::vector<torch::Tensor>& inputs) { 
-        const torch::Tensor& t1 = inputs[0];
-        torch::Tensor out = torch::log(t1 + epsilon);
-        this->t1 = t1;
+        const torch::Tensor& t = inputs[0];
+        
+        torch::Tensor out = torch::log(t + epsilon);
+
+        if (requires_grad_flags[0])
+           this->t = t;
+        
         return {out};
     }
 
     std::vector<torch::Tensor> Log::backward(const std::vector<torch::Tensor>& grad_outputs) {
-        return {grad_outputs[0] / (t1 + epsilon)};
+        return {grad_outputs[0] / (t + epsilon)};
     }
 
 
     std::vector<torch::Tensor> Sqrt::forward(const std::vector<torch::Tensor>& inputs) { 
-        const torch::Tensor& t1 = inputs[0];
-        torch::Tensor out = torch::sqrt(t1);
-        this->forward_result = out;
+        const torch::Tensor& t = inputs[0];
+        
+        torch::Tensor out = torch::sqrt(t);
+        
+        if (requires_grad_flags[0])
+            this->forward_result = out;
+        
         return {out};
     }
 
@@ -264,10 +276,14 @@ namespace synapx::autograd::cpu {
     Sum::Sum(const torch::IntArrayRef& dim, bool keepdim): dim(dim.vec()), keepdim(keepdim) {}
 
     std::vector<torch::Tensor> Sum::forward(const std::vector<torch::Tensor>& inputs) {
-        const torch::Tensor& t1 = inputs[0];
-        t1_shape.reserve(t1.dim());
-        t1_shape = t1.sizes().vec();
-        return {torch::sum(t1, dim, keepdim)}; 
+        const torch::Tensor& t = inputs[0];
+
+        if (requires_grad_flags[0]) {
+            t_shape.reserve(t.dim());
+            t_shape = t.sizes().vec();
+        }
+        
+        return {torch::sum(t, dim, keepdim)}; 
     }
 
     std::vector<torch::Tensor> Sum::backward(const std::vector<torch::Tensor>& grad_outputs) {
@@ -276,7 +292,39 @@ namespace synapx::autograd::cpu {
         if(!keepdim && !dim.empty())
             grad = expand_dims(grad, dim);
         
-        return {torch::broadcast_to(grad, t1_shape)};
+        return {torch::broadcast_to(grad, t_shape)};
+    }
+
+
+    Mean::Mean(const torch::IntArrayRef& dim, bool keepdim): dim(dim.vec()), keepdim(keepdim) {}
+
+    std::vector<torch::Tensor> Mean::forward(const std::vector<torch::Tensor>& inputs) {
+        const torch::Tensor& t = inputs[0];
+
+        if (requires_grad_flags[0]) {
+            t_shape.reserve(t.dim());
+            t_shape = t.sizes().vec();
+            
+            normalized_dims = normalize_dims(t.dim(), dim);
+        }
+        
+        return {torch::mean(t, dim, keepdim)}; 
+    }
+
+    std::vector<torch::Tensor> Mean::backward(const std::vector<torch::Tensor>& grad_outputs) {
+        torch::Tensor grad = grad_outputs[0];
+
+        if(!keepdim && !dim.empty()) {
+            grad = expand_dims(grad, normalized_dims, /*normalized=*/true);
+        }
+
+        int num_samples = 1;
+        for (int64_t d : normalized_dims) {
+            num_samples *= t_shape[d];
+        }
+        grad = torch::broadcast_to(grad, t_shape) / num_samples;
+
+        return {grad};
     }
     
 }

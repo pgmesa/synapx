@@ -278,6 +278,11 @@ PYBIND11_MODULE(_C, m) {
             std::vector<int64_t> dims_vec = pyobj_to_dims(dim);
             return synapx::F::sum(self, dims_vec, keepdim);
         }, py::arg("dim") = py::none(), py::arg("keepdim") = false)
+
+        .def("mean", [](synapx::Tensor self, py::object dim, bool keepdim = false) -> synapx::Tensor {
+            std::vector<int64_t> dims_vec = pyobj_to_dims(dim);
+            return synapx::F::mean(self, dims_vec, keepdim);
+        }, py::arg("dim") = py::none(), py::arg("keepdim") = false)
         ;
     
     // Initializers
@@ -406,6 +411,11 @@ PYBIND11_MODULE(_C, m) {
     m.def("sum", [](synapx::Tensor tensor, py::object dim, bool keepdim = false) -> synapx::Tensor {
         std::vector<int64_t> dims_vec = pyobj_to_dims(dim);
         return synapx::F::sum(tensor, dims_vec, keepdim);
+    }, py::arg("tensor"), py::arg("dim") = py::none(), py::arg("keepdim") = false);
+
+    m.def("mean", [](synapx::Tensor tensor, py::object dim, bool keepdim = false) -> synapx::Tensor {
+        std::vector<int64_t> dims_vec = pyobj_to_dims(dim);
+        return synapx::F::mean(tensor, dims_vec, keepdim);
     }, py::arg("tensor"), py::arg("dim") = py::none(), py::arg("keepdim") = false);
 
 }
