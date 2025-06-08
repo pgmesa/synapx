@@ -10,11 +10,19 @@ from utils import check_tensors, time_fun
 
 atol = 1e-8; rtol = 1e-5
 
-def op_tester(inputs:list, function, name, device='cpu', module_func=False, nn_functional=False, factor=1, offset=0, backward=True):    
-    torch_inputs = [
-        torch.tensor(np.random.rand(*shape)*factor+offset, requires_grad=True, dtype=torch.float32, device=device) 
-        for shape in inputs
-    ]
+def op_tester(inputs:list, function, name, device='cpu', module_func=False,
+              nn_functional=False, factor=1, offset=0, backward=True, ones=False, dtype=torch.float32):    
+    if ones:
+        torch_inputs = [
+            torch.tensor(np.ones(shape)*factor+offset, requires_grad=backward, dtype=dtype, device=device) 
+            for shape in inputs
+        ]
+    else:
+        torch_inputs = [
+            torch.tensor(np.random.rand(*shape)*factor+offset, requires_grad=backward, dtype=dtype, device=device) 
+            for shape in inputs
+        ]
+        
     if module_func: 
         if nn_functional:
             torch_inputs.insert(0, torch.nn.functional)
@@ -29,7 +37,7 @@ def op_tester(inputs:list, function, name, device='cpu', module_func=False, nn_f
     torch_inputs = torch_inputs[1:] if module_func else torch_inputs
     
     syn_inputs = [
-        synapx.tensor(inp.detach(), requires_grad=True, dtype=torch.float32, device=device) 
+        synapx.tensor(inp.detach(), requires_grad=inp.requires_grad, dtype=inp.dtype, device=device) 
         for inp in torch_inputs
     ]
     if module_func: 
@@ -273,6 +281,32 @@ def test_mean():
     op_tester([(1000, 1500)], lambda x: x.mean(dim=-1), name='mean')
     op_tester([(1000, 1500, 3)], lambda engine, x: engine.mean(x, dim=(1,2)), name='engine.mean', module_func=True)
 
+def test_max():
+    op_tester([(4, 4)], lambda x: x.max(), name='max')
+    op_tester([(4, 4)], lambda x: x.max(), name='max_ones', ones=True) # When more than one element is equal to max_value
+    op_tester([(1000, 1500)], lambda x: x.max(dim=0), name='max_d0')
+    op_tester([(1000, 1500)], lambda x: x.max(dim=0), name='max_d0_ones', ones=True)
+    op_tester([(1000, 1500)], lambda x: x.max(dim=1), name='max_d1')
+    op_tester([(1000, 1500)], lambda x: x.max(dim=1), name='max_d1_ones', ones=True)
+    op_tester([(1000, 1500)], lambda x: x.max(dim=1, keepdim=True), name='max_d1')
+    op_tester([(1000, 3, 4, 5)], lambda x: x.max(dim=2), name='max_d2')
+    op_tester([(1000, 3, 4, 5)], lambda x: x.max(dim=3), name='max_d3')
+    op_tester([(1000, 3, 4, 5)], lambda x: x.max(dim=-1), name='max_d3')
+    op_tester([(1000, 3, 4, 5)], lambda x: x.max(dim=-2), name='max_d3')
+    
+def test_min():
+    op_tester([(4, 4)], lambda x: x.min(), name='min')
+    op_tester([(4, 4)], lambda x: x.min(), name='min_ones', ones=True) # When more than one element is equal to min_value
+    op_tester([(1000, 1500)], lambda x: x.min(dim=0), name='min_d0')
+    op_tester([(1000, 1500)], lambda x: x.min(dim=0), name='min_d0_ones', ones=True)
+    op_tester([(1000, 1500)], lambda x: x.min(dim=1), name='min_d1')
+    op_tester([(1000, 1500)], lambda x: x.min(dim=1), name='min_d1_ones', ones=True)
+    op_tester([(1000, 1500)], lambda x: x.min(dim=1, keepdim=True), name='min_d1')
+    op_tester([(1000, 3, 4, 5)], lambda x: x.min(dim=2), name='min_d2')
+    op_tester([(1000, 3, 4, 5)], lambda x: x.min(dim=3), name='min_d3')
+    op_tester([(1000, 3, 4, 5)], lambda x: x.min(dim=-1), name='min_d3')
+    op_tester([(1000, 3, 4, 5)], lambda x: x.min(dim=-2), name='min_d3')
+
 # def test_min():
 #     op_tester([(100, 150)], lambda x: x.min(), name='min')
 #     op_tester([(1000, 1500)], lambda x: x.min(dim=0), name='min_d0')
@@ -282,16 +316,6 @@ def test_mean():
 #     op_tester([(1000, 3, 4, 5)], lambda x: x.min(dim=3), name='min_d3')
 #     op_tester([(1000, 3, 4, 5)], lambda x: x.min(dim=-1), name='min_d3')
 #     op_tester([(1000, 3, 4, 5)], lambda x: x.min(dim=-2), name='min_d3')
-
-# def test_max():
-#     op_tester([(100, 150)], lambda x: x.max(), name='max')
-#     op_tester([(1000, 1500)], lambda x: x.max(dim=0), name='max_d0')
-#     op_tester([(1000, 1500)], lambda x: x.max(dim=1), name='max_d1')
-#     op_tester([(1000, 1500)], lambda x: x.max(dim=1, keepdims=True), name='max_d1')
-#     op_tester([(1000, 3, 4, 5)], lambda x: x.max(dim=2), name='max_d2')
-#     op_tester([(1000, 3, 4, 5)], lambda x: x.max(dim=3), name='max_d3')
-#     op_tester([(1000, 3, 4, 5)], lambda x: x.max(dim=-1), name='max_d3')
-#     op_tester([(1000, 3, 4, 5)], lambda x: x.max(dim=-2), name='max_d3')
 
 # def test_squeeze():
 #     op_tester([(100, 1)], lambda x: x.squeeze(dim=1), name='squeeze')

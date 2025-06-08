@@ -75,4 +75,23 @@ namespace synapx::autograd::cpu {
         return normalized;
     }
 
+    torch::Tensor unravel_index(const torch::Tensor& indices, at::IntArrayRef shape) {
+        // Convert shape to tensor: (*shape, 1)
+        std::vector<int64_t> shape_with_one(shape.begin(), shape.end());
+        shape_with_one.push_back(1);
+        torch::Tensor shape_tensor = torch::tensor(shape_with_one, indices.options());
+        
+        // coefs = shape[1:].flipud().cumprod(dim=0).flipud()
+        torch::Tensor coefs = shape_tensor.slice(0, 1).flip(0).cumprod(0).flip(0);
+        
+        // indices[..., None] - add dimension at the end
+        torch::Tensor indices_expanded = indices.unsqueeze(-1);
+        
+        // torch.div(indices[..., None], coefs, rounding_mode='trunc') % shape[:-1]
+        torch::Tensor shape_no_last = shape_tensor.slice(0, 0, -1);
+        torch::Tensor result = torch::div(indices_expanded, coefs, /*rounding_mode=*/"trunc") % shape_no_last;
+        
+        return result;
+    }
+
 }

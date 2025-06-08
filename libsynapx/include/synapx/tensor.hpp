@@ -3,7 +3,8 @@
 
 #include <memory>
 #include <vector>
-#include <cstddef>  // for size_t
+#include <cstddef>
+#include <tuple>
 
 #include <torch/torch.h>
 
@@ -111,6 +112,11 @@ namespace synapx {
         Tensor log() const;
         Tensor sqrt() const;
         Tensor sum(const torch::IntArrayRef& dim = {}, bool keepdim = false) const;
+        Tensor mean(const torch::IntArrayRef& dim = {}, bool keepdim = false) const;
+        Tensor max() const;
+        std::tuple<Tensor, Tensor> max(int64_t dim, bool keepdim = false) const;
+        Tensor min() const;
+        std::tuple<Tensor, Tensor> min(int64_t dim, bool keepdim = false) const;
 
         std::string to_string() const;
         static std::string to_string(torch::Tensor tensor);

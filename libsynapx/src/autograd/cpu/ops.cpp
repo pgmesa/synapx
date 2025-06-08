@@ -326,5 +326,96 @@ namespace synapx::autograd::cpu {
 
         return {grad};
     }
+
+    Max::Max(std::optional<int64_t> dim, bool keepdim): dim(dim), keepdim(keepdim) {}
+
+    std::vector<torch::Tensor> Max::forward(const std::vector<torch::Tensor>& inputs) {
+        const torch::Tensor& t = inputs[0];
+        
+        torch::Tensor result;
+        if (!dim.has_value()) {
+            result = torch::max(t);
+            this->t = t;        
+            max_values = result;
+        } else {
+            auto [values, indices] = torch::max(t, dim.value(), keepdim);
+            result = values;
+            max_indices = indices;
+        }
+        
+        if (requires_grad_flags[0]) {
+            t_shape.reserve(t.dim());
+            t_shape = t.sizes().vec();
+        }
+        
+        return {result};
+    }
+
+    std::vector<torch::Tensor> Max::backward(const std::vector<torch::Tensor>& grad_outputs) {
+        torch::Tensor grad = grad_outputs[0];
+        torch::Tensor mask;
+    
+        if (!dim.has_value()) {
+            mask = (t == max_values).to(grad.dtype());
+            mask /= mask.count_nonzero();
+        } else {
+            // Along specific dimension
+            mask = torch::zeros(t_shape, grad.options());
+            torch::Tensor indices = max_indices;
+            if (!keepdim) {
+                grad.unsqueeze_(dim.value());
+                indices.unsqueeze_(dim.value());
+            }
+            mask.scatter_(dim.value(), indices, 1);
+        }
+        
+        return {grad * mask};
+    }
+
+
+    Min::Min(std::optional<int64_t> dim, bool keepdim): dim(dim), keepdim(keepdim) {}
+
+    std::vector<torch::Tensor> Min::forward(const std::vector<torch::Tensor>& inputs) {
+        const torch::Tensor& t = inputs[0];
+        
+        torch::Tensor result;
+        if (!dim.has_value()) {
+            result = torch::min(t);
+            this->t = t;        
+            min_values = result;
+        } else {
+            auto [values, indices] = torch::min(t, dim.value(), keepdim);
+            result = values;
+            min_indices = indices;
+        }
+        
+        if (requires_grad_flags[0]) {
+            t_shape.reserve(t.dim());
+            t_shape = t.sizes().vec();
+        }
+        
+        return {result};
+    }
+
+    std::vector<torch::Tensor> Min::backward(const std::vector<torch::Tensor>& grad_outputs) {
+        torch::Tensor grad = grad_outputs[0];
+        torch::Tensor mask;
+    
+        if (!dim.has_value()) {
+            mask = (t == min_values).to(grad.dtype());
+            mask /= mask.count_nonzero();
+        } else {
+            // Along specific dimension
+            mask = torch::zeros(t_shape, grad.options());
+            torch::Tensor indices = min_indices;
+            if (!keepdim) {
+                grad.unsqueeze_(dim.value());
+                indices.unsqueeze_(dim.value());
+            }
+            mask.scatter_(dim.value(), indices, 1);
+        }
+        
+        return {grad * mask};
+    }
     
 }

@@ -276,13 +276,27 @@ PYBIND11_MODULE(_C, m) {
 
         .def("sum", [](synapx::Tensor self, py::object dim, bool keepdim = false) -> synapx::Tensor {
             std::vector<int64_t> dims_vec = pyobj_to_dims(dim);
-            return synapx::F::sum(self, dims_vec, keepdim);
+            return self.sum(dims_vec, keepdim);
         }, py::arg("dim") = py::none(), py::arg("keepdim") = false)
 
         .def("mean", [](synapx::Tensor self, py::object dim, bool keepdim = false) -> synapx::Tensor {
             std::vector<int64_t> dims_vec = pyobj_to_dims(dim);
-            return synapx::F::mean(self, dims_vec, keepdim);
+            return self.mean(dims_vec, keepdim);
         }, py::arg("dim") = py::none(), py::arg("keepdim") = false)
+        
+        .def("max", [](const synapx::Tensor& self) { 
+            return self.max(); 
+        })
+        .def("max", [](const synapx::Tensor& self, int64_t dim, bool keepdim) { 
+            return self.max(dim, keepdim); 
+        }, py::arg("dim"), py::arg("keepdim") = false)
+
+        .def("min", [](const synapx::Tensor& self) { 
+            return self.min(); 
+        })
+        .def("min", [](const synapx::Tensor& self, int64_t dim, bool keepdim) { 
+            return self.min(dim, keepdim); 
+        }, py::arg("dim"), py::arg("keepdim") = false)
         ;
     
     // Initializers
@@ -378,44 +392,54 @@ PYBIND11_MODULE(_C, m) {
     }, py::arg("input"), py::arg("requires_grad") = false, py::arg("device") = "cpu", py::arg("dtype") = py::none());
        
     // Basic operations
-    m.def("add", py::overload_cast<const synapx::Tensor&, const synapx::Tensor&>(&synapx::F::add), py::arg("t1"), py::arg("t2"));
-    m.def("add", py::overload_cast<const synapx::Tensor&, double>(&synapx::F::add), py::arg("tensor"), py::arg("scalar"));
+    m.def("add", py::overload_cast<const synapx::Tensor&, const synapx::Tensor&>(&synapx::add), py::arg("t1"), py::arg("t2"));
+    m.def("add", py::overload_cast<const synapx::Tensor&, double>(&synapx::add), py::arg("tensor"), py::arg("scalar"));
     
-    m.def("sub", py::overload_cast<const synapx::Tensor&, const synapx::Tensor&>(&synapx::F::sub), py::arg("t1"), py::arg("t2"));
-    m.def("sub", py::overload_cast<const synapx::Tensor&, double>(&synapx::F::sub), py::arg("tensor"), py::arg("scalar"));
+    m.def("sub", py::overload_cast<const synapx::Tensor&, const synapx::Tensor&>(&synapx::sub), py::arg("t1"), py::arg("t2"));
+    m.def("sub", py::overload_cast<const synapx::Tensor&, double>(&synapx::sub), py::arg("tensor"), py::arg("scalar"));
     
-    m.def("mul", py::overload_cast<const synapx::Tensor&, const synapx::Tensor&>(&synapx::F::mul), py::arg("t1"), py::arg("t2"));
-    m.def("mul", py::overload_cast<const synapx::Tensor&, double>(&synapx::F::mul), py::arg("tensor"), py::arg("scalar"));
+    m.def("mul", py::overload_cast<const synapx::Tensor&, const synapx::Tensor&>(&synapx::mul), py::arg("t1"), py::arg("t2"));
+    m.def("mul", py::overload_cast<const synapx::Tensor&, double>(&synapx::mul), py::arg("tensor"), py::arg("scalar"));
     
-    m.def("pow", py::overload_cast<const synapx::Tensor&, const synapx::Tensor&>(&synapx::F::pow), py::arg("tensor"), py::arg("exponent"));
-    m.def("pow", py::overload_cast<const synapx::Tensor&, double>(&synapx::F::pow), py::arg("tensor"), py::arg("exponent"));
+    m.def("pow", py::overload_cast<const synapx::Tensor&, const synapx::Tensor&>(&synapx::pow), py::arg("tensor"), py::arg("exponent"));
+    m.def("pow", py::overload_cast<const synapx::Tensor&, double>(&synapx::pow), py::arg("tensor"), py::arg("exponent"));
     
-    m.def("div", py::overload_cast<const synapx::Tensor&, const synapx::Tensor&>(&synapx::F::div), py::arg("t1"), py::arg("t2"));
-    m.def("div", py::overload_cast<const synapx::Tensor&, double>(&synapx::F::div), py::arg("tensor"), py::arg("scalar"));
+    m.def("div", py::overload_cast<const synapx::Tensor&, const synapx::Tensor&>(&synapx::div), py::arg("t1"), py::arg("t2"));
+    m.def("div", py::overload_cast<const synapx::Tensor&, double>(&synapx::div), py::arg("tensor"), py::arg("scalar"));
     
-    m.def("matmul", &synapx::F::matmul, py::arg("t1"), py::arg("t2"));
+    m.def("matmul", &synapx::matmul, py::arg("t1"), py::arg("t2"));
     
-    m.def("neg", &synapx::F::neg);
+    m.def("neg", &synapx::neg);
 
     // Other operations
-    m.def("addmm", &synapx::F::addmm, py::arg("inp"), py::arg("mat1"), py::arg("mat2"));
+    m.def("addmm", &synapx::addmm, py::arg("inp"), py::arg("mat1"), py::arg("mat2"));
 
-    m.def("clone", synapx::F::clone, py::arg("tensor"));
+    m.def("clone", synapx::clone, py::arg("tensor"));
 
-    m.def("exp", synapx::F::exp, py::arg("tensor"));
+    m.def("exp", synapx::exp, py::arg("tensor"));
 
-    m.def("log", synapx::F::log, py::arg("tensor"));
+    m.def("log", synapx::log, py::arg("tensor"));
 
-    m.def("sqrt", synapx::F::sqrt, py::arg("tensor"));
+    m.def("sqrt", synapx::sqrt, py::arg("tensor"));
 
     m.def("sum", [](synapx::Tensor tensor, py::object dim, bool keepdim = false) -> synapx::Tensor {
         std::vector<int64_t> dims_vec = pyobj_to_dims(dim);
-        return synapx::F::sum(tensor, dims_vec, keepdim);
+        return synapx::sum(tensor, dims_vec, keepdim);
     }, py::arg("tensor"), py::arg("dim") = py::none(), py::arg("keepdim") = false);
 
     m.def("mean", [](synapx::Tensor tensor, py::object dim, bool keepdim = false) -> synapx::Tensor {
         std::vector<int64_t> dims_vec = pyobj_to_dims(dim);
-        return synapx::F::mean(tensor, dims_vec, keepdim);
+        return synapx::mean(tensor, dims_vec, keepdim);
     }, py::arg("tensor"), py::arg("dim") = py::none(), py::arg("keepdim") = false);
+
+    m.def("max", [](const synapx::Tensor& tensor) { return synapx::max(tensor); }, py::arg("tensor"));
+    m.def("max", [](const synapx::Tensor& tensor, int64_t dim, bool keepdim) { 
+        return synapx::max(tensor, dim, keepdim); 
+    }, py::arg("tensor"), py::arg("dim"), py::arg("keepdim") = false);
+
+    m.def("min", [](const synapx::Tensor& tensor) { return synapx::min(tensor); }, py::arg("tensor"));
+    m.def("min", [](const synapx::Tensor& tensor, int64_t dim, bool keepdim) { 
+        return synapx::min(tensor, dim, keepdim); 
+    }, py::arg("tensor"), py::arg("dim"), py::arg("keepdim") = false);
 
 }

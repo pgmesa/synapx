@@ -25,7 +25,7 @@ namespace synapx {
     struct Tensor::Impl {
         Impl() {};
         Impl(const torch::Tensor& data, bool req_grad, Device device)
-            : data(data), requires_grad(req_grad), device(device) {};
+            : data(data.detach().cpu()), requires_grad(req_grad), device(device) {};
 
         torch::Tensor data;
         bool requires_grad;
@@ -220,51 +220,51 @@ namespace synapx {
 
     // Funtions
     Tensor Tensor::add(const Tensor& other) const {
-        return F::add(*this, other);
+        return synapx::add(*this, other);
     }
 
     Tensor Tensor::add(double other) const {
-        return F::add(*this, other);
+        return synapx::add(*this, other);
     }
 
     Tensor Tensor::sub(const Tensor& other) const {
-        return F::sub(*this, other);
+        return synapx::sub(*this, other);
     }
 
     Tensor Tensor::sub(double other) const {
-        return F::sub(*this, other);
+        return synapx::sub(*this, other);
     }
 
     Tensor Tensor::mul(const Tensor& other) const {
-        return F::mul(*this, other);
+        return synapx::mul(*this, other);
     }
 
     Tensor Tensor::mul(double other) const {
-        return F::mul(*this, other);
+        return synapx::mul(*this, other);
     }
 
     Tensor Tensor::div(const Tensor& other) const {
-        return F::div(*this, other);
+        return synapx::div(*this, other);
     }
 
     Tensor Tensor::div(double other) const {
-        return F::div(*this, other);
+        return synapx::div(*this, other);
     }
 
     Tensor Tensor::matmul(const Tensor& other) const {
-        return F::matmul(*this, other);
+        return synapx::matmul(*this, other);
     }
 
     Tensor Tensor::pow(const Tensor& exponent) const {
-        return F::pow(*this, exponent);
+        return synapx::pow(*this, exponent);
     }
 
     Tensor Tensor::pow(double exponent) const {
-        return F::pow(*this, exponent);
+        return synapx::pow(*this, exponent);
     }
 
     Tensor Tensor::neg() const {
-        return F::neg(*this);
+        return synapx::neg(*this);
     }
 
     // In-place functions
@@ -342,52 +342,72 @@ namespace synapx {
 
     // Reverse functions
     Tensor Tensor::rsub(const Tensor& other) const {
-        return F::rsub(*this, other);
+        return synapx::rsub(*this, other);
     };
 
     Tensor Tensor::rsub(double other) const {
-        return F::rsub(*this, other);
+        return synapx::rsub(*this, other);
     };
 
     Tensor Tensor::rpow(const Tensor& exponent) const {
-        return F::rpow(*this, exponent);
+        return synapx::rpow(*this, exponent);
     };
 
     Tensor Tensor::rpow(double exponent) const {
-        return F::rpow(*this, exponent);
+        return synapx::rpow(*this, exponent);
     };
     
     Tensor Tensor::rdiv(const Tensor& other) const {
-        return F::rdiv(*this, other);
+        return synapx::rdiv(*this, other);
     };
 
     Tensor Tensor::rdiv(double other) const {
-        return F::rdiv(*this, other);
+        return synapx::rdiv(*this, other);
     };
 
     Tensor Tensor::rmatmul(const Tensor& other) const {
-        return F::matmul(*this, other);
+        return synapx::matmul(*this, other);
     };
 
     // Other functions
     Tensor Tensor::clone() const {
-        return F::clone(*this);
+        return synapx::clone(*this);
     }
 
     Tensor Tensor::exp() const {
-        return F::exp(*this);
+        return synapx::exp(*this);
     }
 
     Tensor Tensor::log() const {
-        return F::log(*this);
+        return synapx::log(*this);
     }
 
     Tensor Tensor::sqrt() const {
-        return F::sqrt(*this);
+        return synapx::sqrt(*this);
     }
 
     Tensor Tensor::sum(const torch::IntArrayRef& dim, bool keepdim) const {
-        return F::sum(*this, dim, keepdim);
+        return synapx::sum(*this, dim, keepdim);
+    };
+
+    Tensor Tensor::mean(const torch::IntArrayRef& dim, bool keepdim) const {
+        return synapx::mean(*this, dim, keepdim);
+    };
+
+    Tensor Tensor::max() const {
+        return synapx::max(*this);
+    };
+
+    std::tuple<Tensor, Tensor> Tensor::max(int64_t dim, bool keepdim) const {
+        return synapx::max(*this, dim, keepdim);
+    };
+
+    Tensor Tensor::min() const {
+        return synapx::min(*this);
+    };
+
+    std::tuple<Tensor, Tensor> Tensor::min(int64_t dim, bool keepdim) const {
+        return synapx::min(*this, dim, keepdim);
     };
 
     std::string Tensor::to_string() const {

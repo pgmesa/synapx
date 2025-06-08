@@ -1,10 +1,13 @@
 #ifndef FUNCTIONAL_HPP
 #define FUNCTIONAL_HPP
 
+#include <optional>
+#include <tuple>
+
 #include <synapx/core.hpp>
 #include <synapx/tensor.hpp>
 
-namespace synapx::F {
+namespace synapx {
 
     SYNAPX_API Tensor add(const Tensor& t1, const Tensor& t2);
     SYNAPX_API Tensor add(const Tensor& t1, double t2);
@@ -34,12 +37,21 @@ namespace synapx::F {
     SYNAPX_API Tensor sqrt(const Tensor& t);
     SYNAPX_API Tensor sum(const Tensor& t, const torch::IntArrayRef& dim = {}, bool keepdim = false);
     SYNAPX_API Tensor mean(const Tensor& t, const torch::IntArrayRef& dim = {}, bool keepdim = false);
+    SYNAPX_API Tensor max(const Tensor& t);
+    SYNAPX_API std::tuple<Tensor, Tensor> max(const Tensor& t, int64_t dim, bool keepdim = false);
+    SYNAPX_API Tensor min(const Tensor& t);
+    SYNAPX_API std::tuple<Tensor, Tensor> min(const Tensor& t, int64_t dim, bool keepdim = false);
 
 
     namespace detail {
 
+        struct DispatcherOutput {
+            std::vector<Tensor> outputs;
+            std::shared_ptr<autograd::Function> fn;
+        };
+
         template<class Factory>
-        std::vector<Tensor> dispatch_op(const std::vector<Tensor>& inputs, Factory make_fn) {
+        DispatcherOutput dispatch_op(const std::vector<Tensor>& inputs, Factory make_fn) {
             if (inputs.empty())
                 throw std::invalid_argument("dispatch_op: at least one input required");
 
@@ -90,8 +102,8 @@ namespace synapx::F {
                         fn->backward_edges.push_back({input.grad_fn(), i, input});
                 }
             }
-
-            return outputs;
+            
+            return {outputs, fn};
         }
 
     } // Detail
