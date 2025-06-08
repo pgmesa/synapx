@@ -417,5 +417,56 @@ namespace synapx::autograd::cpu {
         
         return {grad * mask};
     }
+
+    Squeeze::Squeeze(const torch::IntArrayRef& dim): dim(dim.vec()) {}
+
+    std::vector<torch::Tensor> Squeeze::forward(const std::vector<torch::Tensor>& inputs) {
+        const torch::Tensor& t = inputs[0];
+
+        torch::Tensor result;
+        if (dim.empty()) {
+            result = t.squeeze();
+            dim.reserve(t.dim());
+            for (int i = 0; i < t.dim(); i++) {
+                if (t.size(i) == 1)
+                    dim.push_back(i);
+            } 
+        } else {
+            result = t.squeeze(dim);
+        }
+        
+        if (requires_grad_flags[0]) {
+            t_shape.reserve(t.dim());
+            t_shape = t.sizes().vec();
+        }
+        
+        return {result};
+    }
+
+    std::vector<torch::Tensor> Squeeze::backward(const std::vector<torch::Tensor>& grad_outputs) {
+        torch::Tensor grad = grad_outputs[0];
+        
+        grad = expand_dims(grad, dim).broadcast_to(t_shape);
+        
+        return {grad};
+    }
+
+    Unsqueeze::Unsqueeze(int64_t dim): dim(dim) {}
+
+    std::vector<torch::Tensor> Unsqueeze::forward(const std::vector<torch::Tensor>& inputs) {
+        const torch::Tensor& t = inputs[0];
+
+        torch::Tensor result = torch::unsqueeze(t, dim);
+        
+        return {result};
+    }
+
+    std::vector<torch::Tensor> Unsqueeze::backward(const std::vector<torch::Tensor>& grad_outputs) {
+        torch::Tensor grad = grad_outputs[0];
+        
+        grad = grad.squeeze(dim);
+        
+        return {grad};
+    }
     
 }

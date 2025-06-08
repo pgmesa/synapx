@@ -414,6 +414,14 @@ namespace synapx {
         return synapx::min(*this, dim, keepdim);
     };
 
+    Tensor Tensor::squeeze(const torch::IntArrayRef& dim) {
+        return synapx::squeeze(*this, dim);
+    };
+    
+    Tensor Tensor::unsqueeze(int64_t dim){
+        return synapx::unsqueeze(*this, dim);
+    };
+
     std::string Tensor::to_string() const {
         std::stringstream ss;
         ss << impl_->data;

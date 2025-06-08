@@ -118,6 +118,8 @@ namespace synapx {
         std::tuple<Tensor, Tensor> max(int64_t dim, bool keepdim = false) const;
         Tensor min() const;
         std::tuple<Tensor, Tensor> min(int64_t dim, bool keepdim = false) const;
+        Tensor squeeze(const torch::IntArrayRef& dim = {});
+        Tensor unsqueeze(int64_t dim);
 
         std::string to_string() const;
         static std::string to_string(torch::Tensor tensor);

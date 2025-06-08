@@ -307,22 +307,14 @@ def test_min():
     op_tester([(1000, 3, 4, 5)], lambda x: x.min(dim=-1), name='min_d3')
     op_tester([(1000, 3, 4, 5)], lambda x: x.min(dim=-2), name='min_d3')
 
-# def test_min():
-#     op_tester([(100, 150)], lambda x: x.min(), name='min')
-#     op_tester([(1000, 1500)], lambda x: x.min(dim=0), name='min_d0')
-#     op_tester([(1000, 1500)], lambda x: x.min(dim=1), name='min_d1')
-#     op_tester([(1000, 1500)], lambda x: x.min(dim=1, keepdims=True), name='min_d1')
-#     op_tester([(1000, 3, 4, 5)], lambda x: x.min(dim=2), name='min_d2')
-#     op_tester([(1000, 3, 4, 5)], lambda x: x.min(dim=3), name='min_d3')
-#     op_tester([(1000, 3, 4, 5)], lambda x: x.min(dim=-1), name='min_d3')
-#     op_tester([(1000, 3, 4, 5)], lambda x: x.min(dim=-2), name='min_d3')
-
-# def test_squeeze():
-#     op_tester([(100, 1)], lambda x: x.squeeze(dim=1), name='squeeze')
-#     op_tester([(1, 3)], lambda x: x.squeeze(dim=0), name='squeeze')
+def test_squeeze():
+    op_tester([(100, 1)], lambda x: x.squeeze(dim=1), name='squeeze')
+    op_tester([(1, 3)], lambda x: x.squeeze(dim=0), name='squeeze')
+    op_tester([(1, 100, 1, 2)], lambda x: x.squeeze(), name='squeeze')
     
-# def test_unsqueeze():
-#     op_tester([(1000,)], lambda x: x.unsqueeze(dim=1), name='unsqueeze')
+def test_unsqueeze():
+    op_tester([(1000,)], lambda x: x.unsqueeze(dim=1), name='unsqueeze')
+    op_tester([(1000, 23)], lambda x: x.unsqueeze(dim=1), name='unsqueeze')
 
 # def test_reshape():
 #     op_tester([(100000,)], lambda x: x.reshape((1000, 100)), name='reshape')

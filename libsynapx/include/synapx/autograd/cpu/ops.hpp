@@ -175,6 +175,29 @@ namespace synapx::autograd::cpu {
        torch::Tensor t;
     };
 
+    class Squeeze: public Function {
+    public:
+        Squeeze(const torch::IntArrayRef& dim = {});
+
+        std::vector<torch::Tensor> forward(const std::vector<torch::Tensor>& inputs) override;
+        std::vector<torch::Tensor> backward(const std::vector<torch::Tensor>& grad_outputs) override;
+        
+    private:
+        std::vector<int64_t> dim;
+        std::vector<int64_t> t_shape;
+    };
+
+    class Unsqueeze: public Function {
+    public:
+        Unsqueeze(int64_t dim);
+
+        std::vector<torch::Tensor> forward(const std::vector<torch::Tensor>& inputs) override;
+        std::vector<torch::Tensor> backward(const std::vector<torch::Tensor>& grad_outputs) override;
+        
+    private:
+       const int64_t dim;
+    };
+
 }
 
 

@@ -297,6 +297,13 @@ PYBIND11_MODULE(_C, m) {
         .def("min", [](const synapx::Tensor& self, int64_t dim, bool keepdim) { 
             return self.min(dim, keepdim); 
         }, py::arg("dim"), py::arg("keepdim") = false)
+
+        .def("squeeze", [](synapx::Tensor self, py::object dim) -> synapx::Tensor {
+            std::vector<int64_t> dims_vec = pyobj_to_dims(dim);
+            return self.squeeze(dims_vec);
+        }, py::arg("dim") = py::none())
+
+        .def("unsqueeze", &synapx::Tensor::unsqueeze, py::arg("dim"))
         ;
     
     // Initializers
@@ -418,13 +425,13 @@ PYBIND11_MODULE(_C, m) {
     // Other operations
     m.def("addmm", &synapx::addmm, py::arg("inp"), py::arg("mat1"), py::arg("mat2"));
 
-    m.def("clone", synapx::clone, py::arg("tensor"));
+    m.def("clone", &synapx::clone, py::arg("tensor"));
 
-    m.def("exp", synapx::exp, py::arg("tensor"));
+    m.def("exp", &synapx::exp, py::arg("tensor"));
 
-    m.def("log", synapx::log, py::arg("tensor"));
+    m.def("log", &synapx::log, py::arg("tensor"));
 
-    m.def("sqrt", synapx::sqrt, py::arg("tensor"));
+    m.def("sqrt", &synapx::sqrt, py::arg("tensor"));
 
     m.def("sum", [](synapx::Tensor tensor, py::object dim, bool keepdim = false) -> synapx::Tensor {
         std::vector<int64_t> dims_vec = pyobj_to_dims(dim);
@@ -445,5 +452,12 @@ PYBIND11_MODULE(_C, m) {
     m.def("min", [](const synapx::Tensor& tensor, int64_t dim, bool keepdim) { 
         return synapx::min(tensor, dim, keepdim); 
     }, py::arg("tensor"), py::arg("dim"), py::arg("keepdim") = false);
+
+    m.def("squeeze", [](synapx::Tensor tensor, py::object dim) -> synapx::Tensor {
+        std::vector<int64_t> dims_vec = pyobj_to_dims(dim);
+        return synapx::squeeze(tensor, dims_vec);
+    }, py::arg("tensor"), py::arg("dim") = py::none());
+
+    m.def("unsqueeze", &synapx::unsqueeze, py::arg("tensor"), py::arg("dim"));
 
 }

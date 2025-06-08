@@ -276,4 +276,26 @@ namespace synapx {
         return {dout.outputs[0], min_indices};
     }
 
+    Tensor squeeze(const Tensor& t, const torch::IntArrayRef& dim) {
+        detail::DispatcherOutput dout = detail::dispatch_op(
+            {t}, 
+            [dim](Device dev) -> std::shared_ptr<autograd::Function> {
+                if (dev.type() == Device::Type::CPU)  return std::make_shared<autograd::cpu::Squeeze>(dim);
+                throw std::runtime_error("Squeeze: unsupported device");
+            }
+        );
+        return dout.outputs[0];
+    }
+
+    Tensor unsqueeze(const Tensor& t, int64_t dim) {
+        detail::DispatcherOutput dout = detail::dispatch_op(
+            {t},
+            [dim](Device dev) -> std::shared_ptr<autograd::Function> {
+                if (dev.type() == Device::Type::CPU)  return std::make_shared<autograd::cpu::Unsqueeze>(dim);
+                throw std::runtime_error("Unsqueeze: unsupported device");
+            }
+        );
+        return dout.outputs[0];
+    }
+
 } // namespace synapx

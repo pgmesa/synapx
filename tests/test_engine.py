@@ -6,7 +6,7 @@ from utils import check_tensors
 
 
 # Check with pytorch that gradients are correct when applying different tensor operations
-def test_engine_chain_ops():
+def test_basic_chain_ops():
     l1 = [[[2.0, 4.0], [2.0,4.3]], [[2.0, 4.0], [2.0,4.3]]]
     l2 = [2.0, 4.0]
     
@@ -26,7 +26,7 @@ def test_engine_chain_ops():
     assert check_tensors(b.grad, b_t.grad)
     
     
-def test_engine_reductions_ops():
+def test_reduction_ops():
     # synapx
     a = synapx.rand((4,64,16,16), requires_grad=True, dtype=torch.float32)
     c = a.mean(dim=(0,2,3), keepdim=True).max()
@@ -45,7 +45,7 @@ def test_engine_reductions_ops():
     assert check_tensors(a.grad, a_t.grad)
     
 
-# def test_engine_shape_manipulation():
+# def test_shape_manipulation():
 #     l1 = [[-4.0, 0.7, 5.0], [6.3, 3.2, 1.3]]
 #     l2 = [[2.0, 2,  3.0], [2.4, 1.7, 0.5]]
     
@@ -84,7 +84,7 @@ def test_engine_reductions_ops():
 #     assert check_tensors(c.grad, c_t.grad)
     
 
-# def test_engine_multitensor_manipulation():
+# def test_multitensor_manipulation():
 #     # torch
 #     inp_t = torch.randint(0, 10, size=(3, 10), requires_grad=True)
 #     unb_t = torch.unbind(inp_t,  dim=0)

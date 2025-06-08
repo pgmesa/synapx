@@ -41,6 +41,8 @@ namespace synapx {
     SYNAPX_API std::tuple<Tensor, Tensor> max(const Tensor& t, int64_t dim, bool keepdim = false);
     SYNAPX_API Tensor min(const Tensor& t);
     SYNAPX_API std::tuple<Tensor, Tensor> min(const Tensor& t, int64_t dim, bool keepdim = false);
+    SYNAPX_API Tensor squeeze(const Tensor& t, const torch::IntArrayRef& dim = {});
+    SYNAPX_API Tensor unsqueeze(const Tensor& t, int64_t dim);
 
 
     namespace detail {
