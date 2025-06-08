@@ -27,6 +27,7 @@ namespace synapx {
         bool requires_grad() const;
         void requires_grad_(bool _requires_grad);
         const Device& device() const;
+        torch::TensorOptions options() const;
 
         size_t numel() const;
         size_t dim() const;

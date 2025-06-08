@@ -305,10 +305,11 @@ PYBIND11_MODULE(_C, m) {
         torch::Tensor tensor = pyobj_to_torch(data);
         
         // Convert dtype if specified
+        torch::Dtype torch_dtype = torch::kFloat32;
         if (!dtype.is_none()) {
-            torch::Dtype torch_dtype = pyobj_to_torch_dtype(dtype);
-            tensor = tensor.to(torch_dtype);
+            torch_dtype = pyobj_to_torch_dtype(dtype);
         }
+        tensor = tensor.to(torch_dtype);
         
         return synapx::Tensor(tensor, requires_grad, dev);
     }, py::arg("data"), py::arg("requires_grad") = false, py::arg("device") = "cpu", py::arg("dtype") = py::none());
@@ -318,10 +319,11 @@ PYBIND11_MODULE(_C, m) {
         std::vector<int64_t> dims = pyobj_to_dims(shape);
         
         torch::TensorOptions options = torch::TensorOptions();
+        torch::Dtype torch_dtype = torch::kFloat32;
         if (!dtype.is_none()) {
-            torch::Dtype torch_dtype = pyobj_to_torch_dtype(dtype);
-            options = options.dtype(torch_dtype);
+            torch_dtype = pyobj_to_torch_dtype(dtype);
         }
+        options = options.dtype(torch_dtype);
         
         return synapx::Tensor(torch::ones(dims, options), requires_grad, dev);
     }, py::arg("shape"), py::arg("requires_grad") = false, py::arg("device") = "cpu", py::arg("dtype") = py::none());
@@ -329,7 +331,7 @@ PYBIND11_MODULE(_C, m) {
     m.def("ones_like", [](const synapx::Tensor& input, bool requires_grad, std::string device, py::object dtype) -> synapx::Tensor {
         synapx::Device dev = string_to_device(device);
         
-        torch::TensorOptions options = torch::TensorOptions();
+        torch::TensorOptions options = input.options();
         if (!dtype.is_none()) {
             torch::Dtype torch_dtype = pyobj_to_torch_dtype(dtype);
             options = options.dtype(torch_dtype);
@@ -344,10 +346,11 @@ PYBIND11_MODULE(_C, m) {
         std::vector<int64_t> dims = pyobj_to_dims(shape);
         
         torch::TensorOptions options = torch::TensorOptions();
+        torch::Dtype torch_dtype = torch::kFloat32;
         if (!dtype.is_none()) {
-            torch::Dtype torch_dtype = pyobj_to_torch_dtype(dtype);
-            options = options.dtype(torch_dtype);
+            torch_dtype = pyobj_to_torch_dtype(dtype);
         }
+        options = options.dtype(torch_dtype);
         
         return synapx::Tensor(torch::zeros(dims, options), requires_grad, dev);
     }, py::arg("shape"), py::arg("requires_grad") = false, py::arg("device") = "cpu", py::arg("dtype") = py::none());
@@ -355,7 +358,7 @@ PYBIND11_MODULE(_C, m) {
     m.def("zeros_like", [](const synapx::Tensor& input, bool requires_grad, std::string device, py::object dtype) -> synapx::Tensor {
         synapx::Device dev = string_to_device(device);
         
-        torch::TensorOptions options = torch::TensorOptions();
+        torch::TensorOptions options = input.options();
         if (!dtype.is_none()) {
             torch::Dtype torch_dtype = pyobj_to_torch_dtype(dtype);
             options = options.dtype(torch_dtype);
@@ -370,10 +373,11 @@ PYBIND11_MODULE(_C, m) {
         std::vector<int64_t> dims = pyobj_to_dims(shape);
         
         torch::TensorOptions options = torch::TensorOptions();
+        torch::Dtype torch_dtype = torch::kFloat32;
         if (!dtype.is_none()) {
-            torch::Dtype torch_dtype = pyobj_to_torch_dtype(dtype);
-            options = options.dtype(torch_dtype);
+            torch_dtype = pyobj_to_torch_dtype(dtype);
         }
+        options = options.dtype(torch_dtype);
         
         return synapx::Tensor(torch::rand(dims, options), requires_grad, dev);
     }, py::arg("shape"), py::arg("requires_grad") = false, py::arg("device") = "cpu", py::arg("dtype") = py::none());
@@ -381,7 +385,7 @@ PYBIND11_MODULE(_C, m) {
     m.def("rand_like", [](const synapx::Tensor& input, bool requires_grad, std::string device, py::object dtype) -> synapx::Tensor {
         synapx::Device dev = string_to_device(device);
         
-        torch::TensorOptions options = torch::TensorOptions();
+        torch::TensorOptions options = input.options();
         if (!dtype.is_none()) {
             torch::Dtype torch_dtype = pyobj_to_torch_dtype(dtype);
             options = options.dtype(torch_dtype);

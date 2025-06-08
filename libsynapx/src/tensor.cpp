@@ -65,6 +65,10 @@ namespace synapx {
         impl_->requires_grad = _requires_grad;
     }
 
+    torch::TensorOptions Tensor::options() const {
+        return impl_->data.options();
+    }
+
     bool Tensor::is_floating_point() const {
         return impl_->data.is_floating_point();
     }
