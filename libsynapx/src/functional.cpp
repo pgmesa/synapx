@@ -342,4 +342,37 @@ namespace synapx {
         return dout.outputs[0];
     }
 
+    Tensor concat(const std::vector<Tensor>& tensors, int64_t dim) {
+        detail::DispatcherOutput dout = detail::dispatch_op(
+            tensors,
+            [dim](Device dev) -> std::shared_ptr<autograd::Function> {
+                if (dev.type() == Device::Type::CPU)  return std::make_shared<autograd::cpu::Concat>(dim);
+                throw std::runtime_error("Concat: unsupported device");
+            }
+        );
+        return dout.outputs[0];
+    }
+
+    Tensor stack(const std::vector<Tensor>& tensors, int64_t dim) {
+        detail::DispatcherOutput dout = detail::dispatch_op(
+            tensors,
+            [dim](Device dev) -> std::shared_ptr<autograd::Function> {
+                if (dev.type() == Device::Type::CPU)  return std::make_shared<autograd::cpu::Stack>(dim);
+                throw std::runtime_error("Stack: unsupported device");
+            }
+        );
+        return dout.outputs[0];
+    }
+
+    std::vector<Tensor> unbind(const Tensor& t, int64_t dim) {
+        detail::DispatcherOutput dout = detail::dispatch_op(
+            {t},
+            [dim](Device dev) -> std::shared_ptr<autograd::Function> {
+                if (dev.type() == Device::Type::CPU)  return std::make_shared<autograd::cpu::Unbind>(dim);
+                throw std::runtime_error("Unbind: unsupported device");
+            }
+        );
+        return dout.outputs;
+    }
+
 } // namespace synapx

@@ -149,6 +149,7 @@ namespace synapx::autograd::cpu {
         return {grad_t1, grad_t2};
     }
 
+
     std::vector<torch::Tensor> Pow::forward(const std::vector<torch::Tensor>& inputs) { 
         const torch::Tensor& base = inputs[0];
         const torch::Tensor& exp = inputs[1];
@@ -215,6 +216,7 @@ namespace synapx::autograd::cpu {
 
         return {grad_inp, grad_mat1, grad_mat2};
     }
+
 
     std::vector<torch::Tensor> Clone::forward(const std::vector<torch::Tensor>& inputs) { 
         return {inputs[0].clone()};
@@ -327,6 +329,7 @@ namespace synapx::autograd::cpu {
         return {grad};
     }
 
+
     Max::Max(std::optional<int64_t> dim, bool keepdim): dim(dim), keepdim(keepdim) {}
 
     std::vector<torch::Tensor> Max::forward(const std::vector<torch::Tensor>& inputs) {
@@ -418,6 +421,7 @@ namespace synapx::autograd::cpu {
         return {grad * mask};
     }
 
+
     Squeeze::Squeeze(const torch::IntArrayRef& dim): dim(dim.vec()) {}
 
     std::vector<torch::Tensor> Squeeze::forward(const std::vector<torch::Tensor>& inputs) {
@@ -451,6 +455,7 @@ namespace synapx::autograd::cpu {
         return {grad};
     }
 
+
     Unsqueeze::Unsqueeze(int64_t dim): dim(dim) {}
 
     std::vector<torch::Tensor> Unsqueeze::forward(const std::vector<torch::Tensor>& inputs) {
@@ -468,6 +473,7 @@ namespace synapx::autograd::cpu {
         
         return {grad};
     }
+
 
     Reshape::Reshape(const torch::IntArrayRef& shape): shape(shape.vec()) {}
 
@@ -492,6 +498,7 @@ namespace synapx::autograd::cpu {
         return {grad};
     }
 
+
     Transpose::Transpose(int64_t dim0, int64_t dim1): dim0(dim0), dim1(dim1) {}
 
     std::vector<torch::Tensor> Transpose::forward(const std::vector<torch::Tensor>& inputs) {
@@ -509,6 +516,7 @@ namespace synapx::autograd::cpu {
         
         return {grad};
     }
+
 
     Movedim::Movedim(int64_t src, int64_t dest): src(src), dest(dest) {}
 
@@ -528,6 +536,7 @@ namespace synapx::autograd::cpu {
         return {grad};
     }
 
+
     Slice::Slice(const std::vector<torch::indexing::TensorIndex>& idx) : indices(idx) {}
 
     std::vector<torch::Tensor> Slice::forward(const std::vector<torch::Tensor>& inputs) {
@@ -539,11 +548,74 @@ namespace synapx::autograd::cpu {
     }
 
     std::vector<torch::Tensor> Slice::backward(const std::vector<torch::Tensor>& grad_outputs) {
-        torch::Tensor grad = grad_outputs[0];
+        const torch::Tensor& grad = grad_outputs[0];
         torch::Tensor grad_input = torch::zeros(t_shape, grad.options());
         
         grad_input.index_put_(indices, grad);
         return {grad_input};
     }
+
+
+    Concat::Concat(int64_t dim) : dim(dim) {}
+
+    std::vector<torch::Tensor> Concat::forward(const std::vector<torch::Tensor>& inputs) {
+        torch::Tensor result = torch::concat(inputs, dim);
+
+        sizes.clear();
+        sizes.reserve(inputs.size());
+        for (const auto& input : inputs)
+            sizes.push_back(input.size(dim));
+
+        return {result};
+    }
+
+    std::vector<torch::Tensor> Concat::backward(const std::vector<torch::Tensor>& grad_outputs) {
+        const torch::Tensor& grad = grad_outputs[0];
+        return torch::split(grad, sizes, dim);
+    }
+
+
+    Stack::Stack(int64_t dim) : dim(dim) {}
+
+    std::vector<torch::Tensor> Stack::forward(const std::vector<torch::Tensor>& inputs) {        
+        torch::Tensor result = torch::stack(inputs, dim);
+        return {result};
+    }
+
+    std::vector<torch::Tensor> Stack::backward(const std::vector<torch::Tensor>& grad_outputs) {
+        torch::Tensor grad = grad_outputs[0];
+        return torch::unbind(grad, dim);
+    }
+
+    
+    Unbind::Unbind(int64_t dim) : dim(dim) {}
+
+    std::vector<torch::Tensor> Unbind::forward(const std::vector<torch::Tensor>& inputs) {
+        const torch::Tensor& t = inputs[0];
+        if (requires_grad_flags[0]) {
+            t_shape.reserve(t.dim());
+            t_shape = t.sizes().vec();
+        }
+        return torch::unbind(t, dim);
+    }
+
+    std::vector<torch::Tensor> Unbind::backward(const std::vector<torch::Tensor>& grad_outputs) {
+        // Handle negative dim
+        int64_t actual_dim = dim < 0 ? t_shape.size() + dim : dim;
+        
+        // If we have all gradients, stack them
+        if (grad_outputs.size() == t_shape[actual_dim]) {
+            return {torch::stack(grad_outputs, actual_dim)};
+        }
+        
+        // Otherwise, create zero tensor and fill slices
+        torch::Tensor result = torch::zeros(t_shape, grad_outputs[0].options());
+        for (size_t i = 0; i < grad_outputs.size(); ++i) {
+            result.select(actual_dim, i).copy_(grad_outputs[i]);
+        }
+        
+        return {result};
+    }
+
     
 }

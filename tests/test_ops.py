@@ -333,18 +333,21 @@ def test_slice():
 # # ******* Array manipulation *******
 # # **********************************
 
-# def test_stack():
-#     op_tester([(100,), (100,), (100,)], lambda engine, *x: engine.stack(x, dim=0), name='stack', module_func=True)
-#     op_tester([(100, 100), (100, 100), (100, 100)], lambda engine, *x: engine.stack(x, dim=1), name='stack', module_func=True)
-#     op_tester([(100, 100, 100), (100, 100, 100), (100, 100, 100)], lambda engine, *x: engine.stack(x, dim=2), name='stack',module_func=True)
+def test_stack():
+    op_tester([(100,), (100,), (100,)], lambda engine, *x: engine.stack(tuple(x), dim=0), name='stack', module_func=True)
+    op_tester([(100, 100), (100, 100), (100, 100)], lambda engine, *x: engine.stack(x), name='stack', module_func=True)
+    op_tester([(100, 100), (100, 100), (100, 100)], lambda engine, *x: engine.stack(x, dim=1), name='stack', module_func=True)
+    op_tester([(100, 100, 100), (100, 100, 100), (100, 100, 100)], lambda engine, *x: engine.stack(x, dim=2), name='stack',module_func=True)
 
-# def test_concat():
-#     op_tester([(100, 200, 4), (100, 200, 3)], lambda engine, *x: engine.concat(x, dim=-1), name='concat', module_func=True)
-#     op_tester([(100, 200, 4), (22, 200, 4)], lambda engine, *x: engine.concat(x, dim=0), name='concat', module_func=True)
+def test_concat():
+    op_tester([(100, 200, 4), (100, 200, 3)], lambda engine, *x: engine.concat(tuple(x), dim=-1), name='concat', module_func=True)
+    op_tester([(50, 200, 4), (100, 200, 4)], lambda engine, *x: engine.concat(x), name='concat', module_func=True)
+    op_tester([(100, 200, 4), (22, 200, 4)], lambda engine, *x: engine.concat(list(x), dim=0), name='concat', module_func=True)
 
-# def test_unbind():
-#     op_tester([(100, 200, 300)], lambda engine, x: engine.unbind(x, dim=-1), name='unbind', module_func=True)
-#     op_tester([(100, 200, 300)], lambda engine, x: engine.unbind(x, dim=1), name='unbind', module_func=True)
+def test_unbind():
+    op_tester([(100, 200, 300)], lambda engine, x: engine.unbind(x, dim=-1), name='unbind', module_func=True)
+    op_tester([(100, 200, 300)], lambda engine, x: engine.unbind(x), name='unbind', module_func=True)
+    op_tester([(100, 200, 300, 2)], lambda engine, x: engine.unbind(x, dim=1), name='unbind', module_func=True)
 
 # # **************************
 # # ******* Layer ops *******

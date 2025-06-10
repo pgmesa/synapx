@@ -171,6 +171,10 @@ PYBIND11_MODULE(_C, m) {
             return repr_str;
         })
 
+        .def("__len__", [](const synapx::Tensor& self) {
+            return self.shape()[0];
+        })
+
         .def("__getitem__", [](const synapx::Tensor& self, const py::object& key) {
             auto indices = TensorIndexConverter::convert(key, self);
             return self.slice(indices);
@@ -487,4 +491,10 @@ PYBIND11_MODULE(_C, m) {
     m.def("transpose", &synapx::transpose, py::arg("tensor"), py::arg("dim0"), py::arg("dim1"));
     
     m.def("movedim", &synapx::movedim, py::arg("tensor"), py::arg("source"), py::arg("destination"));
+    
+    m.def("concat", &synapx::concat, py::arg("tensor"), py::arg("dim") = 0);
+    
+    m.def("stack", &synapx::stack, py::arg("tensor"), py::arg("dim") = 0);
+    
+    m.def("unbind", &synapx::unbind, py::arg("tensor"), py::arg("dim") = 0);
 }

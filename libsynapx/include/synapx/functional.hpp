@@ -47,6 +47,10 @@ namespace synapx {
     SYNAPX_API Tensor transpose(const Tensor& t, int64_t dim0, int64_t dim1);
     SYNAPX_API Tensor movedim(const Tensor& t, int64_t src, int64_t dest);
     SYNAPX_API Tensor slice(const Tensor& t, const std::vector<torch::indexing::TensorIndex>& idx);
+    SYNAPX_API Tensor concat(const std::vector<Tensor>& tensors, int64_t dim = 0);
+    SYNAPX_API Tensor stack(const std::vector<Tensor>& tensors, int64_t dim = 0);
+    SYNAPX_API std::vector<Tensor> unbind(const Tensor& t, int64_t dim = 0);
+
 
     namespace detail {
 

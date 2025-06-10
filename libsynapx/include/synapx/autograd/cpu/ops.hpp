@@ -242,7 +242,42 @@ namespace synapx::autograd::cpu {
         std::vector<torch::Tensor> backward(const std::vector<torch::Tensor>& grad_outputs) override;
         
     private:
-        std::vector<torch::indexing::TensorIndex> indices;
+        const std::vector<torch::indexing::TensorIndex> indices;
+        std::vector<int64_t> t_shape;
+    };
+
+    class Concat: public Function {
+    public:
+        Concat(int64_t dim = 0);
+
+        std::vector<torch::Tensor> forward(const std::vector<torch::Tensor>& inputs) override;
+        std::vector<torch::Tensor> backward(const std::vector<torch::Tensor>& grad_outputs) override;
+        
+    private:
+        const int64_t dim;
+        std::vector<int64_t> sizes;
+    };
+
+    class Stack: public Function {
+    public:
+        Stack(int64_t dim = 0);
+
+        std::vector<torch::Tensor> forward(const std::vector<torch::Tensor>& inputs) override;
+        std::vector<torch::Tensor> backward(const std::vector<torch::Tensor>& grad_outputs) override;
+        
+    private:
+        const int64_t dim;
+    };
+
+    class Unbind: public Function {
+    public:
+        Unbind(int64_t dim = 0);
+
+        std::vector<torch::Tensor> forward(const std::vector<torch::Tensor>& inputs) override;
+        std::vector<torch::Tensor> backward(const std::vector<torch::Tensor>& grad_outputs) override;
+        
+    private:
+        const int64_t dim;
         std::vector<int64_t> t_shape;
     };
 
