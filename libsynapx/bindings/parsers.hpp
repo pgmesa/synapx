@@ -203,3 +203,58 @@ inline std::vector<int64_t> pyobj_to_dims(const py::object& dim) {
 }
 
 
+class TensorIndexConverter {
+public:
+    static std::vector<torch::indexing::TensorIndex> convert(const py::object& key, const synapx::Tensor& tensor) {
+        std::vector<torch::indexing::TensorIndex> indices;
+        auto shape = tensor.shape();
+        
+        if (py::isinstance<py::tuple>(key)) {
+            py::tuple tuple_key = key.cast<py::tuple>();
+            for (size_t i = 0; i < tuple_key.size() && i < shape.size(); ++i) {
+                indices.push_back(convert_single(tuple_key[i], shape[i]));
+            }
+        } else {
+            indices.push_back(convert_single(key, shape.empty() ? 1 : shape[0]));
+        }
+        
+        return indices;
+    }
+    
+private:
+    static torch::indexing::TensorIndex convert_single(const py::object& item, int64_t dim_size) {
+        if (py::isinstance<py::int_>(item)) {
+            int64_t idx = item.cast<int64_t>();
+            // Handle negative indexing
+            if (idx < 0) idx += dim_size;
+            return torch::indexing::TensorIndex(idx);
+        }
+        else if (py::isinstance<py::slice>(item)) {
+            py::slice slice_obj = item.cast<py::slice>();
+            
+            // Handle Python slice semantics
+            auto start = slice_obj.attr("start");
+            auto stop = slice_obj.attr("stop");
+            auto step = slice_obj.attr("step");
+            
+            int64_t start_val = start.is_none() ? 0 : start.cast<int64_t>();
+            int64_t stop_val = stop.is_none() ? dim_size : stop.cast<int64_t>();
+            int64_t step_val = step.is_none() ? 1 : step.cast<int64_t>();
+            
+            // Handle negative indices
+            if (start_val < 0) start_val += dim_size;
+            if (stop_val < 0) stop_val += dim_size;
+            
+            return torch::indexing::Slice(start_val, stop_val, step_val);
+        }
+        else if (item.is_none()) {
+            // Handle ":" slice
+            return torch::indexing::Slice();
+        }
+        else {
+            throw std::runtime_error("Unsupported index type");
+        }
+    }
+};
+
+

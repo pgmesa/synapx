@@ -250,11 +250,6 @@ def test_parameter_update():
 # # *************************
 # # ******* Other ops *******
 # # *************************
-    
-# def test_slice():
-#     op_tester([(30, 40, 20, 10)], lambda x: x[10:14, 3:, :, :], name='slice')
-#     op_tester([(30, 40, 20, 10)], lambda x: x[10:25, :5, :12, 4:], name='slice')
-#     op_tester([(30, 40, 20, 10)], lambda x: x[10:11, 4:8, :12, 0:-1], name='slice')
 
 def test_clone():
     op_tester([(1000, 1000)], lambda x: x.clone(), name='clone')
@@ -316,23 +311,23 @@ def test_unsqueeze():
     op_tester([(1000,)], lambda x: x.unsqueeze(dim=1), name='unsqueeze')
     op_tester([(1000, 23)], lambda x: x.unsqueeze(dim=1), name='unsqueeze')
 
-# def test_reshape():
-#     op_tester([(100000,)], lambda x: x.reshape((1000, 100)), name='reshape')
-#     op_tester([(10000, 200)], lambda x: x.reshape((-1, 50)), name='reshape')
+def test_reshape():
+    op_tester([(100000,)], lambda x: x.reshape((1000, 100)), name='reshape')
+    op_tester([(10000, 200)], lambda x: x.reshape((-1, 50)), name='reshape')
     
-# def test_movedim():
-#     op_tester([(100, 200, 300)], lambda x: x.movedim(0, 1), name='movedim')
-#     op_tester([(10000, 200)], lambda x: x.movedim(-1, -2), name='movedim')
+def test_movedim():
+    op_tester([(100, 200, 300)], lambda x: x.movedim(0, 1), name='movedim')
+    op_tester([(10000, 200)], lambda x: x.movedim(-1, -2), name='movedim')
     
-# def test_flatten():
-#     op_tester([(100, 200, 300)], lambda x: x.flatten(), name='flatten')
-#     op_tester([(100, 200, 300)], lambda x: x.flatten(start_dim=0, end_dim=1), name='flatten_0_1')
-#     op_tester([(100, 200, 300)], lambda x: x.flatten(start_dim=1, end_dim=2), name='flatten_1_2')
-#     op_tester([(100, 200, 300)], lambda x: x.flatten(start_dim=0, end_dim=2), name='flatten_0_2')
+def test_transpose():
+    op_tester([(100, 200, 300)], lambda x: x.transpose(2, 1), name='transpose')
+    op_tester([(100, 200, 300)], lambda x: x.transpose(0, 1), name='transpose')
+    
+def test_slice():
+    op_tester([(30, 40, 20, 10)], lambda x: x[10:14, 3:, :, :], name='slice')
+    op_tester([(30, 40, 20, 10)], lambda x: x[10:25, :5, :12, 4:], name='slice')
+    op_tester([(30, 40, 20, 10)], lambda x: x[10:11, 4:8, :12, 0:-1], name='slice')
 
-# def test_transpose():
-#     op_tester([(100, 200, 300)], lambda x: x.transpose(2, 1), name='transpose')
-#     op_tester([(100, 200, 300)], lambda x: x.transpose(0, 1), name='transpose')
 
 # # **********************************
 # # ******* Array manipulation *******
@@ -352,10 +347,16 @@ def test_unsqueeze():
 #     op_tester([(100, 200, 300)], lambda engine, x: engine.unbind(x, dim=1), name='unbind', module_func=True)
 
 # # **************************
-# # ******* Linear ops *******
+# # ******* Layer ops *******
 # # **************************
 
 # def test_linear():
 #     op_tester([(100, 200), (300, 200)], lambda F, x, w: F.linear(x, w), name='linear', module_func=True, nn_functional=True)
 #     op_tester([(100, 200), (300, 200)], lambda F, x, w: F.linear(x, w), name='linear', module_func=True, nn_functional=True)
 #     op_tester([(100, 200), (300, 200), (100, 300)], lambda F, x, w, b: F.linear(x, w, b), name='linear', module_func=True, nn_functional=True)
+
+# def test_flatten():
+#     op_tester([(100, 200, 300)], lambda x: x.flatten(), name='flatten')
+#     op_tester([(100, 200, 300)], lambda x: x.flatten(start_dim=0, end_dim=1), name='flatten_0_1')
+#     op_tester([(100, 200, 300)], lambda x: x.flatten(start_dim=1, end_dim=2), name='flatten_1_2')
+#     op_tester([(100, 200, 300)], lambda x: x.flatten(start_dim=0, end_dim=2), name='flatten_0_2')

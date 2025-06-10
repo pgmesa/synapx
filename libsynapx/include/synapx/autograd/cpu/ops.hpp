@@ -198,6 +198,54 @@ namespace synapx::autograd::cpu {
        const int64_t dim;
     };
 
+    class Reshape: public Function {
+    public:
+        Reshape(const torch::IntArrayRef& shape);
+
+        std::vector<torch::Tensor> forward(const std::vector<torch::Tensor>& inputs) override;
+        std::vector<torch::Tensor> backward(const std::vector<torch::Tensor>& grad_outputs) override;
+        
+    private:
+        const std::vector<int64_t> shape;
+        std::vector<int64_t> t_shape;
+    };
+
+    class Transpose: public Function {
+    public:
+        Transpose(int64_t dim0, int64_t dim1);
+
+        std::vector<torch::Tensor> forward(const std::vector<torch::Tensor>& inputs) override;
+        std::vector<torch::Tensor> backward(const std::vector<torch::Tensor>& grad_outputs) override;
+        
+    private:
+        const int64_t dim0;
+        const int64_t dim1;
+    };
+
+    class Movedim: public Function {
+    public:
+        Movedim(int64_t src, int64_t dest);
+
+        std::vector<torch::Tensor> forward(const std::vector<torch::Tensor>& inputs) override;
+        std::vector<torch::Tensor> backward(const std::vector<torch::Tensor>& grad_outputs) override;
+        
+    private:
+        const int64_t src;
+        const int64_t dest;
+    };
+
+    class Slice: public Function {
+    public:
+        Slice(const std::vector<torch::indexing::TensorIndex>& idx);
+
+        std::vector<torch::Tensor> forward(const std::vector<torch::Tensor>& inputs) override;
+        std::vector<torch::Tensor> backward(const std::vector<torch::Tensor>& grad_outputs) override;
+        
+    private:
+        std::vector<torch::indexing::TensorIndex> indices;
+        std::vector<int64_t> t_shape;
+    };
+
 }
 
 

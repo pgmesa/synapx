@@ -45,6 +45,8 @@ namespace synapx {
 
         const torch::Tensor grad() const;
         void set_grad(const torch::Tensor& grad);
+        void index_put_(const std::vector<torch::indexing::TensorIndex>& idx, const Tensor& value);
+        void index_put_(const std::vector<torch::indexing::TensorIndex>& idx, double value);
 
         const std::shared_ptr<autograd::Function> grad_fn() const;
         void set_grad_fn(const std::shared_ptr<autograd::Function> grad_fn);
@@ -118,8 +120,12 @@ namespace synapx {
         std::tuple<Tensor, Tensor> max(int64_t dim, bool keepdim = false) const;
         Tensor min() const;
         std::tuple<Tensor, Tensor> min(int64_t dim, bool keepdim = false) const;
-        Tensor squeeze(const torch::IntArrayRef& dim = {});
-        Tensor unsqueeze(int64_t dim);
+        Tensor squeeze(const torch::IntArrayRef& dim = {}) const;
+        Tensor unsqueeze(int64_t dim) const;
+        Tensor reshape(const torch::IntArrayRef& shape) const;
+        Tensor transpose(int64_t dim0, int64_t dim1) const;
+        Tensor movedim(int64_t src, int64_t dest) const;
+        Tensor slice(const std::vector<torch::indexing::TensorIndex>& idx) const;
 
         std::string to_string() const;
         static std::string to_string(torch::Tensor tensor);

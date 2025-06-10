@@ -468,5 +468,82 @@ namespace synapx::autograd::cpu {
         
         return {grad};
     }
+
+    Reshape::Reshape(const torch::IntArrayRef& shape): shape(shape.vec()) {}
+
+    std::vector<torch::Tensor> Reshape::forward(const std::vector<torch::Tensor>& inputs) {
+        const torch::Tensor& t = inputs[0];
+
+        torch::Tensor result = torch::reshape(t, shape);
+
+        if (requires_grad_flags[0]) {
+            t_shape.reserve(t.dim());
+            t_shape = t.sizes().vec();
+        }
+        
+        return {result};
+    }
+
+    std::vector<torch::Tensor> Reshape::backward(const std::vector<torch::Tensor>& grad_outputs) {
+        torch::Tensor grad = grad_outputs[0];
+        
+        grad = grad.reshape(t_shape);
+        
+        return {grad};
+    }
+
+    Transpose::Transpose(int64_t dim0, int64_t dim1): dim0(dim0), dim1(dim1) {}
+
+    std::vector<torch::Tensor> Transpose::forward(const std::vector<torch::Tensor>& inputs) {
+        const torch::Tensor& t = inputs[0];
+
+        torch::Tensor result = torch::transpose(t, dim0, dim1);
+        
+        return {result};
+    }
+
+    std::vector<torch::Tensor> Transpose::backward(const std::vector<torch::Tensor>& grad_outputs) {
+        torch::Tensor grad = grad_outputs[0];
+        
+        grad = grad.transpose(dim0, dim1);
+        
+        return {grad};
+    }
+
+    Movedim::Movedim(int64_t src, int64_t dest): src(src), dest(dest) {}
+
+    std::vector<torch::Tensor> Movedim::forward(const std::vector<torch::Tensor>& inputs) {
+        const torch::Tensor& t = inputs[0];
+
+        torch::Tensor result = torch::movedim(t, src, dest);
+        
+        return {result};
+    }
+
+    std::vector<torch::Tensor> Movedim::backward(const std::vector<torch::Tensor>& grad_outputs) {
+        torch::Tensor grad = grad_outputs[0];
+        
+        grad = grad.movedim(src, dest);
+        
+        return {grad};
+    }
+
+    Slice::Slice(const std::vector<torch::indexing::TensorIndex>& idx) : indices(idx) {}
+
+    std::vector<torch::Tensor> Slice::forward(const std::vector<torch::Tensor>& inputs) {
+        const torch::Tensor& input = inputs[0];
+        t_shape = input.sizes().vec();
+        
+        torch::Tensor result = input.index(indices);
+        return {result};
+    }
+
+    std::vector<torch::Tensor> Slice::backward(const std::vector<torch::Tensor>& grad_outputs) {
+        torch::Tensor grad = grad_outputs[0];
+        torch::Tensor grad_input = torch::zeros(t_shape, grad.options());
+        
+        grad_input.index_put_(indices, grad);
+        return {grad_input};
+    }
     
 }

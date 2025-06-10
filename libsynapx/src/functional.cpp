@@ -298,4 +298,48 @@ namespace synapx {
         return dout.outputs[0];
     }
 
+    Tensor reshape(const Tensor& t, const torch::IntArrayRef& shape) {
+        detail::DispatcherOutput dout = detail::dispatch_op(
+            {t},
+            [shape](Device dev) -> std::shared_ptr<autograd::Function> {
+                if (dev.type() == Device::Type::CPU)  return std::make_shared<autograd::cpu::Reshape>(shape);
+                throw std::runtime_error("Reshape: unsupported device");
+            }
+        );
+        return dout.outputs[0];
+    }
+
+    Tensor transpose(const Tensor& t, int64_t dim0, int64_t dim1) {
+        detail::DispatcherOutput dout = detail::dispatch_op(
+            {t},
+            [dim0, dim1](Device dev) -> std::shared_ptr<autograd::Function> {
+                if (dev.type() == Device::Type::CPU)  return std::make_shared<autograd::cpu::Transpose>(dim0, dim1);
+                throw std::runtime_error("Transpose: unsupported device");
+            }
+        );
+        return dout.outputs[0];
+    }
+
+    Tensor movedim(const Tensor& t, int64_t src, int64_t dest) {
+        detail::DispatcherOutput dout = detail::dispatch_op(
+            {t},
+            [src, dest](Device dev) -> std::shared_ptr<autograd::Function> {
+                if (dev.type() == Device::Type::CPU)  return std::make_shared<autograd::cpu::Movedim>(src, dest);
+                throw std::runtime_error("Movedim: unsupported device");
+            }
+        );
+        return dout.outputs[0];
+    }
+    
+    Tensor slice(const Tensor& t, const std::vector<torch::indexing::TensorIndex>& idx) {
+        detail::DispatcherOutput dout = detail::dispatch_op(
+            {t},
+            [idx](Device dev) -> std::shared_ptr<autograd::Function> {
+                if (dev.type() == Device::Type::CPU)  return std::make_shared<autograd::cpu::Slice>(idx);
+                throw std::runtime_error("Slice: unsupported device");
+            }
+        );
+        return dout.outputs[0];
+    }
+
 } // namespace synapx

@@ -148,6 +148,14 @@ namespace synapx {
         impl_->grad_fn = grad_fn;
     }
 
+    void Tensor::index_put_(const std::vector<torch::indexing::TensorIndex>& idx, const Tensor& value) {
+        impl_->data.index_put_(idx, value.data());
+    };
+
+    void Tensor::index_put_(const std::vector<torch::indexing::TensorIndex>& idx, double value) {
+        impl_->data.index_put_(idx, value);
+    };
+
     void Tensor::backward(const torch::Tensor& grad) {
         autograd::backward(*this, grad);
     }
@@ -414,12 +422,28 @@ namespace synapx {
         return synapx::min(*this, dim, keepdim);
     };
 
-    Tensor Tensor::squeeze(const torch::IntArrayRef& dim) {
+    Tensor Tensor::squeeze(const torch::IntArrayRef& dim) const {
         return synapx::squeeze(*this, dim);
     };
     
-    Tensor Tensor::unsqueeze(int64_t dim){
+    Tensor Tensor::unsqueeze(int64_t dim) const {
         return synapx::unsqueeze(*this, dim);
+    };
+
+    Tensor Tensor::reshape(const torch::IntArrayRef& shape) const {
+        return synapx::reshape(*this, shape);
+    };
+
+    Tensor Tensor::transpose(int64_t dim0, int64_t dim1) const {
+        return synapx::transpose(*this, dim0, dim1);
+    };
+
+    Tensor Tensor::movedim(int64_t src, int64_t dest) const {
+        return synapx::movedim(*this, src, dest);
+    };
+
+    Tensor Tensor::slice(const std::vector<torch::indexing::TensorIndex>& idx) const {
+        return synapx::slice(*this, idx);
     };
 
     std::string Tensor::to_string() const {

@@ -171,6 +171,22 @@ PYBIND11_MODULE(_C, m) {
             return repr_str;
         })
 
+        .def("__getitem__", [](const synapx::Tensor& self, const py::object& key) {
+            auto indices = TensorIndexConverter::convert(key, self);
+            return self.slice(indices);
+        }, py::arg("key"), "Index tensor using Python notation")
+
+        // Add basic setitem functionality (if more advanced is required the underlying torch data can be used)
+        .def("__setitem__", [](synapx::Tensor& self, const py::object& key, const synapx::Tensor& value) {
+            auto indices = TensorIndexConverter::convert(key, self);
+            self.index_put_(indices, value);
+        }, py::arg("indices"), py::arg("value"))
+
+        .def("__setitem__", [](synapx::Tensor& self, const py::object& key, double value) {
+            auto indices = TensorIndexConverter::convert(key, self);
+            self.index_put_(indices, value);
+        }, py::arg("indices"), py::arg("value"))
+
         // Normal basic operations
         .def("__add__", py::overload_cast<const synapx::Tensor&>(&synapx::Tensor::add, py::const_), py::arg("other"))
         .def("__add__", py::overload_cast<double>(&synapx::Tensor::add, py::const_), py::arg("other"))
@@ -304,6 +320,12 @@ PYBIND11_MODULE(_C, m) {
         }, py::arg("dim") = py::none())
 
         .def("unsqueeze", &synapx::Tensor::unsqueeze, py::arg("dim"))
+        
+        .def("reshape", &synapx::Tensor::reshape, py::arg("shape"))
+
+        .def("transpose", &synapx::Tensor::transpose, py::arg("dim0"), py::arg("dim1"))
+
+        .def("movedim", &synapx::Tensor::movedim, py::arg("source"), py::arg("destination"))
         ;
     
     // Initializers
@@ -460,4 +482,9 @@ PYBIND11_MODULE(_C, m) {
 
     m.def("unsqueeze", &synapx::unsqueeze, py::arg("tensor"), py::arg("dim"));
 
+    m.def("reshape", &synapx::reshape, py::arg("tensor"), py::arg("shape"));
+
+    m.def("transpose", &synapx::transpose, py::arg("tensor"), py::arg("dim0"), py::arg("dim1"));
+    
+    m.def("movedim", &synapx::movedim, py::arg("tensor"), py::arg("source"), py::arg("destination"));
 }
