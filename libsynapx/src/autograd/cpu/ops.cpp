@@ -10,6 +10,8 @@
 
 namespace synapx::autograd::cpu {
 
+    std::string Add::name() const { return "Add"; };
+
     std::vector<torch::Tensor> Add::forward(const std::vector<torch::Tensor>& inputs) { 
         const torch::Tensor& t1 = inputs[0];
         const torch::Tensor& t2 = inputs[1];
@@ -28,16 +30,16 @@ namespace synapx::autograd::cpu {
         return {out};
     }
 
-    std::vector<torch::Tensor> Add::backward(const std::vector<torch::Tensor>& grad_outputs) {
-        const torch::Tensor& grad = grad_outputs[0];
-
+    std::vector<torch::Tensor> Add::backward(const torch::Tensor& grad_output, int output_idx) {
         torch::Tensor grad_t1, grad_t2;
-        if (requires_grad_flags[0]) grad_t1 = unbroadcast(grad, t1_shape);
-        if (requires_grad_flags[1]) grad_t2 = unbroadcast(grad, t2_shape);
+        if (requires_grad_flags[0]) grad_t1 = unbroadcast(grad_output, t1_shape);
+        if (requires_grad_flags[1]) grad_t2 = unbroadcast(grad_output, t2_shape);
 
         return {grad_t1, grad_t2};
     }
 
+
+    std::string Mul::name() const { return "Mul"; };
 
     std::vector<torch::Tensor> Mul::forward(const std::vector<torch::Tensor>& inputs) { 
         const torch::Tensor& t1 = inputs[0];
@@ -60,20 +62,20 @@ namespace synapx::autograd::cpu {
         return {out};
     }
 
-    std::vector<torch::Tensor> Mul::backward(const std::vector<torch::Tensor>& grad_outputs) {
-        const torch::Tensor& grad = grad_outputs[0];
-
+    std::vector<torch::Tensor> Mul::backward(const torch::Tensor& grad_output, int output_idx) {
         torch::Tensor grad_t1, grad_t2;
 
         if (requires_grad_flags[0])
-            grad_t1 = unbroadcast(grad * t2, t1_shape);
+            grad_t1 = unbroadcast(grad_output * t2, t1_shape);
         
         if (requires_grad_flags[1])
-            grad_t2 = unbroadcast(grad * t1, t2_shape);
+            grad_t2 = unbroadcast(grad_output * t1, t2_shape);
 
         return {grad_t1, grad_t2};
     }
 
+
+    std::string Div::name() const { return "Div"; };
 
     std::vector<torch::Tensor> Div::forward(const std::vector<torch::Tensor>& inputs) { 
         const torch::Tensor& t1 = inputs[0];
@@ -95,20 +97,20 @@ namespace synapx::autograd::cpu {
         return {out};
     }
 
-    std::vector<torch::Tensor> Div::backward(const std::vector<torch::Tensor>& grad_outputs) {
-        const torch::Tensor& grad = grad_outputs[0];
-
+    std::vector<torch::Tensor> Div::backward(const torch::Tensor& grad_output, int output_idx) {
         torch::Tensor grad_t1, grad_t2;
 
         if (requires_grad_flags[0])
-            grad_t1 = unbroadcast(grad / t2, t1_shape);
+            grad_t1 = unbroadcast(grad_output / t2, t1_shape);
         
         if (requires_grad_flags[1])
-            grad_t2 = unbroadcast((-grad * t1) / (t2 * t2), t2.sizes());
+            grad_t2 = unbroadcast((-grad_output * t1) / (t2 * t2), t2.sizes());
 
         return {grad_t1, grad_t2};
     }
 
+
+    std::string Matmul::name() const { return "Matmul"; };
 
     std::vector<torch::Tensor> Matmul::forward(const std::vector<torch::Tensor>& inputs) { 
         const torch::Tensor& t1 = inputs[0];
@@ -131,24 +133,24 @@ namespace synapx::autograd::cpu {
         return {out};
     }
 
-    std::vector<torch::Tensor> Matmul::backward(const std::vector<torch::Tensor>& grad_outputs) {
-        const torch::Tensor& grad = grad_outputs[0];
-        
+    std::vector<torch::Tensor> Matmul::backward(const torch::Tensor& grad_output, int output_idx) {
         torch::Tensor grad_t1, grad_t2;
 
         if (requires_grad_flags[0]) {
-            grad_t1 = torch::matmul(grad, torch::swapdims(t2, -2, -1));
+            grad_t1 = torch::matmul(grad_output, torch::swapdims(t2, -2, -1));
             grad_t1 = unbroadcast(grad_t1, t1_shape);
         }
 
         if (requires_grad_flags[1]) {
-            grad_t2 = torch::matmul(torch::swapdims(t1, -2, -1), grad);
+            grad_t2 = torch::matmul(torch::swapdims(t1, -2, -1), grad_output);
             grad_t2 = unbroadcast(grad_t2, t2_shape);
         } 
 
         return {grad_t1, grad_t2};
     }
 
+
+    std::string Pow::name() const { return "Pow"; };
 
     std::vector<torch::Tensor> Pow::forward(const std::vector<torch::Tensor>& inputs) { 
         const torch::Tensor& base = inputs[0];
@@ -164,20 +166,20 @@ namespace synapx::autograd::cpu {
         return {out};
     }
 
-    std::vector<torch::Tensor> Pow::backward(const std::vector<torch::Tensor>& grad_outputs) {
-        const torch::Tensor& grad = grad_outputs[0];
-
+    std::vector<torch::Tensor> Pow::backward(const torch::Tensor& grad_output, int output_idx) {
         torch::Tensor grad_base, grad_exp;
 
         if (requires_grad_flags[0])
-            grad_base = exp * forward_result.div(base) * grad;
+            grad_base = exp * forward_result.div(base) * grad_output;
         
         if (requires_grad_flags[1])
-            grad_exp = forward_result * base.log() * grad;
+            grad_exp = forward_result * base.log() * grad_output;
         
         return {grad_base, grad_exp};
     }
 
+
+    std::string Addmm::name() const { return "Addmm"; };
 
     std::vector<torch::Tensor> Addmm::forward(const std::vector<torch::Tensor>& inputs) { 
         const torch::Tensor& inp = inputs[0];
@@ -200,32 +202,34 @@ namespace synapx::autograd::cpu {
         return {out};
     }
 
-    std::vector<torch::Tensor> Addmm::backward(const std::vector<torch::Tensor>& grad_outputs) {
-        const torch::Tensor& grad = grad_outputs[0];
-        
+    std::vector<torch::Tensor> Addmm::backward(const torch::Tensor& grad_output, int output_idx) {
         torch::Tensor grad_inp, grad_mat1, grad_mat2;
 
         if (requires_grad_flags[0]) 
-            grad_inp = unbroadcast(grad, inp_shape);
+            grad_inp = unbroadcast(grad_output, inp_shape);
         
         if (requires_grad_flags[1]) 
-            grad_mat1 = torch::matmul(grad, torch::swapdims(mat2, -2, -1));
+            grad_mat1 = torch::matmul(grad_output, torch::swapdims(mat2, -2, -1));
         
         if (requires_grad_flags[2]) 
-            grad_mat2 = torch::matmul(torch::swapdims(mat1, -2, -1), grad);
+            grad_mat2 = torch::matmul(torch::swapdims(mat1, -2, -1), grad_output);
 
         return {grad_inp, grad_mat1, grad_mat2};
     }
 
 
+    std::string Clone::name() const { return "Clone"; };
+
     std::vector<torch::Tensor> Clone::forward(const std::vector<torch::Tensor>& inputs) { 
         return {inputs[0].clone()};
     }
 
-    std::vector<torch::Tensor> Clone::backward(const std::vector<torch::Tensor>& grad_outputs) {
-        return grad_outputs;
+    std::vector<torch::Tensor> Clone::backward(const torch::Tensor& grad_output, int output_idx) {
+        return {grad_output};
     }
 
+
+    std::string Exp::name() const { return "Exp"; };
 
     std::vector<torch::Tensor> Exp::forward(const std::vector<torch::Tensor>& inputs) { 
         const torch::Tensor& t = inputs[0];
@@ -238,10 +242,12 @@ namespace synapx::autograd::cpu {
             return {out};
     }
 
-    std::vector<torch::Tensor> Exp::backward(const std::vector<torch::Tensor>& grad_outputs) {
-        return {forward_result * grad_outputs[0]};
+    std::vector<torch::Tensor> Exp::backward(const torch::Tensor& grad_output, int output_idx) {
+        return {forward_result * grad_output};
     }
 
+
+    std::string Log::name() const { return "Log"; };
 
     std::vector<torch::Tensor> Log::forward(const std::vector<torch::Tensor>& inputs) { 
         const torch::Tensor& t = inputs[0];
@@ -254,10 +260,12 @@ namespace synapx::autograd::cpu {
         return {out};
     }
 
-    std::vector<torch::Tensor> Log::backward(const std::vector<torch::Tensor>& grad_outputs) {
-        return {grad_outputs[0] / (t + epsilon)};
+    std::vector<torch::Tensor> Log::backward(const torch::Tensor& grad_output, int output_idx) {
+        return {grad_output / (t + epsilon)};
     }
 
+
+    std::string Sqrt::name() const { return "Sqrt"; };
 
     std::vector<torch::Tensor> Sqrt::forward(const std::vector<torch::Tensor>& inputs) { 
         const torch::Tensor& t = inputs[0];
@@ -270,12 +278,14 @@ namespace synapx::autograd::cpu {
         return {out};
     }
 
-    std::vector<torch::Tensor> Sqrt::backward(const std::vector<torch::Tensor>& grad_outputs) {
-        return {grad_outputs[0] / (2 * forward_result)};
+    std::vector<torch::Tensor> Sqrt::backward(const torch::Tensor& grad_output, int output_idx) {
+        return {grad_output / (2 * forward_result)};
     }
 
 
     Sum::Sum(const torch::IntArrayRef& dim, bool keepdim): dim(dim.vec()), keepdim(keepdim) {}
+    
+    std::string Sum::name() const { return "Sum"; };
 
     std::vector<torch::Tensor> Sum::forward(const std::vector<torch::Tensor>& inputs) {
         const torch::Tensor& t = inputs[0];
@@ -288,8 +298,8 @@ namespace synapx::autograd::cpu {
         return {torch::sum(t, dim, keepdim)}; 
     }
 
-    std::vector<torch::Tensor> Sum::backward(const std::vector<torch::Tensor>& grad_outputs) {
-        torch::Tensor grad = grad_outputs[0];
+    std::vector<torch::Tensor> Sum::backward(const torch::Tensor& grad_output, int output_idx) {
+        torch::Tensor grad = grad_output;
 
         if(!keepdim && !dim.empty())
             grad = expand_dims(grad, dim);
@@ -299,6 +309,8 @@ namespace synapx::autograd::cpu {
 
 
     Mean::Mean(const torch::IntArrayRef& dim, bool keepdim): dim(dim.vec()), keepdim(keepdim) {}
+
+    std::string Mean::name() const { return "Mean"; };
 
     std::vector<torch::Tensor> Mean::forward(const std::vector<torch::Tensor>& inputs) {
         const torch::Tensor& t = inputs[0];
@@ -313,8 +325,8 @@ namespace synapx::autograd::cpu {
         return {torch::mean(t, dim, keepdim)}; 
     }
 
-    std::vector<torch::Tensor> Mean::backward(const std::vector<torch::Tensor>& grad_outputs) {
-        torch::Tensor grad = grad_outputs[0];
+    std::vector<torch::Tensor> Mean::backward(const torch::Tensor& grad_output, int output_idx) {
+        torch::Tensor grad = grad_output;
 
         if(!keepdim && !dim.empty()) {
             grad = expand_dims(grad, normalized_dims, /*normalized=*/true);
@@ -331,6 +343,8 @@ namespace synapx::autograd::cpu {
 
 
     Max::Max(std::optional<int64_t> dim, bool keepdim): dim(dim), keepdim(keepdim) {}
+
+    std::string Max::name() const { return "Max"; };
 
     std::vector<torch::Tensor> Max::forward(const std::vector<torch::Tensor>& inputs) {
         const torch::Tensor& t = inputs[0];
@@ -354,8 +368,8 @@ namespace synapx::autograd::cpu {
         return {result};
     }
 
-    std::vector<torch::Tensor> Max::backward(const std::vector<torch::Tensor>& grad_outputs) {
-        torch::Tensor grad = grad_outputs[0];
+    std::vector<torch::Tensor> Max::backward(const torch::Tensor& grad_output, int output_idx) {
+        torch::Tensor grad = grad_output;
         torch::Tensor mask;
     
         if (!dim.has_value()) {
@@ -377,6 +391,8 @@ namespace synapx::autograd::cpu {
 
 
     Min::Min(std::optional<int64_t> dim, bool keepdim): dim(dim), keepdim(keepdim) {}
+
+    std::string Min::name() const { return "Min"; };
 
     std::vector<torch::Tensor> Min::forward(const std::vector<torch::Tensor>& inputs) {
         const torch::Tensor& t = inputs[0];
@@ -400,8 +416,8 @@ namespace synapx::autograd::cpu {
         return {result};
     }
 
-    std::vector<torch::Tensor> Min::backward(const std::vector<torch::Tensor>& grad_outputs) {
-        torch::Tensor grad = grad_outputs[0];
+    std::vector<torch::Tensor> Min::backward(const torch::Tensor& grad_output, int output_idx) {
+        torch::Tensor grad = grad_output;
         torch::Tensor mask;
     
         if (!dim.has_value()) {
@@ -423,6 +439,8 @@ namespace synapx::autograd::cpu {
 
 
     Squeeze::Squeeze(const torch::IntArrayRef& dim): dim(dim.vec()) {}
+
+    std::string Squeeze::name() const { return "Squeeze"; };
 
     std::vector<torch::Tensor> Squeeze::forward(const std::vector<torch::Tensor>& inputs) {
         const torch::Tensor& t = inputs[0];
@@ -447,8 +465,8 @@ namespace synapx::autograd::cpu {
         return {result};
     }
 
-    std::vector<torch::Tensor> Squeeze::backward(const std::vector<torch::Tensor>& grad_outputs) {
-        torch::Tensor grad = grad_outputs[0];
+    std::vector<torch::Tensor> Squeeze::backward(const torch::Tensor& grad_output, int output_idx) {
+        torch::Tensor grad = grad_output;
         
         grad = expand_dims(grad, dim).broadcast_to(t_shape);
         
@@ -458,6 +476,8 @@ namespace synapx::autograd::cpu {
 
     Unsqueeze::Unsqueeze(int64_t dim): dim(dim) {}
 
+    std::string Unsqueeze::name() const { return "Unsqueeze"; };
+
     std::vector<torch::Tensor> Unsqueeze::forward(const std::vector<torch::Tensor>& inputs) {
         const torch::Tensor& t = inputs[0];
 
@@ -466,8 +486,8 @@ namespace synapx::autograd::cpu {
         return {result};
     }
 
-    std::vector<torch::Tensor> Unsqueeze::backward(const std::vector<torch::Tensor>& grad_outputs) {
-        torch::Tensor grad = grad_outputs[0];
+    std::vector<torch::Tensor> Unsqueeze::backward(const torch::Tensor& grad_output, int output_idx) {
+        torch::Tensor grad = grad_output;
         
         grad = grad.squeeze(dim);
         
@@ -476,6 +496,8 @@ namespace synapx::autograd::cpu {
 
 
     Reshape::Reshape(const torch::IntArrayRef& shape): shape(shape.vec()) {}
+
+    std::string Reshape::name() const { return "Reshape"; };
 
     std::vector<torch::Tensor> Reshape::forward(const std::vector<torch::Tensor>& inputs) {
         const torch::Tensor& t = inputs[0];
@@ -490,73 +512,59 @@ namespace synapx::autograd::cpu {
         return {result};
     }
 
-    std::vector<torch::Tensor> Reshape::backward(const std::vector<torch::Tensor>& grad_outputs) {
-        torch::Tensor grad = grad_outputs[0];
-        
-        grad = grad.reshape(t_shape);
-        
-        return {grad};
+    std::vector<torch::Tensor> Reshape::backward(const torch::Tensor& grad_output, int output_idx) {      
+        return {grad_output.reshape(t_shape)};
     }
 
 
     Transpose::Transpose(int64_t dim0, int64_t dim1): dim0(dim0), dim1(dim1) {}
 
-    std::vector<torch::Tensor> Transpose::forward(const std::vector<torch::Tensor>& inputs) {
-        const torch::Tensor& t = inputs[0];
+    std::string Transpose::name() const { return "Transpose"; };
 
-        torch::Tensor result = torch::transpose(t, dim0, dim1);
-        
-        return {result};
+    std::vector<torch::Tensor> Transpose::forward(const std::vector<torch::Tensor>& inputs) {
+        const torch::Tensor& t = inputs[0];        
+        return {torch::transpose(t, dim0, dim1)};
     }
 
-    std::vector<torch::Tensor> Transpose::backward(const std::vector<torch::Tensor>& grad_outputs) {
-        torch::Tensor grad = grad_outputs[0];
-        
-        grad = grad.transpose(dim0, dim1);
-        
-        return {grad};
+    std::vector<torch::Tensor> Transpose::backward(const torch::Tensor& grad_output, int output_idx) {        
+        return {grad_output.transpose(dim0, dim1)};
     }
 
 
     Movedim::Movedim(int64_t src, int64_t dest): src(src), dest(dest) {}
 
+    std::string Movedim::name() const { return "Movedim"; };
+
     std::vector<torch::Tensor> Movedim::forward(const std::vector<torch::Tensor>& inputs) {
         const torch::Tensor& t = inputs[0];
-
-        torch::Tensor result = torch::movedim(t, src, dest);
-        
-        return {result};
+        return {torch::movedim(t, src, dest)};
     }
 
-    std::vector<torch::Tensor> Movedim::backward(const std::vector<torch::Tensor>& grad_outputs) {
-        torch::Tensor grad = grad_outputs[0];
-        
-        grad = grad.movedim(src, dest);
-        
-        return {grad};
+    std::vector<torch::Tensor> Movedim::backward(const torch::Tensor& grad_output, int output_idx) {
+        return {grad_output.movedim(src, dest)};
     }
 
 
     Slice::Slice(const std::vector<torch::indexing::TensorIndex>& idx) : indices(idx) {}
 
+    std::string Slice::name() const { return "Slice"; };
+
     std::vector<torch::Tensor> Slice::forward(const std::vector<torch::Tensor>& inputs) {
         const torch::Tensor& input = inputs[0];
         t_shape = input.sizes().vec();
-        
-        torch::Tensor result = input.index(indices);
-        return {result};
+        return {input.index(indices)};
     }
 
-    std::vector<torch::Tensor> Slice::backward(const std::vector<torch::Tensor>& grad_outputs) {
-        const torch::Tensor& grad = grad_outputs[0];
-        torch::Tensor grad_input = torch::zeros(t_shape, grad.options());
-        
-        grad_input.index_put_(indices, grad);
+    std::vector<torch::Tensor> Slice::backward(const torch::Tensor& grad_output, int output_idx) {
+        torch::Tensor grad_input = torch::zeros(t_shape, grad_output.options());
+        grad_input.index_put_(indices, grad_output);
         return {grad_input};
     }
 
 
     Concat::Concat(int64_t dim) : dim(dim) {}
+
+    std::string Concat::name() const { return "Concat"; };
 
     std::vector<torch::Tensor> Concat::forward(const std::vector<torch::Tensor>& inputs) {
         torch::Tensor result = torch::concat(inputs, dim);
@@ -569,26 +577,27 @@ namespace synapx::autograd::cpu {
         return {result};
     }
 
-    std::vector<torch::Tensor> Concat::backward(const std::vector<torch::Tensor>& grad_outputs) {
-        const torch::Tensor& grad = grad_outputs[0];
-        return torch::split(grad, sizes, dim);
+    std::vector<torch::Tensor> Concat::backward(const torch::Tensor& grad_output, int output_idx) {
+        return torch::split(grad_output, sizes, dim);
     }
 
 
     Stack::Stack(int64_t dim) : dim(dim) {}
 
+    std::string Stack::name() const { return "Stack"; };
+
     std::vector<torch::Tensor> Stack::forward(const std::vector<torch::Tensor>& inputs) {        
-        torch::Tensor result = torch::stack(inputs, dim);
-        return {result};
+        return {torch::stack(inputs, dim)};
     }
 
-    std::vector<torch::Tensor> Stack::backward(const std::vector<torch::Tensor>& grad_outputs) {
-        torch::Tensor grad = grad_outputs[0];
-        return torch::unbind(grad, dim);
+    std::vector<torch::Tensor> Stack::backward(const torch::Tensor& grad_output, int output_idx) {
+        return torch::unbind(grad_output, dim);
     }
 
     
     Unbind::Unbind(int64_t dim) : dim(dim) {}
+
+    std::string Unbind::name() const { return "Unbind"; };
 
     std::vector<torch::Tensor> Unbind::forward(const std::vector<torch::Tensor>& inputs) {
         const torch::Tensor& t = inputs[0];
@@ -599,20 +608,13 @@ namespace synapx::autograd::cpu {
         return torch::unbind(t, dim);
     }
 
-    std::vector<torch::Tensor> Unbind::backward(const std::vector<torch::Tensor>& grad_outputs) {
+    std::vector<torch::Tensor> Unbind::backward(const torch::Tensor& grad_output, int output_idx) {
         // Handle negative dim
         int64_t actual_dim = dim < 0 ? t_shape.size() + dim : dim;
         
-        // If we have all gradients, stack them
-        if (grad_outputs.size() == t_shape[actual_dim]) {
-            return {torch::stack(grad_outputs, actual_dim)};
-        }
-        
-        // Otherwise, create zero tensor and fill slices
-        torch::Tensor result = torch::zeros(t_shape, grad_outputs[0].options());
-        for (size_t i = 0; i < grad_outputs.size(); ++i) {
-            result.select(actual_dim, i).copy_(grad_outputs[i]);
-        }
+        // Create zero tensor and fill slices
+        torch::Tensor result = torch::zeros(t_shape, grad_output.options());
+        result.select(actual_dim, output_idx).copy_(grad_output);
         
         return {result};
     }

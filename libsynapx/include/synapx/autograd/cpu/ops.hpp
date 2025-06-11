@@ -12,8 +12,9 @@ namespace synapx::autograd::cpu {
 
     class Add: public Function {
     public:
+        std::string name() const override;
         std::vector<torch::Tensor> forward(const std::vector<torch::Tensor>& inputs) override;
-        std::vector<torch::Tensor> backward(const std::vector<torch::Tensor>& grad_outputs) override;
+        std::vector<torch::Tensor> backward(const torch::Tensor& grad_output, int output_idx) override;
     
     private:
         std::vector<int64_t> t1_shape;
@@ -22,8 +23,9 @@ namespace synapx::autograd::cpu {
 
     class Mul: public Function {
     public:
+        std::string name() const override;
         std::vector<torch::Tensor> forward(const std::vector<torch::Tensor>& inputs) override;
-        std::vector<torch::Tensor> backward(const std::vector<torch::Tensor>& grad_outputs) override;
+        std::vector<torch::Tensor> backward(const torch::Tensor& grad_output, int output_idx) override;
     
     private:
         torch::Tensor t1;
@@ -35,8 +37,9 @@ namespace synapx::autograd::cpu {
 
     class Div: public Function {
     public:
+        std::string name() const override;
         std::vector<torch::Tensor> forward(const std::vector<torch::Tensor>& inputs) override;
-        std::vector<torch::Tensor> backward(const std::vector<torch::Tensor>& grad_outputs) override;
+        std::vector<torch::Tensor> backward(const torch::Tensor& grad_output, int output_idx) override;
     
     private:
         torch::Tensor t1;
@@ -47,8 +50,9 @@ namespace synapx::autograd::cpu {
 
     class Matmul: public Function {
     public:
+        std::string name() const override;
         std::vector<torch::Tensor> forward(const std::vector<torch::Tensor>& inputs) override;
-        std::vector<torch::Tensor> backward(const std::vector<torch::Tensor>& grad_outputs) override;
+        std::vector<torch::Tensor> backward(const torch::Tensor& grad_output, int output_idx) override;
     
     private:
         torch::Tensor t1;
@@ -60,8 +64,9 @@ namespace synapx::autograd::cpu {
 
     class Pow: public Function {
     public:
+        std::string name() const override;
         std::vector<torch::Tensor> forward(const std::vector<torch::Tensor>& inputs) override;
-        std::vector<torch::Tensor> backward(const std::vector<torch::Tensor>& grad_outputs) override;
+        std::vector<torch::Tensor> backward(const torch::Tensor& grad_output, int output_idx) override;
     
     private:
         torch::Tensor base;
@@ -72,8 +77,9 @@ namespace synapx::autograd::cpu {
 
     class Addmm: public Function {
     public:
+        std::string name() const override;
         std::vector<torch::Tensor> forward(const std::vector<torch::Tensor>& inputs) override;
-        std::vector<torch::Tensor> backward(const std::vector<torch::Tensor>& grad_outputs) override;
+        std::vector<torch::Tensor> backward(const torch::Tensor& grad_output, int output_idx) override;
     
     private:
         std::vector<int64_t> inp_shape;
@@ -83,14 +89,16 @@ namespace synapx::autograd::cpu {
 
     class Clone: public Function {
     public:
+        std::string name() const override;
         std::vector<torch::Tensor> forward(const std::vector<torch::Tensor>& inputs) override;
-        std::vector<torch::Tensor> backward(const std::vector<torch::Tensor>& grad_outputs) override;
+        std::vector<torch::Tensor> backward(const torch::Tensor& grad_output, int output_idx) override;
     };
 
     class Exp: public Function {
     public:
+        std::string name() const override;
         std::vector<torch::Tensor> forward(const std::vector<torch::Tensor>& inputs) override;
-        std::vector<torch::Tensor> backward(const std::vector<torch::Tensor>& grad_outputs) override;
+        std::vector<torch::Tensor> backward(const torch::Tensor& grad_output, int output_idx) override;
     
     private:
         torch::Tensor forward_result;
@@ -98,8 +106,9 @@ namespace synapx::autograd::cpu {
 
     class Log: public Function {
     public:
+        std::string name() const override;
         std::vector<torch::Tensor> forward(const std::vector<torch::Tensor>& inputs) override;
-        std::vector<torch::Tensor> backward(const std::vector<torch::Tensor>& grad_outputs) override;
+        std::vector<torch::Tensor> backward(const torch::Tensor& grad_output, int output_idx) override;
     
     private:
         torch::Tensor t;
@@ -107,8 +116,9 @@ namespace synapx::autograd::cpu {
 
     class Sqrt: public Function {
     public:
+        std::string name() const override;
         std::vector<torch::Tensor> forward(const std::vector<torch::Tensor>& inputs) override;
-        std::vector<torch::Tensor> backward(const std::vector<torch::Tensor>& grad_outputs) override;
+        std::vector<torch::Tensor> backward(const torch::Tensor& grad_output, int output_idx) override;
     
     private:
         torch::Tensor forward_result;
@@ -118,8 +128,9 @@ namespace synapx::autograd::cpu {
     public:
         Sum(const torch::IntArrayRef& dim = {}, bool keepdim = false);
 
+        std::string name() const override;
         std::vector<torch::Tensor> forward(const std::vector<torch::Tensor>& inputs) override;
-        std::vector<torch::Tensor> backward(const std::vector<torch::Tensor>& grad_outputs) override;
+        std::vector<torch::Tensor> backward(const torch::Tensor& grad_output, int output_idx) override;
     
     private:
        const std::vector<int64_t> dim;
@@ -131,8 +142,9 @@ namespace synapx::autograd::cpu {
     public:
         Mean(const torch::IntArrayRef& dim = {}, bool keepdim = false);
 
+        std::string name() const override;
         std::vector<torch::Tensor> forward(const std::vector<torch::Tensor>& inputs) override;
-        std::vector<torch::Tensor> backward(const std::vector<torch::Tensor>& grad_outputs) override;
+        std::vector<torch::Tensor> backward(const torch::Tensor& grad_output, int output_idx) override;
     
     private:
        const std::vector<int64_t> dim;
@@ -145,8 +157,9 @@ namespace synapx::autograd::cpu {
     public:
         Max(std::optional<int64_t> dim = std::nullopt, bool keepdim = false);
 
+        std::string name() const override;
         std::vector<torch::Tensor> forward(const std::vector<torch::Tensor>& inputs) override;
-        std::vector<torch::Tensor> backward(const std::vector<torch::Tensor>& grad_outputs) override;
+        std::vector<torch::Tensor> backward(const torch::Tensor& grad_output, int output_idx) override;
         
         torch::Tensor max_values;
         torch::Tensor max_indices;
@@ -162,8 +175,9 @@ namespace synapx::autograd::cpu {
     public:
         Min(std::optional<int64_t> dim = std::nullopt, bool keepdim = false);
 
+        std::string name() const override;
         std::vector<torch::Tensor> forward(const std::vector<torch::Tensor>& inputs) override;
-        std::vector<torch::Tensor> backward(const std::vector<torch::Tensor>& grad_outputs) override;
+        std::vector<torch::Tensor> backward(const torch::Tensor& grad_output, int output_idx) override;
         
         torch::Tensor min_values;
         torch::Tensor min_indices;
@@ -179,8 +193,9 @@ namespace synapx::autograd::cpu {
     public:
         Squeeze(const torch::IntArrayRef& dim = {});
 
+        std::string name() const override;
         std::vector<torch::Tensor> forward(const std::vector<torch::Tensor>& inputs) override;
-        std::vector<torch::Tensor> backward(const std::vector<torch::Tensor>& grad_outputs) override;
+        std::vector<torch::Tensor> backward(const torch::Tensor& grad_output, int output_idx) override;
         
     private:
         std::vector<int64_t> dim;
@@ -191,8 +206,9 @@ namespace synapx::autograd::cpu {
     public:
         Unsqueeze(int64_t dim);
 
+        std::string name() const override;
         std::vector<torch::Tensor> forward(const std::vector<torch::Tensor>& inputs) override;
-        std::vector<torch::Tensor> backward(const std::vector<torch::Tensor>& grad_outputs) override;
+        std::vector<torch::Tensor> backward(const torch::Tensor& grad_output, int output_idx) override;
         
     private:
        const int64_t dim;
@@ -202,8 +218,9 @@ namespace synapx::autograd::cpu {
     public:
         Reshape(const torch::IntArrayRef& shape);
 
+        std::string name() const override;
         std::vector<torch::Tensor> forward(const std::vector<torch::Tensor>& inputs) override;
-        std::vector<torch::Tensor> backward(const std::vector<torch::Tensor>& grad_outputs) override;
+        std::vector<torch::Tensor> backward(const torch::Tensor& grad_output, int output_idx) override;
         
     private:
         const std::vector<int64_t> shape;
@@ -214,8 +231,9 @@ namespace synapx::autograd::cpu {
     public:
         Transpose(int64_t dim0, int64_t dim1);
 
+        std::string name() const override;
         std::vector<torch::Tensor> forward(const std::vector<torch::Tensor>& inputs) override;
-        std::vector<torch::Tensor> backward(const std::vector<torch::Tensor>& grad_outputs) override;
+        std::vector<torch::Tensor> backward(const torch::Tensor& grad_output, int output_idx) override;
         
     private:
         const int64_t dim0;
@@ -226,8 +244,9 @@ namespace synapx::autograd::cpu {
     public:
         Movedim(int64_t src, int64_t dest);
 
+        std::string name() const override;
         std::vector<torch::Tensor> forward(const std::vector<torch::Tensor>& inputs) override;
-        std::vector<torch::Tensor> backward(const std::vector<torch::Tensor>& grad_outputs) override;
+        std::vector<torch::Tensor> backward(const torch::Tensor& grad_output, int output_idx) override;
         
     private:
         const int64_t src;
@@ -238,8 +257,9 @@ namespace synapx::autograd::cpu {
     public:
         Slice(const std::vector<torch::indexing::TensorIndex>& idx);
 
+        std::string name() const override;
         std::vector<torch::Tensor> forward(const std::vector<torch::Tensor>& inputs) override;
-        std::vector<torch::Tensor> backward(const std::vector<torch::Tensor>& grad_outputs) override;
+        std::vector<torch::Tensor> backward(const torch::Tensor& grad_output, int output_idx) override;
         
     private:
         const std::vector<torch::indexing::TensorIndex> indices;
@@ -250,8 +270,9 @@ namespace synapx::autograd::cpu {
     public:
         Concat(int64_t dim = 0);
 
+        std::string name() const override;
         std::vector<torch::Tensor> forward(const std::vector<torch::Tensor>& inputs) override;
-        std::vector<torch::Tensor> backward(const std::vector<torch::Tensor>& grad_outputs) override;
+        std::vector<torch::Tensor> backward(const torch::Tensor& grad_output, int output_idx) override;
         
     private:
         const int64_t dim;
@@ -262,8 +283,9 @@ namespace synapx::autograd::cpu {
     public:
         Stack(int64_t dim = 0);
 
+        std::string name() const override;
         std::vector<torch::Tensor> forward(const std::vector<torch::Tensor>& inputs) override;
-        std::vector<torch::Tensor> backward(const std::vector<torch::Tensor>& grad_outputs) override;
+        std::vector<torch::Tensor> backward(const torch::Tensor& grad_output, int output_idx) override;
         
     private:
         const int64_t dim;
@@ -273,8 +295,9 @@ namespace synapx::autograd::cpu {
     public:
         Unbind(int64_t dim = 0);
 
+        std::string name() const override;
         std::vector<torch::Tensor> forward(const std::vector<torch::Tensor>& inputs) override;
-        std::vector<torch::Tensor> backward(const std::vector<torch::Tensor>& grad_outputs) override;
+        std::vector<torch::Tensor> backward(const torch::Tensor& grad_output, int output_idx) override;
         
     private:
         const int64_t dim;

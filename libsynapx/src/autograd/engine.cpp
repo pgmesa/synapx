@@ -1,13 +1,31 @@
 
 #include <synapx/autograd/engine.hpp>
 
+#include <vector>
+#include <optional>
+#include <stdexcept>
+
 #include <spdlog/spdlog.h>
 
-#include <vector>
-#include <stdexcept>
 
 
 namespace synapx::autograd {
+
+    BackwardNode::BackwardNode(std::shared_ptr<Function> fn, int output_idx, const std::vector<BackwardEdge>& backward_edges) 
+        : fn(fn), output_idx(output_idx), backward_edges(backward_edges) {};
+
+    std::string BackwardNode::name() const {
+        return "<" + fn->name() + "Backward>";
+    }
+
+    std::vector<BackwardEdge>& BackwardNode::edges() {
+        return backward_edges;
+    }
+    
+    inline std::vector<torch::Tensor> BackwardNode::backward(const torch::Tensor& grad) { 
+        return fn->backward(grad, output_idx);
+    };
+
 
     void backward(const synapx::Tensor& tensor, const torch::Tensor& grad) {
         spdlog::debug("Backward called");
@@ -15,7 +33,7 @@ namespace synapx::autograd {
         if (!tensor.defined())
             throw std::runtime_error("Tensor passed to compute backward pass is not defined");
 
-        std::shared_ptr<Function> grad_fn = tensor.grad_fn();
+        std::shared_ptr<BackwardNode> grad_fn = tensor.grad_fn();
 
         if (!grad_fn) {
             throw std::runtime_error("No backward function defined for this tensor");
@@ -35,34 +53,34 @@ namespace synapx::autograd {
         }
 
         // 1) Build topo order
-        std::vector<std::shared_ptr<Function>> topo;
-        std::unordered_set<Function*> seen;
-        std::function<void(const std::shared_ptr<Function>&)> dfs =
-            [&](auto fn) {
-                if (!fn || seen.count(fn.get())) return;
-                seen.insert(fn.get());
+        std::vector<std::shared_ptr<BackwardNode>> topo;
+        std::unordered_set<std::shared_ptr<BackwardNode>> seen;
+        std::function<void(std::shared_ptr<BackwardNode>)> dfs =
+            [&](auto grad_fn) {
+                if (!grad_fn || seen.count(grad_fn)) return;
+                seen.insert(grad_fn);
                 
-                for (auto& edge : fn->backward_edges) {
-                    dfs(edge.next_fn);
+                for (BackwardEdge& edge : grad_fn->edges()) {
+                    dfs(edge.next_node);
                 }
-                topo.push_back(fn);
+                topo.push_back(grad_fn);
             };
         dfs(grad_fn);
 
         // 2) Initialize grad map
-        std::unordered_map<Function*, torch::Tensor> grad_map;
+        std::unordered_map<BackwardNode*, torch::Tensor> grad_map;
         grad_map[grad_fn.get()] = grad_output;
 
         // 3) Walk backwards
         for (auto it = topo.rbegin(); it != topo.rend(); ++it) {
-            auto current_fn = *it;
-            auto grad_out_tensor = grad_map[current_fn.get()];
+            std::shared_ptr<BackwardNode> current_node = *it;
+            torch::Tensor grad_out_tensor = grad_map[current_node.get()];
 
             // backward() returns one gradient per forward‐input
-            auto grad_inputs = current_fn->backward({ grad_out_tensor });
+            std::vector<torch::Tensor> grad_inputs = current_node->backward(grad_out_tensor);
 
             // dispatch each gradient along its edge
-            for (auto& edge : current_fn->backward_edges) {
+            for (auto& edge : current_node->edges()) {
                 size_t input_idx = edge.input_slot;
                 if (input_idx >= grad_inputs.size()) {
                     throw std::runtime_error(

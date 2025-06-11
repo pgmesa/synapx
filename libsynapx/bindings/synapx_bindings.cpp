@@ -167,6 +167,15 @@ PYBIND11_MODULE(_C, m) {
             if (pos != std::string::npos) {
                 repr_str.replace(pos, from.length(), to);
             }
+            
+            if (self.grad_fn()) {
+                const std::string end = ")";
+                size_t end_pos = repr_str.find(end);
+                if (end_pos != std::string::npos) {
+                    std::string tensor_info = ", grad_fn=" + self.grad_fn()->name() + ")";
+                    repr_str.replace(end_pos, end.length(), tensor_info);
+                }
+            }
 
             return repr_str;
         })

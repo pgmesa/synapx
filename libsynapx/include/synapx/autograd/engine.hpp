@@ -16,19 +16,34 @@
 namespace synapx::autograd {
     class SYNAPX_API Function {
     public:
-        struct BackwardEdge {
-            std::shared_ptr<Function> next_fn;
-            size_t input_slot;
-            Tensor variable; // the Tensor/Variable to accumulate grad into
-        };
-
         std::vector<bool> requires_grad_flags;
-        std::vector<BackwardEdge> backward_edges;
 
+        virtual std::string name() const = 0;
         virtual std::vector<torch::Tensor> forward(const std::vector<torch::Tensor>& inputs) = 0;
-        virtual std::vector<torch::Tensor> backward(const std::vector<torch::Tensor>& grad_outputs) = 0;
+        virtual std::vector<torch::Tensor> backward(const torch::Tensor& output_grad, int output_idx) = 0;
 
         virtual ~Function() = default;
+    };
+
+    struct SYNAPX_API BackwardEdge {
+        std::shared_ptr<BackwardNode> next_node;
+        size_t input_slot;
+        Tensor variable; // the Tensor/Variable to accumulate grad into
+    };
+
+    class SYNAPX_API BackwardNode {
+    public:
+        BackwardNode(std::shared_ptr<Function> fn, int output_idx, const std::vector<BackwardEdge>& backward_edges);
+        
+        std::string name() const;
+        std::vector<BackwardEdge>& edges();
+        inline std::vector<torch::Tensor> backward(const torch::Tensor& grad);
+    
+    private:
+        std::shared_ptr<Function> fn;
+        int output_idx;
+        std::vector<BackwardEdge> backward_edges;
+
     };
 
     SYNAPX_API void backward(const synapx::Tensor& tensor, const torch::Tensor& grad);

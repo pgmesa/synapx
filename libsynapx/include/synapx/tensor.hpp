@@ -14,7 +14,7 @@
 
 namespace synapx {
 
-    namespace autograd { class Function; }
+    namespace autograd { class BackwardNode; }
     
     class SYNAPX_API Tensor {
     public:
@@ -48,8 +48,8 @@ namespace synapx {
         void index_put_(const std::vector<torch::indexing::TensorIndex>& idx, const Tensor& value);
         void index_put_(const std::vector<torch::indexing::TensorIndex>& idx, double value);
 
-        const std::shared_ptr<autograd::Function> grad_fn() const;
-        void set_grad_fn(const std::shared_ptr<autograd::Function> grad_fn);
+        std::shared_ptr<autograd::BackwardNode> grad_fn() const;
+        void set_grad_fn(std::shared_ptr<autograd::BackwardNode> grad_fn);
 
         void backward(const torch::Tensor& grad={});
 

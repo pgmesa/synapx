@@ -3,9 +3,11 @@
 
 #include <optional>
 #include <tuple>
+#include <memory>
 
 #include <synapx/core.hpp>
 #include <synapx/tensor.hpp>
+#include <synapx/autograd/engine.hpp>
 
 namespace synapx {
 
@@ -69,7 +71,7 @@ namespace synapx {
             raw_in.reserve(inputs.size());
             std::vector<bool> grad_flags; 
             grad_flags.reserve(inputs.size());
-
+            
             Device dev = inputs[0].device();
             bool any_grad = false;
             for (const Tensor& t : inputs) {
@@ -100,15 +102,19 @@ namespace synapx {
                 outputs.emplace_back(ro, any_grad, dev);
 
             if (any_grad) {
-                // set the same grad_fn on each output
-                for (Tensor& out : outputs)
-                    out.set_grad_fn(fn);
-
                 // record one backward‐edge per input slot
+                std::vector<autograd::BackwardEdge> backward_edges;
                 for (size_t i = 0; i < inputs.size(); ++i) {
                     Tensor input = inputs[i];
                     if (input.requires_grad())
-                        fn->backward_edges.push_back({input.grad_fn(), i, input});
+                        backward_edges.push_back({input.grad_fn(), i, input});
+                }
+
+                // set the grad_fn on each output
+                for (int out_idx = 0; out_idx < outputs.size(); out_idx++) {
+                    auto grad_fn = std::make_shared<autograd::BackwardNode>(fn, out_idx, backward_edges);
+                    synapx::Tensor& out = outputs[out_idx];
+                    out.set_grad_fn(grad_fn);
                 }
             }
             

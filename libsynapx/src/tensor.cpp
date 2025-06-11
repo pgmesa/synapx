@@ -33,7 +33,7 @@ namespace synapx {
         bool retains_grad;
         
         torch::Tensor grad;
-        std::shared_ptr<autograd::Function> grad_fn;
+        std::shared_ptr<autograd::BackwardNode> grad_fn;
     };
 
     Tensor::Tensor() {}
@@ -136,15 +136,15 @@ namespace synapx {
         return maybe_grad;
     }
 
-    const std::shared_ptr<autograd::Function> Tensor::grad_fn() const {
-        return impl_->grad_fn; 
+    std::shared_ptr<autograd::BackwardNode> Tensor::grad_fn() const {
+        return impl_->grad_fn;
     }
 
     void Tensor::set_grad(const torch::Tensor& grad) {
         impl_->grad = grad;
     }
 
-    void Tensor::set_grad_fn(const std::shared_ptr<autograd::Function> grad_fn) {
+    void Tensor::set_grad_fn(std::shared_ptr<autograd::BackwardNode> grad_fn) {
         impl_->grad_fn = grad_fn;
     }
 
