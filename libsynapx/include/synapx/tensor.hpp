@@ -1,37 +1,43 @@
 #ifndef TENSOR_HPP
 #define TENSOR_HPP
 
+#include <tuple>
 #include <memory>
 #include <vector>
 #include <cstddef>
-#include <tuple>
 
 #include <torch/torch.h>
 
 #include <synapx/core.hpp>
-#include <synapx/device.hpp>
 
 
 namespace synapx {
 
-    namespace autograd { class BackwardNode; }
+    class Tensor;
+    namespace autograd { class Node; }
+
+    using IntArray = std::vector<int64_t>;
+    using TensorList = std::vector<Tensor>;
+    using TensorIndices = std::vector<torch::indexing::TensorIndex>;
     
     class SYNAPX_API Tensor {
     public:
-        // Constructor
         Tensor();
-        Tensor(const torch::Tensor& data, bool requires_grad=false, Device device=Device::CPU());
+        Tensor(const torch::Tensor& data, bool requires_grad=false);
 
         const torch::Tensor& data() const;
         bool defined() const;
         bool requires_grad() const;
         void requires_grad_(bool _requires_grad);
-        const Device& device() const;
+        torch::Dtype dtype() const;
+        torch::Device device() const;
         torch::TensorOptions options() const;
 
         size_t numel() const;
         size_t dim() const;
-        std::vector<int64_t> shape() const;
+        IntArray shape() const;
+        torch::IntArrayRef sizes() const;
+        size_t size(int64_t dim) const;
 
         bool is_leaf() const;
         void retain_grad();
@@ -39,19 +45,17 @@ namespace synapx {
         bool is_floating_point() const;
 
         torch::Scalar item() const;
-        Tensor to(Device device) const;
-        Tensor cpu() const;
         Tensor detach() const;
 
-        const torch::Tensor grad() const;
-        void set_grad(const torch::Tensor& grad);
-        void index_put_(const std::vector<torch::indexing::TensorIndex>& idx, const Tensor& value);
-        void index_put_(const std::vector<torch::indexing::TensorIndex>& idx, double value);
+        const Tensor grad() const;
+        void set_grad(const Tensor& grad);
+        void index_put_(const TensorIndices& idx, const Tensor& value);
+        void index_put_(const TensorIndices& idx, double value);
 
-        std::shared_ptr<autograd::BackwardNode> grad_fn() const;
-        void set_grad_fn(std::shared_ptr<autograd::BackwardNode> grad_fn);
+        std::shared_ptr<autograd::Node> grad_fn() const;
+        void set_grad_fn(std::shared_ptr<autograd::Node> grad_fn);
 
-        void backward(const torch::Tensor& grad={});
+        void backward(const Tensor& grad={});
 
         Tensor operator+(const Tensor& other) const;
         Tensor operator+(double other) const;
@@ -62,6 +66,7 @@ namespace synapx {
         Tensor operator/(const Tensor& other) const;
         Tensor operator/(double other) const;
         Tensor operator-() const;
+        Tensor operator[](const TensorIndices& indices) const;
 
         Tensor& operator+=(const Tensor& other);
         Tensor& operator+=(double other);
@@ -71,10 +76,6 @@ namespace synapx {
         Tensor& operator*=(double other);
         Tensor& operator/=(const Tensor& other);
         Tensor& operator/=(double other);
-
-        // Subscript operators for indexing
-        // Tensor operator[](int index) const;
-        // Tensor operator[](const std::vector<int>& indices) const;
 
         Tensor add(const Tensor& other) const;
         Tensor add(double other) const;
@@ -110,22 +111,30 @@ namespace synapx {
         Tensor rdiv(double exponent) const;
         Tensor rmatmul(const Tensor& exponent) const;
         
+        Tensor to(torch::Device device) const;
+        Tensor to(torch::string device) const;
+        Tensor cpu() const;
+        Tensor cuda(int8_t index) const;
         Tensor clone() const;
         Tensor exp() const;
         Tensor log() const;
         Tensor sqrt() const;
-        Tensor sum(const torch::IntArrayRef& dim = {}, bool keepdim = false) const;
-        Tensor mean(const torch::IntArrayRef& dim = {}, bool keepdim = false) const;
+        Tensor sum(torch::IntArrayRef dim = {}, bool keepdim = false) const;
+        Tensor mean(torch::IntArrayRef dim = {}, bool keepdim = false) const;
         Tensor max() const;
         std::tuple<Tensor, Tensor> max(int64_t dim, bool keepdim = false) const;
         Tensor min() const;
         std::tuple<Tensor, Tensor> min(int64_t dim, bool keepdim = false) const;
-        Tensor squeeze(const torch::IntArrayRef& dim = {}) const;
+        Tensor squeeze(torch::IntArrayRef dim = {}) const;
         Tensor unsqueeze(int64_t dim) const;
-        Tensor reshape(const torch::IntArrayRef& shape) const;
+        Tensor reshape(torch::IntArrayRef shape) const;
         Tensor transpose(int64_t dim0, int64_t dim1) const;
+        Tensor swapdims(int64_t dim0, int64_t dim1) const;
         Tensor movedim(int64_t src, int64_t dest) const;
-        Tensor slice(const std::vector<torch::indexing::TensorIndex>& idx) const;
+        Tensor slice(const TensorIndices& indices) const;
+
+        void set_output_nr(uint32_t nr);
+        uint32_t output_nr() const;
 
         std::string to_string() const;
         static std::string to_string(torch::Tensor tensor);

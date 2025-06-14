@@ -2,7 +2,7 @@
 #include <exception>
 #include <memory>
 
-#include <synapx/tensor.hpp>
+#include <synapx/synapx.hpp>
 #include <argparse/argparse.hpp>
 #include <spdlog/spdlog.h>
 #include <spdlog/pattern_formatter.h>
@@ -84,7 +84,7 @@ int main(int argc, char** argv) {
         auto start_backward = std::chrono::high_resolution_clock::now();
 
         spdlog::info("Backward");
-        out.backward();
+        out.backward(synapx::ones_like(out));
 
         auto end_backward = std::chrono::high_resolution_clock::now();
         auto backward_duration = std::chrono::duration_cast<std::chrono::milliseconds>(

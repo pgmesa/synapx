@@ -1,12 +1,13 @@
 
-#include <synapx/autograd/cpu/utils.hpp>
+#include <synapx/autograd/utils.hpp>
 
 #include <torch/torch.h>
+#include <synapx/tensor.hpp>
 
 
-namespace synapx::autograd::cpu {
+namespace synapx::autograd {
 
-    torch::Tensor unbroadcast(torch::Tensor grad, const torch::IntArrayRef& original_shape) {
+    synapx::Tensor unbroadcast(synapx::Tensor grad, torch::IntArrayRef original_shape) {
         int64_t grad_dim = grad.dim();
         int64_t orig_dim = original_shape.size();
 
@@ -36,12 +37,12 @@ namespace synapx::autograd::cpu {
         return grad.reshape(original_shape);
     }
 
-    torch::Tensor expand_dims(torch::Tensor tensor, const torch::IntArrayRef& dim, bool normalized) {
+    synapx::Tensor expand_dims(synapx::Tensor tensor, torch::IntArrayRef dim, bool normalized) {
         int64_t k = tensor.dim();
         int64_t m = static_cast<int64_t>(dim.size());
         int64_t new_rank = k + m;
         
-        std::vector<int64_t> normalized_dims = normalized? dim.vec() : normalize_dims(new_rank, dim);
+        torch::IntArrayRef normalized_dims = normalized? dim : normalize_dims(new_rank, dim);
 
         for (auto d : normalized_dims) {
             tensor = tensor.unsqueeze(d);
@@ -51,8 +52,8 @@ namespace synapx::autograd::cpu {
     }
 
     // Normalizes dimension indices. Converts negative indices to positive and sorts them.
-    std::vector<int64_t> normalize_dims(int64_t tensor_dim, const torch::IntArrayRef& dim) {
-        std::vector<int64_t> normalized;
+    std::vector<int64_t> normalize_dims(int64_t tensor_dim, torch::IntArrayRef dim) {
+        synapx::IntArray normalized;
 
         if (dim.empty()) {
             // All dimensions selected
@@ -75,13 +76,20 @@ namespace synapx::autograd::cpu {
         return normalized;
     }
 
-    torch::Tensor unravel_index(const torch::Tensor& indices, at::IntArrayRef shape) {
+
+    /**
+     * @brief Source: 
+     * 
+     * @param indices 
+     * @param shape 
+     * @return torch::Tensor 
+     */
+    torch::Tensor unravel_index(const torch::Tensor& indices, torch::IntArrayRef shape) {
         // Convert shape to tensor: (*shape, 1)
         std::vector<int64_t> shape_with_one(shape.begin(), shape.end());
         shape_with_one.push_back(1);
         torch::Tensor shape_tensor = torch::tensor(shape_with_one, indices.options());
         
-        // coefs = shape[1:].flipud().cumprod(dim=0).flipud()
         torch::Tensor coefs = shape_tensor.slice(0, 1).flip(0).cumprod(0).flip(0);
         
         // indices[..., None] - add dimension at the end

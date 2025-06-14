@@ -5,7 +5,6 @@
 #include <vector>
 #include <sstream>
 
-#include <synapx/tensor.hpp>
 #include <synapx/synapx.hpp>
 #include <argparse/argparse.hpp>
 #include <spdlog/spdlog.h>
@@ -50,7 +49,7 @@ int main(int argc, char** argv) {
         synapx::Tensor x = synapx::Tensor(torch::ones({3, 4}), true);
         {
             synapx::autograd::NoGradGuard guard;
-            auto y = x + x;
+            auto y = x.add(x);
             spdlog::info("Requires grad after operation? {}", y.requires_grad());
         }
 
@@ -81,7 +80,7 @@ int main(int argc, char** argv) {
         auto start_backward = std::chrono::high_resolution_clock::now();
 
         spdlog::info("Backward");
-        out.backward();
+        out.backward(synapx::ones_like(out));
 
         auto end_backward = std::chrono::high_resolution_clock::now();
         auto backward_duration = std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -89,10 +88,10 @@ int main(int argc, char** argv) {
         );
 
         if (t1.grad().defined()) {
-            spdlog::info("Gradient for t1:\n{}", synapx::Tensor::to_string(t1.grad()));
+            spdlog::info("Gradient for t1:\n{}", t1.grad().to_string());
         }
         if (t2.grad().defined()) {
-            spdlog::info("Gradient for t2:\n{}",  synapx::Tensor::to_string(t2.grad()));
+            spdlog::info("Gradient for t2:\n{}", t2.grad().to_string());
         }
         spdlog::info("Forward Result:\n{}", out.to_string());
         spdlog::info("Forward Time: {} ms", forward_duration.count());

@@ -1,6 +1,7 @@
 
 #include <synapx/tensor.hpp>
 
+#include <memory>
 #include <vector>
 #include <cstddef>
 
@@ -24,22 +25,32 @@ namespace synapx {
     }
     struct Tensor::Impl {
         Impl() {};
-        Impl(const torch::Tensor& data, bool req_grad, Device device)
-            : data(data.detach().cpu()), requires_grad(req_grad), device(device) {};
+        Impl(const torch::Tensor& data, bool req_grad)
+            : data(data.detach()), requires_grad(req_grad) {};
 
         torch::Tensor data;
         bool requires_grad;
-        Device device;
+
         bool retains_grad;
+        uint32_t output_nr = 0;
         
         torch::Tensor grad;
-        std::shared_ptr<autograd::BackwardNode> grad_fn;
+        std::shared_ptr<autograd::Node> grad_fn;
     };
 
-    Tensor::Tensor() {}
+    Tensor::Tensor() : impl_(std::make_shared<Impl>()) {}
 
-    Tensor::Tensor(const torch::Tensor& data,  bool requires_grad, Device device)
-        : impl_(std::make_shared<Impl>(data, requires_grad && autograd::is_grad_enabled(), device)) {}
+    Tensor::Tensor(const torch::Tensor& data,  bool requires_grad)
+        : impl_(std::make_shared<Impl>(data, requires_grad && autograd::is_grad_enabled())) {}
+
+
+    void Tensor::set_output_nr(uint32_t nr) {
+        impl_->output_nr = nr;
+    }
+
+    uint32_t Tensor::output_nr() const {
+        return impl_->output_nr;
+    }
 
     const torch::Tensor& Tensor::data() const { 
         return impl_->data; 
@@ -81,33 +92,36 @@ namespace synapx {
         return impl_->data.dim();
     }
 
-    std::vector<int64_t> Tensor::shape() const {
-        auto sizes = impl_->data.sizes();
-        return std::vector<int64_t>(sizes.begin(), sizes.end());
+    size_t Tensor::size(int64_t dim) const {
+        return impl_->data.size(dim);
+    }
+
+    torch::IntArrayRef Tensor::sizes() const {
+        return impl_->data.sizes();
+    }
+
+    IntArray Tensor::shape() const {
+        return sizes().vec();
     }
 
     Tensor Tensor::detach() const {
-        return Tensor(impl_->data.clone(), false, impl_->device);
+        return Tensor(impl_->data, false);
     }
 
     torch::Scalar Tensor::item() const {
         return impl_->data.item();
-    }
-    
-    Tensor Tensor::to(Device device) const {
-        return *this;
-    }
-
-    Tensor Tensor::cpu() const {
-        return *this;
     }
 
     bool Tensor::defined() const {
         return impl_->data.defined();
     }
 
-    const Device& Tensor::device() const { 
-        return impl_->device; 
+    torch::Dtype Tensor::dtype() const { 
+        return impl_->data.dtype().toScalarType(); 
+    }
+
+    torch::Device Tensor::device() const { 
+        return impl_->data.device(); 
     }
 
     bool Tensor::is_leaf() const {
@@ -122,7 +136,7 @@ namespace synapx {
         return impl_->retains_grad;
     }
 
-    const torch::Tensor Tensor::grad() const {
+    const synapx::Tensor Tensor::grad() const {
         const torch::Tensor& maybe_grad = impl_->grad;
         if (!this->is_leaf() && !this->retains_grad() && !maybe_grad.defined()) {
             spdlog::warn(
@@ -133,31 +147,35 @@ namespace synapx {
                 "instead."
             );
         }
-        return maybe_grad;
+        if (maybe_grad.defined()) {
+            return Tensor(maybe_grad);
+        } else {
+            return Tensor();
+        }
     }
 
-    std::shared_ptr<autograd::BackwardNode> Tensor::grad_fn() const {
+    std::shared_ptr<autograd::Node> Tensor::grad_fn() const {
         return impl_->grad_fn;
     }
 
-    void Tensor::set_grad(const torch::Tensor& grad) {
-        impl_->grad = grad;
+    void Tensor::set_grad(const Tensor& grad) {
+        impl_->grad = grad.data();
     }
 
-    void Tensor::set_grad_fn(std::shared_ptr<autograd::BackwardNode> grad_fn) {
+    void Tensor::set_grad_fn(std::shared_ptr<autograd::Node> grad_fn) {
         impl_->grad_fn = grad_fn;
     }
 
-    void Tensor::index_put_(const std::vector<torch::indexing::TensorIndex>& idx, const Tensor& value) {
+    void Tensor::index_put_(const TensorIndices& idx, const Tensor& value) {
         impl_->data.index_put_(idx, value.data());
     };
 
-    void Tensor::index_put_(const std::vector<torch::indexing::TensorIndex>& idx, double value) {
+    void Tensor::index_put_(const TensorIndices& idx, double value) {
         impl_->data.index_put_(idx, value);
     };
 
-    void Tensor::backward(const torch::Tensor& grad) {
-        autograd::backward(*this, grad);
+    void Tensor::backward(const Tensor& grad) {
+        autograd::run_backward(*this, grad);
     }
 
     // Operators
@@ -195,6 +213,10 @@ namespace synapx {
 
     Tensor Tensor::operator-() const {
         return neg();
+    }
+
+    Tensor Tensor::operator[](const TensorIndices& indices) const {
+        return slice(indices);
     }
 
     // Inplace operators
@@ -382,6 +404,22 @@ namespace synapx {
     };
 
     // Other functions
+    Tensor Tensor::to(torch::Device device) const {
+        return synapx::copy_to(*this, device);
+    }
+
+    Tensor Tensor::to(torch::string device) const {
+        return synapx::copy_to(*this, torch::Device(device));
+    }
+
+    Tensor Tensor::cpu() const {
+        return to(torch::Device(torch::DeviceType::CPU));
+    }
+
+    Tensor Tensor::cuda(int8_t index) const {
+        return to(torch::Device(torch::DeviceType::CUDA, index));
+    }
+
     Tensor Tensor::clone() const {
         return synapx::clone(*this);
     }
@@ -398,11 +436,11 @@ namespace synapx {
         return synapx::sqrt(*this);
     }
 
-    Tensor Tensor::sum(const torch::IntArrayRef& dim, bool keepdim) const {
+    Tensor Tensor::sum(torch::IntArrayRef dim, bool keepdim) const {
         return synapx::sum(*this, dim, keepdim);
     };
 
-    Tensor Tensor::mean(const torch::IntArrayRef& dim, bool keepdim) const {
+    Tensor Tensor::mean(torch::IntArrayRef dim, bool keepdim) const {
         return synapx::mean(*this, dim, keepdim);
     };
 
@@ -422,7 +460,7 @@ namespace synapx {
         return synapx::min(*this, dim, keepdim);
     };
 
-    Tensor Tensor::squeeze(const torch::IntArrayRef& dim) const {
+    Tensor Tensor::squeeze(torch::IntArrayRef dim) const {
         return synapx::squeeze(*this, dim);
     };
     
@@ -430,7 +468,7 @@ namespace synapx {
         return synapx::unsqueeze(*this, dim);
     };
 
-    Tensor Tensor::reshape(const torch::IntArrayRef& shape) const {
+    Tensor Tensor::reshape(torch::IntArrayRef shape) const {
         return synapx::reshape(*this, shape);
     };
 
@@ -438,12 +476,16 @@ namespace synapx {
         return synapx::transpose(*this, dim0, dim1);
     };
 
+    Tensor Tensor::swapdims(int64_t dim0, int64_t dim1) const {
+        return synapx::swapdims(*this, dim0, dim1);
+    };
+
     Tensor Tensor::movedim(int64_t src, int64_t dest) const {
         return synapx::movedim(*this, src, dest);
     };
 
-    Tensor Tensor::slice(const std::vector<torch::indexing::TensorIndex>& idx) const {
-        return synapx::slice(*this, idx);
+    Tensor Tensor::slice(const TensorIndices& indices) const {
+        return synapx::slice(*this, indices);
     };
 
     std::string Tensor::to_string() const {

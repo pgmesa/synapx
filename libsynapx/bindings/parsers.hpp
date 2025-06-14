@@ -176,15 +176,6 @@ inline py::object torch_dtype_to_pyobject(torch::Dtype torch_dtype) {
     }
 }
 
-// Convert a std::string (e.g. "cpu") → synapx::Device
-inline synapx::Device string_to_device(const std::string& device_str) {
-    if (device_str == "cpu" || device_str == "CPU") {
-        return synapx::Device::CPU();
-    } else {
-        throw std::runtime_error("Unsupported device: " + device_str + ". Use 'cpu'");
-    }
-}
-
 inline std::vector<int64_t> pyobj_to_dims(const py::object& dim) {
     std::vector<int64_t> dims_vec;
     if (!dim.is_none()) {

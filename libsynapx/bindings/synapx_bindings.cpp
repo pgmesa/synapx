@@ -7,7 +7,10 @@
 
 #include <torch/extension.h>
 #include <torch/torch.h>
+
 #include <synapx/synapx.hpp>
+
+#include <fmt/core.h>
 #include <spdlog/spdlog.h>
 
 #include "parsers.hpp"
@@ -109,14 +112,11 @@ PYBIND11_MODULE(_C, m) {
         .def_property_readonly("requires_grad", &synapx::Tensor::requires_grad)
         .def_property_readonly("retains_grad", &synapx::Tensor::retains_grad)
         .def_property_readonly("is_leaf", &synapx::Tensor::is_leaf)
-        .def_property_readonly("dtype", [](const synapx::Tensor& self) -> py::object {
-            torch::Dtype torch_dtype = self.data().scalar_type();
-            return torch_dtype_to_pyobject(torch_dtype);
-        }, "Underlying torch dtype")
+        .def_property_readonly("dtype", &synapx::Tensor::dtype, "Underlying torch dtype")
         .def_property_readonly("grad", [](const synapx::Tensor& self) -> py::object {
-            torch::Tensor grad_tensor = self.grad();
+            synapx::Tensor grad_tensor = self.grad();
             if (grad_tensor.defined()) {
-                return py::cast(synapx::Tensor(grad_tensor));
+                return py::cast(grad_tensor);
             } else {
                 return py::none();
             }
@@ -129,10 +129,10 @@ PYBIND11_MODULE(_C, m) {
         .def("item", [](const synapx::Tensor& self) -> py::object {
             return py::cast(self.data().item());
         })
-        .def("to", [](const synapx::Tensor& self, py::str device) -> synapx::Tensor {
-            synapx::Device dev = string_to_device(device);
-            return self.to(dev);
-        }, py::arg("device"))
+        // .def("to", [](const synapx::Tensor& self, py::str device) -> synapx::Tensor {
+        //     synapx::Device dev = string_to_device(device);
+        //     return self.to(dev);
+        // }, py::arg("device"))
         .def("cpu", &synapx::Tensor::cpu)
         .def("torch", &synapx::Tensor::data)
         .def("numpy", [](const synapx::Tensor& self) -> py::array {
@@ -169,10 +169,10 @@ PYBIND11_MODULE(_C, m) {
             }
             
             if (self.grad_fn()) {
+                std::string tensor_info = fmt::format(", grad_fn=<{}>)", self.grad_fn()->name());
                 const std::string end = ")";
                 size_t end_pos = repr_str.find(end);
                 if (end_pos != std::string::npos) {
-                    std::string tensor_info = ", grad_fn=" + self.grad_fn()->name() + ")";
                     repr_str.replace(end_pos, end.length(), tensor_info);
                 }
             }
@@ -338,104 +338,103 @@ PYBIND11_MODULE(_C, m) {
 
         .def("transpose", &synapx::Tensor::transpose, py::arg("dim0"), py::arg("dim1"))
 
+        .def("swapdims", &synapx::Tensor::swapdims, py::arg("dim0"), py::arg("dim1"))
+        
         .def("movedim", &synapx::Tensor::movedim, py::arg("source"), py::arg("destination"))
         ;
     
     // Initializers
-    m.def("tensor", [](py::object data, bool requires_grad, std::string device, py::object dtype) -> synapx::Tensor {
-        synapx::Device dev = string_to_device(device);
+    m.def("tensor", [](
+        py::object data, 
+        bool requires_grad, 
+        torch::Device device = torch::DeviceType::CPU,
+        torch::Dtype dtype = torch::kFloat32
+    ) {
         torch::Tensor tensor = pyobj_to_torch(data);
-        
-        // Convert dtype if specified
-        torch::Dtype torch_dtype = torch::kFloat32;
-        if (!dtype.is_none()) {
-            torch_dtype = pyobj_to_torch_dtype(dtype);
-        }
-        tensor = tensor.to(torch_dtype);
-        
-        return synapx::Tensor(tensor, requires_grad, dev);
-    }, py::arg("data"), py::arg("requires_grad") = false, py::arg("device") = "cpu", py::arg("dtype") = py::none());
+        tensor = tensor.to(dtype).to(dtype);
+        return synapx::Tensor(tensor, requires_grad);
+    }, py::arg("data"), py::arg("requires_grad") = false, py::arg("device") = py::none(), py::arg("dtype") = py::none());
 
-    m.def("ones", [](py::object shape, bool requires_grad, std::string device, py::object dtype) -> synapx::Tensor {
-        synapx::Device dev = string_to_device(device);
+    m.def("ones", [](
+        py::object shape, 
+        bool requires_grad, 
+        torch::Device device = torch::DeviceType::CPU,
+        torch::Dtype dtype = torch::kFloat32
+    ) {
         std::vector<int64_t> dims = pyobj_to_dims(shape);
         
         torch::TensorOptions options = torch::TensorOptions();
-        torch::Dtype torch_dtype = torch::kFloat32;
-        if (!dtype.is_none()) {
-            torch_dtype = pyobj_to_torch_dtype(dtype);
-        }
-        options = options.dtype(torch_dtype);
+        options = options.dtype(dtype).device(device);
         
-        return synapx::Tensor(torch::ones(dims, options), requires_grad, dev);
-    }, py::arg("shape"), py::arg("requires_grad") = false, py::arg("device") = "cpu", py::arg("dtype") = py::none());
+        return synapx::Tensor(torch::ones(dims, options), requires_grad);
+    }, py::arg("shape"), py::arg("requires_grad") = false, py::arg("device") = py::none(), py::arg("dtype") = py::none());
 
-    m.def("ones_like", [](const synapx::Tensor& input, bool requires_grad, std::string device, py::object dtype) -> synapx::Tensor {
-        synapx::Device dev = string_to_device(device);
+    // m.def("ones_like", [](const synapx::Tensor& input, bool requires_grad, std::string device, py::object dtype) -> synapx::Tensor {
+    //     synapx::Device dev = string_to_device(device);
         
-        torch::TensorOptions options = input.options();
-        if (!dtype.is_none()) {
-            torch::Dtype torch_dtype = pyobj_to_torch_dtype(dtype);
-            options = options.dtype(torch_dtype);
-        }
+    //     torch::TensorOptions options = input.options();
+    //     if (!dtype.is_none()) {
+    //         torch::Dtype torch_dtype = pyobj_to_torch_dtype(dtype);
+    //         options = options.dtype(torch_dtype);
+    //     }
         
-        torch::Tensor result = torch::ones_like(input.data(), options);
-        return synapx::Tensor(result, requires_grad, dev);
-    }, py::arg("input"), py::arg("requires_grad") = false, py::arg("device") = "cpu", py::arg("dtype") = py::none());
+    //     torch::Tensor result = torch::ones_like(input.data(), options);
+    //     return synapx::Tensor(result, requires_grad, dev);
+    // }, py::arg("input"), py::arg("requires_grad") = false, py::arg("device") = "cpu", py::arg("dtype") = py::none());
 
-    m.def("zeros", [](py::object shape, bool requires_grad, std::string device, py::object dtype) -> synapx::Tensor {
-        synapx::Device dev = string_to_device(device);
-        std::vector<int64_t> dims = pyobj_to_dims(shape);
+    // m.def("zeros", [](py::object shape, bool requires_grad, std::string device, py::object dtype) -> synapx::Tensor {
+    //     synapx::Device dev = string_to_device(device);
+    //     std::vector<int64_t> dims = pyobj_to_dims(shape);
         
-        torch::TensorOptions options = torch::TensorOptions();
-        torch::Dtype torch_dtype = torch::kFloat32;
-        if (!dtype.is_none()) {
-            torch_dtype = pyobj_to_torch_dtype(dtype);
-        }
-        options = options.dtype(torch_dtype);
+    //     torch::TensorOptions options = torch::TensorOptions();
+    //     torch::Dtype torch_dtype = torch::kFloat32;
+    //     if (!dtype.is_none()) {
+    //         torch_dtype = pyobj_to_torch_dtype(dtype);
+    //     }
+    //     options = options.dtype(torch_dtype);
         
-        return synapx::Tensor(torch::zeros(dims, options), requires_grad, dev);
-    }, py::arg("shape"), py::arg("requires_grad") = false, py::arg("device") = "cpu", py::arg("dtype") = py::none());
+    //     return synapx::Tensor(torch::zeros(dims, options), requires_grad, dev);
+    // }, py::arg("shape"), py::arg("requires_grad") = false, py::arg("device") = "cpu", py::arg("dtype") = py::none());
 
-    m.def("zeros_like", [](const synapx::Tensor& input, bool requires_grad, std::string device, py::object dtype) -> synapx::Tensor {
-        synapx::Device dev = string_to_device(device);
+    // m.def("zeros_like", [](const synapx::Tensor& input, bool requires_grad, std::string device, py::object dtype) -> synapx::Tensor {
+    //     synapx::Device dev = string_to_device(device);
         
-        torch::TensorOptions options = input.options();
-        if (!dtype.is_none()) {
-            torch::Dtype torch_dtype = pyobj_to_torch_dtype(dtype);
-            options = options.dtype(torch_dtype);
-        }
+    //     torch::TensorOptions options = input.options();
+    //     if (!dtype.is_none()) {
+    //         torch::Dtype torch_dtype = pyobj_to_torch_dtype(dtype);
+    //         options = options.dtype(torch_dtype);
+    //     }
         
-        torch::Tensor result = torch::zeros_like(input.data(), options);
-        return synapx::Tensor(result, requires_grad, dev);
-    }, py::arg("input"), py::arg("requires_grad") = false, py::arg("device") = "cpu", py::arg("dtype") = py::none());
+    //     torch::Tensor result = torch::zeros_like(input.data(), options);
+    //     return synapx::Tensor(result, requires_grad, dev);
+    // }, py::arg("input"), py::arg("requires_grad") = false, py::arg("device") = "cpu", py::arg("dtype") = py::none());
 
-    m.def("rand", [](py::object shape, bool requires_grad, std::string device, py::object dtype) -> synapx::Tensor {
-        synapx::Device dev = string_to_device(device);
-        std::vector<int64_t> dims = pyobj_to_dims(shape);
+    // m.def("rand", [](py::object shape, bool requires_grad, std::string device, py::object dtype) -> synapx::Tensor {
+    //     synapx::Device dev = string_to_device(device);
+    //     std::vector<int64_t> dims = pyobj_to_dims(shape);
         
-        torch::TensorOptions options = torch::TensorOptions();
-        torch::Dtype torch_dtype = torch::kFloat32;
-        if (!dtype.is_none()) {
-            torch_dtype = pyobj_to_torch_dtype(dtype);
-        }
-        options = options.dtype(torch_dtype);
+    //     torch::TensorOptions options = torch::TensorOptions();
+    //     torch::Dtype torch_dtype = torch::kFloat32;
+    //     if (!dtype.is_none()) {
+    //         torch_dtype = pyobj_to_torch_dtype(dtype);
+    //     }
+    //     options = options.dtype(torch_dtype);
         
-        return synapx::Tensor(torch::rand(dims, options), requires_grad, dev);
-    }, py::arg("shape"), py::arg("requires_grad") = false, py::arg("device") = "cpu", py::arg("dtype") = py::none());
+    //     return synapx::Tensor(torch::rand(dims, options), requires_grad, dev);
+    // }, py::arg("shape"), py::arg("requires_grad") = false, py::arg("device") = "cpu", py::arg("dtype") = py::none());
 
-    m.def("rand_like", [](const synapx::Tensor& input, bool requires_grad, std::string device, py::object dtype) -> synapx::Tensor {
-        synapx::Device dev = string_to_device(device);
+    // m.def("rand_like", [](const synapx::Tensor& input, bool requires_grad, std::string device, py::object dtype) -> synapx::Tensor {
+    //     synapx::Device dev = string_to_device(device);
         
-        torch::TensorOptions options = input.options();
-        if (!dtype.is_none()) {
-            torch::Dtype torch_dtype = pyobj_to_torch_dtype(dtype);
-            options = options.dtype(torch_dtype);
-        }
+    //     torch::TensorOptions options = input.options();
+    //     if (!dtype.is_none()) {
+    //         torch::Dtype torch_dtype = pyobj_to_torch_dtype(dtype);
+    //         options = options.dtype(torch_dtype);
+    //     }
         
-        torch::Tensor result = torch::rand_like(input.data(), options);
-        return synapx::Tensor(result, requires_grad, dev);
-    }, py::arg("input"), py::arg("requires_grad") = false, py::arg("device") = "cpu", py::arg("dtype") = py::none());
+    //     torch::Tensor result = torch::rand_like(input.data(), options);
+    //     return synapx::Tensor(result, requires_grad, dev);
+    // }, py::arg("input"), py::arg("requires_grad") = false, py::arg("device") = "cpu", py::arg("dtype") = py::none());
        
     // Basic operations
     m.def("add", py::overload_cast<const synapx::Tensor&, const synapx::Tensor&>(&synapx::add), py::arg("t1"), py::arg("t2"));
@@ -498,6 +497,8 @@ PYBIND11_MODULE(_C, m) {
     m.def("reshape", &synapx::reshape, py::arg("tensor"), py::arg("shape"));
 
     m.def("transpose", &synapx::transpose, py::arg("tensor"), py::arg("dim0"), py::arg("dim1"));
+
+    m.def("swapdims", &synapx::swapdims, py::arg("tensor"), py::arg("dim0"), py::arg("dim1"));
     
     m.def("movedim", &synapx::movedim, py::arg("tensor"), py::arg("source"), py::arg("destination"));
     
