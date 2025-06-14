@@ -20,6 +20,8 @@ namespace synapx {
     SYNAPX_API Tensor rand_like(Tensor t, torch::TensorOptions options = {}, bool requires_grad = false);
     SYNAPX_API Tensor randn(torch::IntArrayRef shape, torch::TensorOptions options = {}, bool requires_grad = false);
     SYNAPX_API Tensor randn_like(Tensor t, torch::TensorOptions options = {}, bool requires_grad = false);
+    SYNAPX_API Tensor full(torch::IntArrayRef shape, double fill_value, torch::TensorOptions options = {}, bool requires_grad = false);
+    SYNAPX_API Tensor full_like(Tensor t, double fill_value, torch::TensorOptions options = {}, bool requires_grad = false);
 
     SYNAPX_API Tensor add(const Tensor& t1, const Tensor& t2);
     SYNAPX_API Tensor add(const Tensor& t1, double t2);
@@ -43,6 +45,7 @@ namespace synapx {
     SYNAPX_API Tensor rmatmul(const Tensor& t1, const Tensor& t2);
 
     SYNAPX_API Tensor copy_to(const Tensor& t, torch::Device device);
+    SYNAPX_API Tensor copy_to(const Tensor& t, torch::Dtype dtype);
     SYNAPX_API Tensor clone(const Tensor& t);
     SYNAPX_API Tensor addmm(const Tensor& inp, const Tensor& mat1, const Tensor& mat2);
     SYNAPX_API Tensor exp(const Tensor& t);

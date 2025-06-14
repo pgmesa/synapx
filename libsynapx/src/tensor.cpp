@@ -408,8 +408,8 @@ namespace synapx {
         return synapx::copy_to(*this, device);
     }
 
-    Tensor Tensor::to(torch::string device) const {
-        return synapx::copy_to(*this, torch::Device(device));
+    Tensor Tensor::to(torch::Dtype dtype) const {
+        return synapx::copy_to(*this, dtype);
     }
 
     Tensor Tensor::cpu() const {
@@ -419,6 +419,7 @@ namespace synapx {
     Tensor Tensor::cuda(int8_t index) const {
         return to(torch::Device(torch::DeviceType::CUDA, index));
     }
+
 
     Tensor Tensor::clone() const {
         return synapx::clone(*this);

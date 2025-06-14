@@ -112,9 +112,10 @@ namespace synapx {
         Tensor rmatmul(const Tensor& exponent) const;
         
         Tensor to(torch::Device device) const;
-        Tensor to(torch::string device) const;
+        Tensor to(torch::Dtype dtype) const;
         Tensor cpu() const;
-        Tensor cuda(int8_t index) const;
+        Tensor cuda(int8_t index = 0) const;
+
         Tensor clone() const;
         Tensor exp() const;
         Tensor log() const;

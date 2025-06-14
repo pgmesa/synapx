@@ -202,7 +202,7 @@ namespace synapx::autograd
 
 
     PowBackward::PowBackward(const Tensor& base, const Tensor& exp, const Tensor& fw_result)
-        : base_req_grad(base.requires_grad()), exp_req_grad(exp.requires_grad()), base(base), exp(exp) {
+        : base_req_grad(base.requires_grad()), exp_req_grad(exp.requires_grad()), base(base), fw_result(fw_result) {
         
         if (base_req_grad)
             this->exp = exp;
@@ -331,24 +331,24 @@ namespace synapx::autograd
     //     return {grad_output / (2 * forward_result)};
     // }
 
-
-    // Sum::Sum(const torch::IntArrayRef& dim, bool keepdim): dim(dim.vec()), keepdim(keepdim) {}
-    
-    // std::string Sum::name() const { return "Sum"; };
-
-    // std::vector<torch::Tensor> Sum::forward(const std::vector<torch::Tensor>& inputs) {
-    //     const torch::Tensor& t = inputs[0];
-
-    //     if (t1_req_grad) {
+    // SumBackward::SumBackward(const torch::Tensor& t, const torch::IntArrayRef& dim, bool keepdim)
+    //     : t_req_grad(t.requires_grad()), dim(dim.vec()), keepdim(keepdim) {
+        
+    //     if (t_req_grad) {
     //         t_shape.reserve(t.dim());
     //         t_shape = t.sizes().vec();
     //     }
-        
-    //     return {torch::sum(t, dim, keepdim)}; 
     // }
 
-    // std::vector<torch::Tensor> Sum::backward(const torch::Tensor& grad_output, int output_idx) {
-    //     torch::Tensor grad = grad_output;
+    // std::string SumBackward::name() const { 
+    //     return "SumBackward"; 
+    // }
+
+    // TensorList SumBackward::apply(const TensorList& inputs) {
+    //     NoGradGuard guard; // Disable grad
+    //     const Tensor& grad_output = inputs[0];
+        
+    //     Tensor grad = grad_output;
 
     //     if(!keepdim && !dim.empty())
     //         grad = expand_dims(grad, dim);

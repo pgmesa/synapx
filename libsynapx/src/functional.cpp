@@ -52,6 +52,14 @@ namespace synapx {
     Tensor randn_like(Tensor t, torch::TensorOptions options, bool requires_grad) {
         return Tensor(torch::randn_like(t.data(), options), requires_grad);
     };
+
+    Tensor full(torch::IntArrayRef shape, double fill_value, torch::TensorOptions options, bool requires_grad) {
+        return Tensor(torch::full(shape, fill_value, options), requires_grad);
+    };
+
+    Tensor full_like(Tensor t, double fill_value, torch::TensorOptions options, bool requires_grad) {
+        return Tensor(torch::full_like(t.data(), fill_value, options), requires_grad);
+    };
     
     namespace {
 
@@ -204,9 +212,16 @@ namespace synapx {
             return { output };
         };
 
-        NodeFactory node_factory = [&t1, &t2](const TensorList& outputs) -> autograd::NodePtr {
-            return std::make_shared<autograd::MatmulBackward>(t1, t2);
-        };
+        NodeFactory node_factory;
+        if (t1.dim() == 1 && t2.dim() == 1) {
+            node_factory = [&t1, &t2](const TensorList& outputs) -> autograd::NodePtr {
+                return std::make_shared<autograd::NotImplementedBackward>();
+            };
+        } else {
+            node_factory = [&t1, &t2](const TensorList& outputs) -> autograd::NodePtr {
+                return std::make_shared<autograd::MatmulBackward>(t1, t2);
+            };
+        }
 
         Tensor output = apply_operation(inputs, operation, node_factory)[0];
 
@@ -287,6 +302,23 @@ namespace synapx {
 
         return output;
     }
+
+    Tensor copy_to(const Tensor& t, torch::Dtype dtype) {
+        TensorList inputs {t};
+
+        Operation operation = [&t, dtype]() -> TorchList {
+            return { t.data().to(dtype) };
+        };
+
+        NodeFactory node_factory = [&t, dtype](const TensorList& outputs) -> autograd::NodePtr {
+            return std::make_shared<autograd::NotImplementedBackward>();
+        };
+
+        Tensor output = apply_operation(inputs, operation, node_factory)[0];
+
+        return output;
+    }
+
 
     Tensor clone(const Tensor& t) {
         TensorList inputs {t};
@@ -376,7 +408,7 @@ namespace synapx {
             return { torch::sum(t.data(), dim, keepdim) };
         };
 
-        NodeFactory node_factory = [&t, &dim, &keepdim](const TensorList& outputs) -> autograd::NodePtr {
+        NodeFactory node_factory = [&t, dim, keepdim](const TensorList& outputs) -> autograd::NodePtr {
             return std::make_shared<autograd::NotImplementedBackward>();
         };
 
@@ -392,7 +424,7 @@ namespace synapx {
             return { torch::mean(t.data(), dim, keepdim) };
         };
 
-        NodeFactory node_factory = [&t, &dim, &keepdim](const TensorList& outputs) -> autograd::NodePtr {
+        NodeFactory node_factory = [&t, dim, keepdim](const TensorList& outputs) -> autograd::NodePtr {
             return std::make_shared<autograd::NotImplementedBackward>();
         };
 
@@ -427,7 +459,7 @@ namespace synapx {
             return { output };
         };
 
-        NodeFactory node_factory = [&t, &dim, &keepdim](const TensorList& outputs) -> autograd::NodePtr {
+        NodeFactory node_factory = [&t, dim, keepdim](const TensorList& outputs) -> autograd::NodePtr {
             return std::make_shared<autograd::NotImplementedBackward>();
         };
 
@@ -462,7 +494,7 @@ namespace synapx {
             return { output };
         };
 
-        NodeFactory node_factory = [&t, &dim, &keepdim](const TensorList& outputs) -> autograd::NodePtr {
+        NodeFactory node_factory = [&t, dim, keepdim](const TensorList& outputs) -> autograd::NodePtr {
             return std::make_shared<autograd::NotImplementedBackward>();
         };
 
@@ -478,7 +510,7 @@ namespace synapx {
             return { torch::squeeze(t.data(), dim) };
         };
 
-        NodeFactory node_factory = [&t, &dim](const TensorList& outputs) -> autograd::NodePtr {
+        NodeFactory node_factory = [&t, dim](const TensorList& outputs) -> autograd::NodePtr {
             return std::make_shared<autograd::NotImplementedBackward>();
         };
 
@@ -494,7 +526,7 @@ namespace synapx {
             return { torch::unsqueeze(t.data(), dim) };
         };
 
-        NodeFactory node_factory = [&t, &dim](const TensorList& outputs) -> autograd::NodePtr {
+        NodeFactory node_factory = [&t, dim](const TensorList& outputs) -> autograd::NodePtr {
             return std::make_shared<autograd::NotImplementedBackward>();
         };
 

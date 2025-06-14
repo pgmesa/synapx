@@ -3,13 +3,22 @@
 
 #include <synapx/autograd/graph.hpp>
 
+#include <stdexcept>
+
+#include <fmt/core.h>
+
 
 namespace synapx::autograd {
 
     class NotImplementedBackward: public Node {
     public:
         std::string name() const override { return "NotImplementedBackward"; };
-        TensorList apply(const TensorList& inputs) override { return {}; };
+        TensorList apply(const TensorList& inputs) override {
+            throw std::runtime_error(fmt::format(
+                "{}: Attempted to perform backward on an operation that does not implement a backward pass",
+                name()
+            ));
+        }
     };
 
     
@@ -110,9 +119,25 @@ namespace synapx::autograd {
         bool base_req_grad;
         bool exp_req_grad;
         Tensor base;
-        Tensor exp;
         Tensor fw_result;
+        Tensor exp;
     };
+
+
+
+
+    // class SumBackward: public Node {
+    // public:
+    //     SumBackward(const torch::Tensor& t, const torch::IntArrayRef& dim, bool keepdim);
+    //     std::string name() const override;
+    //     TensorList apply(const TensorList& inputs) override;
+
+    // private:
+    //     bool t_req_grad;
+    //     IntArray dim;
+    //     bool keepdim;
+    //     IntArray t_shape;
+    // };
 
 
 } // namespace synapx::autograd
