@@ -1,5 +1,7 @@
+
 import os
 import sys
+import ctypes
 import platform
 import importlib.util
 from pathlib import Path
@@ -47,7 +49,9 @@ if platform.system() == 'Windows':
     os.add_dll_directory(str(target_synapx_lib_dir))
     extension = '.pyd'
 else:
-    os.environ['LD_LIBRARY_PATH'] = f'{target_synapx_lib_dir}:' + os.environ.get('LD_LIBRARY_PATH', '')
+    # Load core library first
+    core_lib_path = target_synapx_lib_dir / 'libsynapx.so'
+    ctypes.CDLL(str(core_lib_path), mode=ctypes.RTLD_GLOBAL)
     extension = '.so'
 
 # Dynamically identify and load the `_C` module
