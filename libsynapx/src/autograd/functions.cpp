@@ -5,7 +5,6 @@
 
 #include <synapx/tensor.hpp>
 #include <synapx/functional.hpp>
-#include <synapx/autograd/engine.hpp>
 #include <synapx/autograd/utils.hpp>
 
 
@@ -22,7 +21,6 @@ namespace synapx::autograd
     }
 
     TensorList AccumulateGrad::apply(const TensorList& inputs) {
-        NoGradGuard guard; // Disable grad
         const Tensor& grad_output = inputs[0];
         
         if (variable.grad().defined())
@@ -53,7 +51,6 @@ namespace synapx::autograd
     }
 
     TensorList AddBackward::apply(const TensorList& inputs) {
-        NoGradGuard guard; // Disable grad
         const Tensor& grad_output = inputs[0];
         
         Tensor grad_t1, grad_t2;
@@ -83,7 +80,6 @@ namespace synapx::autograd
     }
 
     TensorList SubBackward::apply(const TensorList& inputs) {
-        NoGradGuard guard; // Disable grad
         const Tensor& grad_output = inputs[0];
         
         Tensor grad_t1, grad_t2;
@@ -116,7 +112,6 @@ namespace synapx::autograd
     }
 
     TensorList MulBackward::apply(const TensorList& inputs) {
-        NoGradGuard guard; // Disable grad
         const Tensor& grad_output = inputs[0];
         
         Tensor grad_t1, grad_t2;
@@ -149,7 +144,6 @@ namespace synapx::autograd
     }
 
     TensorList DivBackward::apply(const TensorList& inputs) {
-        NoGradGuard guard; // Disable grad
         const Tensor& grad_output = inputs[0];
         
         Tensor grad_t1, grad_t2;
@@ -183,7 +177,6 @@ namespace synapx::autograd
     }
 
     TensorList MatmulBackward::apply(const TensorList& inputs) {
-        NoGradGuard guard; // Disable grad
         const Tensor& grad_output = inputs[0];
         
         Tensor grad_t1, grad_t2;
@@ -213,7 +206,6 @@ namespace synapx::autograd
     }
 
     TensorList PowBackward::apply(const TensorList& inputs) {
-        NoGradGuard guard; // Disable grad
         const Tensor& grad_output = inputs[0];
         
         Tensor grad_base, grad_exp;
@@ -331,30 +323,29 @@ namespace synapx::autograd
     //     return {grad_output / (2 * forward_result)};
     // }
 
-    // SumBackward::SumBackward(const torch::Tensor& t, const torch::IntArrayRef& dim, bool keepdim)
-    //     : t_req_grad(t.requires_grad()), dim(dim.vec()), keepdim(keepdim) {
+    SumBackward::SumBackward(const Tensor& t, const torch::IntArrayRef& dim, bool keepdim)
+        : t_req_grad(t.requires_grad()), dim(dim.vec()), keepdim(keepdim) {
         
-    //     if (t_req_grad) {
-    //         t_shape.reserve(t.dim());
-    //         t_shape = t.sizes().vec();
-    //     }
-    // }
+        if (t_req_grad) {
+            t_shape.reserve(t.dim());
+            t_shape = t.sizes().vec();
+        }
+    }
 
-    // std::string SumBackward::name() const { 
-    //     return "SumBackward"; 
-    // }
+    std::string SumBackward::name() const { 
+        return "SumBackward"; 
+    }
 
-    // TensorList SumBackward::apply(const TensorList& inputs) {
-    //     NoGradGuard guard; // Disable grad
-    //     const Tensor& grad_output = inputs[0];
+    TensorList SumBackward::apply(const TensorList& inputs) {
+        const Tensor& grad_output = inputs[0];
         
-    //     Tensor grad = grad_output;
+        Tensor grad = grad_output;
 
-    //     if(!keepdim && !dim.empty())
-    //         grad = expand_dims(grad, dim);
+        if(!keepdim && !dim.empty())
+            grad = expand_dims(grad, dim);
         
-    //     return {torch::broadcast_to(grad, t_shape)};
-    // }
+        return {synapx::broadcast_to(grad, t_shape)};
+    }
 
 
     // Mean::Mean(const torch::IntArrayRef& dim, bool keepdim): dim(dim.vec()), keepdim(keepdim) {}

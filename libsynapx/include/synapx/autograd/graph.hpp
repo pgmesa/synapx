@@ -5,6 +5,7 @@
 #include <vector>
 
 #include <synapx/tensor.hpp>
+#include <synapx/autograd/engine.hpp>
 
 
 namespace synapx::autograd {
@@ -40,7 +41,11 @@ namespace synapx::autograd {
         Node& operator=(Node&& other) = delete;
         
         virtual std::string name() const = 0;
-        virtual TensorList apply(const TensorList& tensor_list) = 0;
+
+        TensorList operator()(const TensorList& inputs) {
+            NoGradGuard guard; // Disable grad
+            return apply(inputs);
+        };
 
         void increment_input_count() {
             _num_inputs += 1;
@@ -65,6 +70,8 @@ namespace synapx::autograd {
     private:
         EdgeList next_edges;
         size_t _num_inputs = 0;
+
+        virtual TensorList apply(const TensorList& inputs) = 0;
     };
 
 } // namespace synapx::autograd

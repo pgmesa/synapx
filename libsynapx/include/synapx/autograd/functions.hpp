@@ -126,18 +126,18 @@ namespace synapx::autograd {
 
 
 
-    // class SumBackward: public Node {
-    // public:
-    //     SumBackward(const torch::Tensor& t, const torch::IntArrayRef& dim, bool keepdim);
-    //     std::string name() const override;
-    //     TensorList apply(const TensorList& inputs) override;
+    class SumBackward: public Node {
+    public:
+        SumBackward(const Tensor& t, const torch::IntArrayRef& dim, bool keepdim);
+        std::string name() const override;
+        TensorList apply(const TensorList& inputs) override;
 
-    // private:
-    //     bool t_req_grad;
-    //     IntArray dim;
-    //     bool keepdim;
-    //     IntArray t_shape;
-    // };
+    private:
+        bool t_req_grad;
+        IntArray dim;
+        bool keepdim;
+        IntArray t_shape;
+    };
 
 
 } // namespace synapx::autograd

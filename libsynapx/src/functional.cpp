@@ -409,7 +409,7 @@ namespace synapx {
         };
 
         NodeFactory node_factory = [&t, dim, keepdim](const TensorList& outputs) -> autograd::NodePtr {
-            return std::make_shared<autograd::NotImplementedBackward>();
+            return std::make_shared<autograd::SumBackward>(t, dim, keepdim);
         };
 
         Tensor output = apply_operation(inputs, operation, node_factory)[0];
@@ -540,6 +540,22 @@ namespace synapx {
 
         Operation operation = [&t, shape]() -> TorchList {
             return { torch::reshape(t.data(), shape) };
+        };
+
+        NodeFactory node_factory = [&t, shape](const TensorList& outputs) -> autograd::NodePtr {
+            return std::make_shared<autograd::NotImplementedBackward>();
+        };
+
+        Tensor output = apply_operation(inputs, operation, node_factory)[0];
+
+        return output;
+    }
+
+    Tensor broadcast_to(const Tensor& t, torch::IntArrayRef shape) {
+        TensorList inputs {t};
+
+        Operation operation = [&t, shape]() -> TorchList {
+            return { torch::broadcast_to(t.data(), shape) };
         };
 
         NodeFactory node_factory = [&t, shape](const TensorList& outputs) -> autograd::NodePtr {

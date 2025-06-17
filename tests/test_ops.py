@@ -263,12 +263,12 @@ def test_parameter_update():
 # def test_sqrt():
 #     op_tester([(1000, 1000)], lambda x: x.sqrt(), name='sqrt')
 
-# def test_sum():
-#     op_tester([(1000, 1500)], lambda x: x.sum(), name='sum')
-#     op_tester([(1000, 1500)], lambda x: x.sum(dim=1), name='sum')
-#     op_tester([(1000, 1500, 3)], lambda x: x.sum(dim=(-2, 2)), name='sum')
-#     op_tester([(1000, 1500)], lambda x: x.sum(dim=-1), name='sum')
-#     op_tester([(1000, 1500, 3)], lambda engine, x: engine.sum(x, dim=-1), name='engine.sum', module_func=True)
+def test_sum():
+    op_tester([(1000, 1500)], lambda x: x.sum(), name='sum')
+    op_tester([(1000, 1500)], lambda x: x.sum(dim=1), name='sum')
+    op_tester([(1000, 1500, 3)], lambda x: x.sum(dim=(-2, 2)), name='sum')
+    op_tester([(1000, 1500)], lambda x: x.sum(dim=-1), name='sum')
+    op_tester([(1000, 1500, 3)], lambda engine, x: engine.sum(x, dim=-1), name='engine.sum', module_func=True)
 
 # def test_mean():
 #     op_tester([(1000, 1500)], lambda x: x.mean(dim=0), name='mean')

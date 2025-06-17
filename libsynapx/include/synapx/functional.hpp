@@ -60,6 +60,7 @@ namespace synapx {
     SYNAPX_API Tensor squeeze(const Tensor& t, torch::IntArrayRef dim = {});
     SYNAPX_API Tensor unsqueeze(const Tensor& t, int64_t dim);
     SYNAPX_API Tensor reshape(const Tensor& t, torch::IntArrayRef shape);
+    SYNAPX_API Tensor broadcast_to(const Tensor& t, torch::IntArrayRef shape);
     SYNAPX_API Tensor transpose(const Tensor& t, int64_t dim0, int64_t dim1);
     SYNAPX_API Tensor swapdims(const Tensor& t, int64_t dim0, int64_t dim1);
     SYNAPX_API Tensor movedim(const Tensor& t, int64_t src, int64_t dest);

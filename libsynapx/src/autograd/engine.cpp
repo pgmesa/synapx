@@ -65,7 +65,7 @@ namespace synapx::autograd {
             NodePtr current_node = *it;
             TensorList input_grads = grad_map[current_node.get()];
 
-            TensorList output_grads = current_node->apply(input_grads);
+            TensorList output_grads = current_node->operator()(input_grads);
 
             // Dispatch each gradient along its edge
             EdgeList next_edges = current_node->get_next_edges();
