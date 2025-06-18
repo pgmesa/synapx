@@ -42,7 +42,7 @@ namespace synapx::autograd {
         int64_t m = static_cast<int64_t>(dim.size());
         int64_t new_rank = k + m;
         
-        torch::IntArrayRef normalized_dims = normalized? dim : normalize_dims(new_rank, dim);
+        synapx::IntArray normalized_dims = normalized? dim.vec() : normalize_dims(new_rank, dim);
 
         for (auto d : normalized_dims) {
             tensor = tensor.unsqueeze(d);
@@ -52,7 +52,7 @@ namespace synapx::autograd {
     }
 
     // Normalizes dimension indices. Converts negative indices to positive and sorts them.
-    std::vector<int64_t> normalize_dims(int64_t tensor_dim, torch::IntArrayRef dim) {
+    synapx::IntArray normalize_dims(int64_t tensor_dim, torch::IntArrayRef dim) {
         synapx::IntArray normalized;
 
         if (dim.empty()) {
@@ -76,14 +76,6 @@ namespace synapx::autograd {
         return normalized;
     }
 
-
-    /**
-     * @brief Source: 
-     * 
-     * @param indices 
-     * @param shape 
-     * @return torch::Tensor 
-     */
     torch::Tensor unravel_index(const torch::Tensor& indices, torch::IntArrayRef shape) {
         // Convert shape to tensor: (*shape, 1)
         std::vector<int64_t> shape_with_one(shape.begin(), shape.end());

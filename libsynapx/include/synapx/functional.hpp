@@ -10,18 +10,18 @@
 
 namespace synapx {
 
-    SYNAPX_API Tensor empty(torch::IntArrayRef shape, torch::TensorOptions options = {}, bool requires_grad = false);
-    SYNAPX_API Tensor empty_like(Tensor t, torch::TensorOptions options = {}, bool requires_grad = false);
-    SYNAPX_API Tensor ones(torch::IntArrayRef shape, torch::TensorOptions options = {}, bool requires_grad = false);
-    SYNAPX_API Tensor ones_like(Tensor t, torch::TensorOptions options = {}, bool requires_grad = false);
-    SYNAPX_API Tensor zeros(torch::IntArrayRef shape, torch::TensorOptions options = {}, bool requires_grad = false);
-    SYNAPX_API Tensor zeros_like(Tensor t, torch::TensorOptions options = {}, bool requires_grad = false);
-    SYNAPX_API Tensor rand(torch::IntArrayRef shape, torch::TensorOptions options = {}, bool requires_grad = false);
-    SYNAPX_API Tensor rand_like(Tensor t, torch::TensorOptions options = {}, bool requires_grad = false);
-    SYNAPX_API Tensor randn(torch::IntArrayRef shape, torch::TensorOptions options = {}, bool requires_grad = false);
-    SYNAPX_API Tensor randn_like(Tensor t, torch::TensorOptions options = {}, bool requires_grad = false);
-    SYNAPX_API Tensor full(torch::IntArrayRef shape, double fill_value, torch::TensorOptions options = {}, bool requires_grad = false);
-    SYNAPX_API Tensor full_like(Tensor t, double fill_value, torch::TensorOptions options = {}, bool requires_grad = false);
+    SYNAPX_API Tensor empty(torch::IntArrayRef shape, bool requires_grad = false, torch::TensorOptions options = {});
+    SYNAPX_API Tensor empty_like(Tensor t, bool requires_grad = false, torch::TensorOptions options = {});
+    SYNAPX_API Tensor ones(torch::IntArrayRef shape, bool requires_grad = false, torch::TensorOptions options = {});
+    SYNAPX_API Tensor ones_like(Tensor t, bool requires_grad = false, torch::TensorOptions options = {});
+    SYNAPX_API Tensor zeros(torch::IntArrayRef shape, bool requires_grad = false, torch::TensorOptions options = {});
+    SYNAPX_API Tensor zeros_like(Tensor t, bool requires_grad = false, torch::TensorOptions options = {});
+    SYNAPX_API Tensor rand(torch::IntArrayRef shape, bool requires_grad = false, torch::TensorOptions options = {});
+    SYNAPX_API Tensor rand_like(Tensor t, bool requires_grad = false, torch::TensorOptions options = {});
+    SYNAPX_API Tensor randn(torch::IntArrayRef shape, bool requires_grad = false, torch::TensorOptions options = {});
+    SYNAPX_API Tensor randn_like(Tensor t, bool requires_grad = false, torch::TensorOptions options = {});
+    SYNAPX_API Tensor full(torch::IntArrayRef shape, double fill_value, bool requires_grad = false, torch::TensorOptions options = {});
+    SYNAPX_API Tensor full_like(Tensor t, double fill_value, bool requires_grad = false, torch::TensorOptions options = {});
 
     SYNAPX_API Tensor add(const Tensor& t1, const Tensor& t2);
     SYNAPX_API Tensor add(const Tensor& t1, double t2);

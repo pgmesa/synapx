@@ -368,7 +368,7 @@ PYBIND11_MODULE(_C, m) {
         torch::TensorOptions options = torch::TensorOptions();
         options = options.device(device.get()).dtype(dtype.get());
         
-        return synapx::ones(shape.get(), options, requires_grad);
+        return synapx::ones(shape.get(), requires_grad, options);
     }, py::arg("shape"), py::arg("requires_grad") = false, py::arg("device") = py::none(), py::arg("dtype") = py::none());
 
     m.def("ones_like", [](const synapx::Tensor& input, bool requires_grad, PyDevice device, PyDtype dtype) {
@@ -376,7 +376,7 @@ PYBIND11_MODULE(_C, m) {
         if (device.has_value()) options = options.device(device.get());
         if (dtype.has_value()) options = options.dtype(dtype.get());
         
-        return synapx::ones_like(input, options, requires_grad);
+        return synapx::ones_like(input, requires_grad, options);
     }, py::arg("input"), py::arg("requires_grad") = false, py::arg("device") = py::none(), py::arg("dtype") = py::none());
 
 
@@ -384,7 +384,7 @@ PYBIND11_MODULE(_C, m) {
         torch::TensorOptions options = torch::TensorOptions();
         options = options.device(device.get()).dtype(dtype.get());
         
-        return synapx::zeros(shape.get(), options, requires_grad);
+        return synapx::zeros(shape.get(), requires_grad, options);
     }, py::arg("shape"), py::arg("requires_grad") = false, py::arg("device") = py::none(), py::arg("dtype") = py::none());
 
     m.def("zeros_like", [](const synapx::Tensor& input, bool requires_grad, PyDevice device, PyDtype dtype) {
@@ -392,7 +392,7 @@ PYBIND11_MODULE(_C, m) {
         if (device.has_value()) options = options.device(device.get());
         if (dtype.has_value()) options = options.dtype(dtype.get());
         
-        return synapx::zeros_like(input, options, requires_grad);
+        return synapx::zeros_like(input, requires_grad, options);
     }, py::arg("input"), py::arg("requires_grad") = false, py::arg("device") = py::none(), py::arg("dtype") = py::none());
     
 
@@ -400,7 +400,7 @@ PYBIND11_MODULE(_C, m) {
         torch::TensorOptions options = torch::TensorOptions();
         options = options.device(device.get()).dtype(dtype.get());
         
-        return synapx::rand(shape.get(), options, requires_grad);
+        return synapx::rand(shape.get(), requires_grad, options);
     }, py::arg("shape"), py::arg("requires_grad") = false, py::arg("device") = py::none(), py::arg("dtype") = py::none());
 
     m.def("rand_like", [](const synapx::Tensor& input, bool requires_grad, PyDevice device, PyDtype dtype) {
@@ -408,7 +408,7 @@ PYBIND11_MODULE(_C, m) {
         if (device.has_value()) options = options.device(device.get());
         if (dtype.has_value()) options = options.dtype(dtype.get());
         
-        return synapx::rand_like(input, options, requires_grad);
+        return synapx::rand_like(input, requires_grad, options);
     }, py::arg("input"), py::arg("requires_grad") = false, py::arg("device") = py::none(), py::arg("dtype") = py::none());
 
 
@@ -416,7 +416,7 @@ PYBIND11_MODULE(_C, m) {
         torch::TensorOptions options = torch::TensorOptions();
         options = options.device(device.get()).dtype(dtype.get());
         
-        return synapx::randn(shape.get(), options, requires_grad);
+        return synapx::randn(shape.get(), requires_grad, options);
     }, py::arg("shape"), py::arg("requires_grad") = false, py::arg("device") = py::none(), py::arg("dtype") = py::none());
 
     m.def("randn_like", [](const synapx::Tensor& input, bool requires_grad, PyDevice device, PyDtype dtype) {
@@ -424,7 +424,7 @@ PYBIND11_MODULE(_C, m) {
         if (device.has_value()) options = options.device(device.get());
         if (dtype.has_value()) options = options.dtype(dtype.get());
         
-        return synapx::randn_like(input, options, requires_grad);
+        return synapx::randn_like(input, requires_grad, options);
     }, py::arg("input"), py::arg("requires_grad") = false, py::arg("device") = py::none(), py::arg("dtype") = py::none());
 
 
@@ -432,7 +432,7 @@ PYBIND11_MODULE(_C, m) {
         torch::TensorOptions options = torch::TensorOptions();
         options = options.device(device.get()).dtype(dtype.get());
         
-        return synapx::empty(shape.get(), options, requires_grad);
+        return synapx::empty(shape.get(), requires_grad, options);
     }, py::arg("shape"), py::arg("requires_grad") = false, py::arg("device") = py::none(), py::arg("dtype") = py::none());
 
     m.def("empty_like", [](const synapx::Tensor& input, bool requires_grad, PyDevice device, PyDtype dtype) {
@@ -440,7 +440,7 @@ PYBIND11_MODULE(_C, m) {
         if (device.has_value()) options = options.device(device.get());
         if (dtype.has_value()) options = options.dtype(dtype.get());
         
-        return synapx::empty_like(input, options, requires_grad);
+        return synapx::empty_like(input, requires_grad, options);
     }, py::arg("input"), py::arg("requires_grad") = false, py::arg("device") = py::none(), py::arg("dtype") = py::none());
 
 
@@ -448,7 +448,7 @@ PYBIND11_MODULE(_C, m) {
         torch::TensorOptions options = torch::TensorOptions();
         options = options.device(device.get()).dtype(dtype.get());
         
-        return synapx::full(shape.get(), fill_value, options, requires_grad);
+        return synapx::full(shape.get(), fill_value, requires_grad, options);
     }, py::arg("shape"), py::arg("fill_value"), py::arg("requires_grad") = false, py::arg("device") = py::none(), py::arg("dtype") = py::none());
 
     m.def("full_like", [](const synapx::Tensor& input, double fill_value, bool requires_grad, PyDevice device, PyDtype dtype) {
@@ -456,7 +456,7 @@ PYBIND11_MODULE(_C, m) {
         if (device.has_value()) options = options.device(device.get());
         if (dtype.has_value()) options = options.dtype(dtype.get());
         
-        return synapx::full_like(input, fill_value, options, requires_grad);
+        return synapx::full_like(input, fill_value, requires_grad, options);
     }, py::arg("input"), py::arg("fill_value"), py::arg("requires_grad") = false, py::arg("device") = py::none(), py::arg("dtype") = py::none());
        
 

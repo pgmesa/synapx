@@ -126,52 +126,52 @@ endif()
 option(BUILD_PYTHON_BINDINGS "Build Python bindings" ON)
 if(BUILD_PYTHON_BINDINGS)
     add_subdirectory("${SYNAPX_BINDINGS_DIR}")
+
+    # =============================== Installation ================================
+    # ─────────────────────────────────────────────────────────────────────────────
+    # 1) standard install dirs and package‐config helpers
+    include(GNUInstallDirs)
+    include(CMakePackageConfigHelpers)
+    # ─────────────────────────────────────────────────────────────────────────────
+
+    # ─────────────────────────────────────────────────────────────────────────────
+    # 2) install libraries and headers
+    set(LIBTORCH_VERSIONED_DIR "libtorch-${TORCH_VERSION_MAJOR}.${TORCH_VERSION_MINOR}.X")
+    set(SYNAPX_INSTALL_LIBDIR "${CMAKE_INSTALL_LIBDIR}/${LIBTORCH_VERSIONED_DIR}")
+    install(TARGETS synapx synapx_bindings
+        EXPORT      synapxTargets
+        RUNTIME     DESTINATION ${SYNAPX_INSTALL_LIBDIR}   # .dll / .pyd on Windows
+        LIBRARY     DESTINATION ${SYNAPX_INSTALL_LIBDIR}   # .so on UNIX
+        ARCHIVE     DESTINATION ${SYNAPX_INSTALL_LIBDIR}   # .lib on Windows, .a on UNIX
+    )
+
+    install(DIRECTORY ${SYNAPX_INCLUDE_DIR}/
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/synapx
+        FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp"
+    )
+    # ─────────────────────────────────────────────────────────────────────────────
+
+    # ─────────────────────────────────────────────────────────────────────────────
+    # 3) write out version-compat file
+    write_basic_package_version_file(
+        "${CMAKE_CURRENT_BINARY_DIR}/SynapxConfigVersion.cmake"
+        VERSION       ${PROJECT_VERSION}
+        COMPATIBILITY AnyNewerVersion
+    )
+
+    # 4) configure main Config file from template
+    configure_package_config_file(
+        "${CMAKE_CURRENT_SOURCE_DIR}/cmake/SynapxConfig.cmake.in"
+        "${CMAKE_CURRENT_BINARY_DIR}/SynapxConfig.cmake"
+        INSTALL_DESTINATION "${CMAKE_INSTALL_DATADIR}/cmake/synapx"
+    )
+
+    # 5) install the generated Config files
+    install(FILES
+        "${CMAKE_CURRENT_BINARY_DIR}/SynapxConfig.cmake"
+        "${CMAKE_CURRENT_BINARY_DIR}/SynapxConfigVersion.cmake"
+    DESTINATION "${CMAKE_INSTALL_DATADIR}/cmake/synapx"
+    )
+    # ─────────────────────────────────────────────────────────────────────────────
 endif()
-# ─────────────────────────────────────────────────────────────────────────────
-
-# =============================== Installation ================================
-# ─────────────────────────────────────────────────────────────────────────────
-# 1) standard install dirs and package‐config helpers
-include(GNUInstallDirs)
-include(CMakePackageConfigHelpers)
-# ─────────────────────────────────────────────────────────────────────────────
-
-# ─────────────────────────────────────────────────────────────────────────────
-# 2) install libraries and headers
-set(LIBTORCH_VERSIONED_DIR "libtorch-${TORCH_VERSION_MAJOR}.${TORCH_VERSION_MINOR}.X")
-set(SYNAPX_INSTALL_LIBDIR "${CMAKE_INSTALL_LIBDIR}/${LIBTORCH_VERSIONED_DIR}")
-install(TARGETS synapx synapx_bindings
-    EXPORT      synapxTargets
-    RUNTIME     DESTINATION ${SYNAPX_INSTALL_LIBDIR}   # .dll / .pyd on Windows
-    LIBRARY     DESTINATION ${SYNAPX_INSTALL_LIBDIR}   # .so on UNIX
-    ARCHIVE     DESTINATION ${SYNAPX_INSTALL_LIBDIR}   # .lib on Windows, .a on UNIX
-)
-
-install(DIRECTORY ${SYNAPX_INCLUDE_DIR}/
-    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/synapx
-    FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp"
-)
-# ─────────────────────────────────────────────────────────────────────────────
-
-# ─────────────────────────────────────────────────────────────────────────────
-# 3) write out version-compat file
-write_basic_package_version_file(
-    "${CMAKE_CURRENT_BINARY_DIR}/SynapxConfigVersion.cmake"
-    VERSION       ${PROJECT_VERSION}
-    COMPATIBILITY AnyNewerVersion
-)
-
-# 4) configure main Config file from template
-configure_package_config_file(
-    "${CMAKE_CURRENT_SOURCE_DIR}/cmake/SynapxConfig.cmake.in"
-    "${CMAKE_CURRENT_BINARY_DIR}/SynapxConfig.cmake"
-    INSTALL_DESTINATION "${CMAKE_INSTALL_DATADIR}/cmake/synapx"
-)
-
-# 5) install the generated Config files
-install(FILES
-    "${CMAKE_CURRENT_BINARY_DIR}/SynapxConfig.cmake"
-    "${CMAKE_CURRENT_BINARY_DIR}/SynapxConfigVersion.cmake"
-  DESTINATION "${CMAKE_INSTALL_DATADIR}/cmake/synapx"
-)
 # ─────────────────────────────────────────────────────────────────────────────

@@ -88,7 +88,7 @@ namespace synapx::autograd {
 
                 Tensor& edge_grad = output_grads[output_nr];
 
-                if (!grad.defined()) {
+                if (!edge_grad.defined()) {
                     throw std::runtime_error(fmt::format(
                         "Computed grad for valid edge is undefined (node={})", current_node->name()
                     ));

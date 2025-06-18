@@ -66,8 +66,9 @@ int main(int argc, char** argv) {
         spdlog::info("t2 shape: {}", t2_shape_str);
 
         // Create two tensors
-        synapx::Tensor t1(torch::rand(t1_shape, torch::kFloat), true);
-        synapx::Tensor t2(torch::rand(t2_shape, torch::kFloat), true);
+        torch::TensorOptions options = torch::TensorOptions().dtype(torch::kFloat32);
+        synapx::Tensor t1 = synapx::rand(t1_shape, true, options);
+        synapx::Tensor t2 = synapx::rand(t2_shape, true, options);
 
         // Measure forward pass time
         auto start_forward = std::chrono::high_resolution_clock::now();

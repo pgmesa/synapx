@@ -7,6 +7,7 @@
 
 #include <synapx/synapx.hpp>
 #include <argparse/argparse.hpp>
+#include <fmt/core.h>
 #include <spdlog/spdlog.h>
 #include <spdlog/pattern_formatter.h>
 
@@ -46,7 +47,7 @@ int main(int argc, char** argv) {
         program.parse_args(argc, argv);
         
         spdlog::info("Testing NoGradGuard");
-        synapx::Tensor x = synapx::Tensor(torch::ones({3, 4}), true);
+        synapx::Tensor x = synapx::ones({3, 4}, true);
         {
             synapx::autograd::NoGradGuard guard;
             auto y = x.add(x);
@@ -64,13 +65,13 @@ int main(int argc, char** argv) {
         spdlog::info("t1 shape: {}", t1_shape_str);
         spdlog::info("t2 shape: {}", t2_shape_str);
 
-        synapx::Tensor t1(torch::rand(t1_shape), true);
-        synapx::Tensor t2(torch::rand(t2_shape), true);
+        synapx::Tensor t1 = synapx::rand(t1_shape, true);
+        synapx::Tensor t2 = synapx::rand(t2_shape, true);
 
         auto start_forward = std::chrono::high_resolution_clock::now();
 
         spdlog::info("Forward");
-        synapx::Tensor out = t1.add(t2);
+        synapx::Tensor out = t1 + t2;
 
         auto end_forward = std::chrono::high_resolution_clock::now();
         auto forward_duration = std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -80,7 +81,7 @@ int main(int argc, char** argv) {
         auto start_backward = std::chrono::high_resolution_clock::now();
 
         spdlog::info("Backward");
-        out.backward(synapx::ones_like(out));
+        out.sum().backward();
 
         auto end_backward = std::chrono::high_resolution_clock::now();
         auto backward_duration = std::chrono::duration_cast<std::chrono::milliseconds>(
@@ -96,7 +97,7 @@ int main(int argc, char** argv) {
         spdlog::info("Forward Result:\n{}", out.to_string());
         spdlog::info("Forward Time: {} ms", forward_duration.count());
         spdlog::info("Backward Time: {} ms", backward_duration.count());
-
+            
     } catch (const std::exception& e) {
         spdlog::error("Exception caught: {}", e.what());
         return 1;

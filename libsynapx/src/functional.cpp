@@ -13,51 +13,51 @@
 namespace synapx {
 
     // Initializers
-    Tensor empty(torch::IntArrayRef shape, torch::TensorOptions options, bool requires_grad) {
+    Tensor empty(torch::IntArrayRef shape, bool requires_grad, torch::TensorOptions options) {
         return Tensor(torch::empty(shape, options), requires_grad);
     };
 
-    Tensor empty_like(Tensor t, torch::TensorOptions options, bool requires_grad) {
+    Tensor empty_like(Tensor t, bool requires_grad, torch::TensorOptions options) {
         return Tensor(torch::empty_like(t.data(), options), requires_grad);
     };
 
-    Tensor ones(torch::IntArrayRef shape, torch::TensorOptions options, bool requires_grad) {
+    Tensor ones(torch::IntArrayRef shape, bool requires_grad, torch::TensorOptions options) {
         return Tensor(torch::ones(shape, options), requires_grad);
     };
 
-    Tensor ones_like(Tensor t, torch::TensorOptions options, bool requires_grad) {
+    Tensor ones_like(Tensor t, bool requires_grad, torch::TensorOptions options) {
         return Tensor(torch::ones_like(t.data(), options), requires_grad);
     };
 
-    Tensor zeros(torch::IntArrayRef shape, torch::TensorOptions options, bool requires_grad) {
+    Tensor zeros(torch::IntArrayRef shape, bool requires_grad, torch::TensorOptions options) {
         return Tensor(torch::zeros(shape, options), requires_grad);
     };
 
-    Tensor zeros_like(Tensor t, torch::TensorOptions options, bool requires_grad) {
+    Tensor zeros_like(Tensor t, bool requires_grad, torch::TensorOptions options) {
         return Tensor(torch::zeros_like(t.data(), options), requires_grad);
     };
 
-    Tensor rand(torch::IntArrayRef shape, torch::TensorOptions options, bool requires_grad) {
+    Tensor rand(torch::IntArrayRef shape, bool requires_grad, torch::TensorOptions options) {
         return Tensor(torch::rand(shape, options), requires_grad);
     };
 
-    Tensor rand_like(Tensor t, torch::TensorOptions options, bool requires_grad) {
+    Tensor rand_like(Tensor t, bool requires_grad, torch::TensorOptions options) {
         return Tensor(torch::rand_like(t.data(), options), requires_grad);
     };
 
-    Tensor randn(torch::IntArrayRef shape, torch::TensorOptions options, bool requires_grad) {
+    Tensor randn(torch::IntArrayRef shape, bool requires_grad, torch::TensorOptions options) {
         return Tensor(torch::randn(shape, options), requires_grad);
     };
 
-    Tensor randn_like(Tensor t, torch::TensorOptions options, bool requires_grad) {
+    Tensor randn_like(Tensor t, bool requires_grad, torch::TensorOptions options) {
         return Tensor(torch::randn_like(t.data(), options), requires_grad);
     };
 
-    Tensor full(torch::IntArrayRef shape, double fill_value, torch::TensorOptions options, bool requires_grad) {
+    Tensor full(torch::IntArrayRef shape, double fill_value, bool requires_grad, torch::TensorOptions options) {
         return Tensor(torch::full(shape, fill_value, options), requires_grad);
     };
 
-    Tensor full_like(Tensor t, double fill_value, torch::TensorOptions options, bool requires_grad) {
+    Tensor full_like(Tensor t, double fill_value, bool requires_grad, torch::TensorOptions options) {
         return Tensor(torch::full_like(t.data(), fill_value, options), requires_grad);
     };
     
