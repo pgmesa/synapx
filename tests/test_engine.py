@@ -44,7 +44,7 @@ def test_reduction_ops():
     assert check_tensors(c, c_t)
     assert check_tensors(a.grad, a_t.grad)
     
-
+# TODO: Engine hooks not implemented yet
 # def test_shape_manipulation():
 #     l1 = [[-4.0, 0.7, 5.0], [6.3, 3.2, 1.3]]
 #     l2 = [[2.0, 2,  3.0], [2.4, 1.7, 0.5]]
@@ -79,39 +79,40 @@ def test_reduction_ops():
 #     assert check_tensors(b, b_t)
 #     assert check_tensors(c, c_t)
 #     assert check_tensors(out, out_t)
+    
 #     assert check_tensors(a.grad, a_t.grad)
 #     assert check_tensors(b.grad, b_t.grad)
 #     assert check_tensors(c.grad, c_t.grad)
     
 
-# def test_multitensor_manipulation():
-#     # torch
-#     inp_t = torch.randint(0, 10, size=(3, 10), dtype=torch.float32, requires_grad=True)
-#     unb_t = torch.unbind(inp_t,  dim=0)
-#     unb_t = [unb_t[i]*i for i in range(len(unb_t))]
-#     stacked_t = torch.stack(unb_t, dim=0) / 2
-#     unb2_t = torch.unbind(stacked_t, dim=0)
-#     unb2_t = [unb2_t[i]/(i+1) for i in range(len(unb2_t))]
-#     concated_t = torch.concat(unb2_t, dim=0)
+def test_multitensor_manipulation():
+    # torch
+    inp_t = torch.randint(0, 10, size=(3, 10), dtype=torch.float32, requires_grad=True)
+    unb_t = torch.unbind(inp_t,  dim=0)
+    unb_t = [unb_t[i]*i for i in range(len(unb_t))]
+    stacked_t = torch.stack(unb_t, dim=0) / 2
+    unb2_t = torch.unbind(stacked_t, dim=0)
+    unb2_t = [unb2_t[i]/(i+1) for i in range(len(unb2_t))]
+    concated_t = torch.concat(unb2_t, dim=0)
     
-#     concated_t.sum().backward()
+    concated_t.sum().backward()
     
-#     print(concated_t)
-#     print(inp_t.grad)
+    print(concated_t)
+    print(inp_t.grad)
     
-#     # synapx
-#     inp = synapx.tensor(inp_t, requires_grad=True)
-#     unb = synapx.unbind(inp, dim=0)
-#     unb = [unb[i]*i for i in range(len(unb))]
-#     stacked = synapx.stack(unb, dim=0) / 2
-#     unb2 = synapx.unbind(stacked, dim=0)
-#     unb2 = [unb2[i]/(i+1) for i in range(len(unb2))]
-#     concated = synapx.concat(unb2, dim=0)
+    # synapx
+    inp = synapx.tensor(inp_t, requires_grad=True)
+    unb = synapx.unbind(inp, dim=0)
+    unb = [unb[i]*i for i in range(len(unb))]
+    stacked = synapx.stack(unb, dim=0) / 2
+    unb2 = synapx.unbind(stacked, dim=0)
+    unb2 = [unb2[i]/(i+1) for i in range(len(unb2))]
+    concated = synapx.concat(unb2, dim=0)
     
-#     concated.sum().backward()
+    concated.sum().backward()
     
-#     print(concated)
-#     print(inp.grad)
+    print(concated)
+    print(inp.grad)
     
-#     assert check_tensors(concated, concated_t)
-#     assert check_tensors(inp.grad, inp_t.grad)
+    assert check_tensors(concated, concated_t)
+    assert check_tensors(inp.grad, inp_t.grad)

@@ -152,12 +152,11 @@ namespace synapx::autograd {
 
     class ExpBackward0: public Node {
     public:
-        ExpBackward0(const Tensor& t, const Tensor& fw_result);
+        ExpBackward0(const Tensor& fw_result);
         std::string name() const override;
         TensorList apply(const TensorList& inputs) override;
 
     private:
-        bool t_req_grad;
         Tensor fw_result;
     };
 
@@ -169,48 +168,44 @@ namespace synapx::autograd {
         TensorList apply(const TensorList& inputs) override;
 
     private:
-        bool t_req_grad;
         Tensor t;
     };
 
 
     class SqrtBackward0: public Node {
     public:
-        SqrtBackward0(const Tensor& t, const Tensor& fw_result);
+        SqrtBackward0(const Tensor& fw_result);
         std::string name() const override;
         TensorList apply(const TensorList& inputs) override;
 
     private:
-        bool t_req_grad;
         Tensor fw_result;
     };
 
 
     class SumBackward0: public Node {
     public:
-        SumBackward0(const Tensor& t, const torch::IntArrayRef& dim, bool keepdim);
+        SumBackward0(const Tensor& t, torch::IntArrayRef dim, bool keepdim);
         std::string name() const override;
         TensorList apply(const TensorList& inputs) override;
 
     private:
-        bool t_req_grad;
+        IntArray t_shape;
         IntArray dim;
         bool keepdim;
-        IntArray t_shape;
     };
 
 
     class MeanBackward0: public Node {
     public:
-        MeanBackward0(const Tensor& t, const torch::IntArrayRef& dim, bool keepdim);
+        MeanBackward0(const Tensor& t, torch::IntArrayRef dim, bool keepdim);
         std::string name() const override;
         TensorList apply(const TensorList& inputs) override;
 
     private:
-        bool t_req_grad;
+        IntArray t_shape;
         IntArray dim;
         bool keepdim;
-        IntArray t_shape;
         IntArray normalized_dims;
     };
 
@@ -222,11 +217,10 @@ namespace synapx::autograd {
         TensorList apply(const TensorList& inputs) override;
 
     private:
-        bool t_req_grad;
+        IntArray t_shape;
         int64_t dim;
         bool keepdim;
         const Tensor max_indices;
-        IntArray t_shape;
     };
 
     class MaxBackward1: public Node {
@@ -248,11 +242,10 @@ namespace synapx::autograd {
         TensorList apply(const TensorList& inputs) override;
 
     private:
-        bool t_req_grad;
+        IntArray t_shape;
         int64_t dim;
         bool keepdim;
         const Tensor min_indices;
-        IntArray t_shape;
     };
 
     class MinBackward1: public Node {
@@ -266,6 +259,121 @@ namespace synapx::autograd {
         Tensor min_value;
     };
 
+
+    class SqueezeBackward0: public Node {
+    public:
+        SqueezeBackward0(const Tensor& t, torch::IntArrayRef dim);
+        std::string name() const override;
+        TensorList apply(const TensorList& inputs) override;
+
+    private:
+        IntArray t_shape;
+        IntArray dim;
+    };
+
+
+    class UnsqueezeBackward0: public Node {
+    public:
+        UnsqueezeBackward0(int64_t dim);
+        std::string name() const override;
+        TensorList apply(const TensorList& inputs) override;
+
+    private:
+        int64_t dim;
+    };
+
+
+    class ReshapeBackward0: public Node {
+    public:
+        ReshapeBackward0(const Tensor& t);
+        std::string name() const override;
+        TensorList apply(const TensorList& inputs) override;
+
+    private:
+        IntArray t_shape;
+    };
+
+
+    class TransposeBackward0: public Node {
+    public:
+        TransposeBackward0(int64_t dim0, int64_t dim1);
+        std::string name() const override;
+        TensorList apply(const TensorList& inputs) override;
+
+    private:
+        int64_t dim0;
+        int64_t dim1;
+    };
+
+
+    class MovedimBackward0: public Node {
+    public:
+        MovedimBackward0(int64_t src, int64_t dest);
+        std::string name() const override;
+        TensorList apply(const TensorList& inputs) override;
+
+    private:
+        int64_t src;
+        int64_t dest;
+    };
+
+
+    class SliceBackward0: public Node {
+    public:
+        SliceBackward0(const Tensor& t, const TensorIndices& indices);
+        std::string name() const override;
+        TensorList apply(const TensorList& inputs) override;
+
+    private:
+        IntArray t_shape;
+        TensorIndices indices;
+    };
+
+
+    class ConcatBackward0: public Node {
+    public:
+        ConcatBackward0(const TensorList& inputs, int64_t dim);
+        std::string name() const override;
+        TensorList apply(const TensorList& inputs) override;
+
+    private:
+        int64_t dim;
+        IntArray sizes;
+    };
+
+
+    class StackBackward0: public Node {
+    public:
+        StackBackward0(int64_t dim);
+        std::string name() const override;
+        TensorList apply(const TensorList& inputs) override;
+
+    private:
+        int64_t dim;
+    };
+
+
+    class UnbindBackward0: public Node {
+    public:
+        UnbindBackward0(const Tensor& t, int64_t dim);
+        std::string name() const override;
+        TensorList apply(const TensorList& inputs) override;
+
+    private:
+        IntArray t_shape;
+        int64_t dim;
+    };
+
+
+    class ReLUBackward0: public Node {
+    public:
+        ReLUBackward0(const Tensor& t);
+        std::string name() const override;
+        TensorList apply(const TensorList& inputs) override;
+
+    private:
+        Tensor t;
+    };
 
 } // namespace synapx::autograd
 

@@ -247,6 +247,30 @@ namespace synapx {
         return Tensor(impl_->data >= other.data());
     }
 
+    Tensor Tensor::operator==(double other) const {
+        return Tensor(impl_->data == other);
+    }
+
+    Tensor Tensor::operator!=(double other) const {
+        return Tensor(impl_->data != other);
+    }
+
+    Tensor Tensor::operator<(double other) const {
+        return Tensor(impl_->data < other);
+    }
+
+    Tensor Tensor::operator<=(double other) const {
+        return Tensor(impl_->data <= other);
+    }
+
+    Tensor Tensor::operator>(double other) const {
+        return Tensor(impl_->data > other);
+    }
+
+    Tensor Tensor::operator>=(double other) const {
+        return Tensor(impl_->data >= other);
+    }
+
     // Inplace operators
     Tensor& Tensor::operator+=(const Tensor& other) {
         return add_(other);
@@ -414,44 +438,52 @@ namespace synapx {
         return *this;
     }
 
-    void Tensor::index_put_(const TensorIndices& idx, const Tensor& value) {
+    Tensor& Tensor::index_put_(const TensorIndices& idx, const Tensor& value) {
         in_place_check(*this);
         impl_->data.index_put_(idx, value.data());
-    };
+        return *this;
+    }
 
-    void Tensor::index_put_(const TensorIndices& idx, double value) {
+    Tensor& Tensor::index_put_(const TensorIndices& idx, double value) {
         in_place_check(*this);
         impl_->data.index_put_(idx, value);
-    };
+        return *this;
+    }
+
+    Tensor& Tensor::copy_(const Tensor& src) {
+        in_place_check(*this);
+        impl_->data.copy_(src.data());
+        return *this;
+    }
 
     // Reverse functions
     Tensor Tensor::rsub(const Tensor& other) const {
         return synapx::rsub(*this, other);
-    };
+    }
 
     Tensor Tensor::rsub(double other) const {
         return synapx::rsub(*this, other);
-    };
+    }
 
     Tensor Tensor::rpow(const Tensor& exponent) const {
         return synapx::rpow(*this, exponent);
-    };
+    }
 
     Tensor Tensor::rpow(double exponent) const {
         return synapx::rpow(*this, exponent);
-    };
+    }
     
     Tensor Tensor::rdiv(const Tensor& other) const {
         return synapx::rdiv(*this, other);
-    };
+    }
 
     Tensor Tensor::rdiv(double other) const {
         return synapx::rdiv(*this, other);
-    };
+    }
 
     Tensor Tensor::rmatmul(const Tensor& other) const {
         return synapx::matmul(*this, other);
-    };
+    }
 
     // Other functions
     Tensor Tensor::to(torch::Device device) const {
@@ -489,55 +521,69 @@ namespace synapx {
 
     Tensor Tensor::sum(torch::IntArrayRef dim, bool keepdim) const {
         return synapx::sum(*this, dim, keepdim);
-    };
+    }
 
     Tensor Tensor::mean(torch::IntArrayRef dim, bool keepdim) const {
         return synapx::mean(*this, dim, keepdim);
-    };
+    }
 
     Tensor Tensor::max() const {
         return synapx::max(*this);
-    };
+    }
 
     std::tuple<Tensor, Tensor> Tensor::max(int64_t dim, bool keepdim) const {
         return synapx::max(*this, dim, keepdim);
-    };
+    }
 
     Tensor Tensor::min() const {
         return synapx::min(*this);
-    };
+    }
 
     std::tuple<Tensor, Tensor> Tensor::min(int64_t dim, bool keepdim) const {
         return synapx::min(*this, dim, keepdim);
-    };
+    }
 
     Tensor Tensor::squeeze(torch::IntArrayRef dim) const {
         return synapx::squeeze(*this, dim);
-    };
+    }
     
     Tensor Tensor::unsqueeze(int64_t dim) const {
         return synapx::unsqueeze(*this, dim);
-    };
+    }
 
     Tensor Tensor::reshape(torch::IntArrayRef shape) const {
         return synapx::reshape(*this, shape);
-    };
+    }
+
+    Tensor Tensor::broadcast_to(torch::IntArrayRef shape) const {
+        return synapx::broadcast_to(*this, shape);
+    }
 
     Tensor Tensor::transpose(int64_t dim0, int64_t dim1) const {
         return synapx::transpose(*this, dim0, dim1);
-    };
+    }
 
     Tensor Tensor::swapdims(int64_t dim0, int64_t dim1) const {
         return synapx::swapdims(*this, dim0, dim1);
-    };
+    }
 
     Tensor Tensor::movedim(int64_t src, int64_t dest) const {
         return synapx::movedim(*this, src, dest);
-    };
+    }
 
     Tensor Tensor::slice(const TensorIndices& indices) const {
         return synapx::slice(*this, indices);
-    };
+    }
+
+    Tensor Tensor::select(int64_t dim, int64_t index) const {
+        return synapx::select(*this, dim, index);
+    }
+
+
+    Tensor Tensor::relu() const {
+        return synapx::relu(*this);
+    }
+
 
     std::string Tensor::to_string() const {
         std::stringstream ss;
@@ -554,19 +600,19 @@ namespace synapx {
 
     Tensor operator+(double scalar, const Tensor& tensor) {
         return tensor.add(scalar);
-    };
+    }
 
     Tensor operator*(double scalar, const Tensor& tensor) {
         return tensor.mul(scalar);
-    };
+    }
 
     Tensor operator-(double scalar, const Tensor& tensor) {
         return tensor.rsub(scalar);
-    };
+    }
 
     Tensor operator/(double scalar, const Tensor& tensor) {
         return tensor.rdiv(scalar);
-    };
+    }
     
     
 } // namespace synapx

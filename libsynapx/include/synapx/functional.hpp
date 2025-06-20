@@ -3,6 +3,7 @@
 
 #include <tuple>
 #include <memory>
+#include <optional>
 
 #include <synapx/core.hpp>
 #include <synapx/tensor.hpp>
@@ -65,9 +66,15 @@ namespace synapx {
     SYNAPX_API Tensor swapdims(const Tensor& t, int64_t dim0, int64_t dim1);
     SYNAPX_API Tensor movedim(const Tensor& t, int64_t src, int64_t dest);
     SYNAPX_API Tensor slice(const Tensor& t, const TensorIndices& indices);
+    SYNAPX_API Tensor select(const Tensor& t, int64_t dim, int64_t index);
     SYNAPX_API Tensor concat(const TensorList& tensors, int64_t dim = 0);
     SYNAPX_API Tensor stack(const TensorList& tensors, int64_t dim = 0);
     SYNAPX_API TensorList unbind(const Tensor& t, int64_t dim = 0);
+    SYNAPX_API TensorList split(const Tensor& t, torch::IntArrayRef split_size, int64_t dim);
+
+    SYNAPX_API Tensor relu(const Tensor& t);
+
+    SYNAPX_API Tensor linear(const Tensor& inp, const Tensor& weight, std::optional<Tensor> bias);
 
 }
 

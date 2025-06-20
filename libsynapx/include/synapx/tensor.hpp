@@ -85,6 +85,12 @@ namespace synapx {
         Tensor operator<=(const Tensor& other) const;
         Tensor operator>(const Tensor& other) const;
         Tensor operator>=(const Tensor& other) const;
+        Tensor operator==(double other) const;
+        Tensor operator!=(double other) const;
+        Tensor operator<(double other) const;
+        Tensor operator<=(double other) const;
+        Tensor operator>(double other) const;
+        Tensor operator>=(double other) const;
 
         Tensor add(const Tensor& other) const;
         Tensor add(double other) const;
@@ -113,8 +119,9 @@ namespace synapx {
         Tensor& zero_();
         Tensor& unsqueeze_(int64_t dim);
         Tensor& scatter_(int64_t dim, const Tensor& index, double value);
-        void index_put_(const TensorIndices& idx, const Tensor& value);
-        void index_put_(const TensorIndices& idx, double value);
+        Tensor& index_put_(const TensorIndices& idx, const Tensor& value);
+        Tensor& index_put_(const TensorIndices& idx, double value);
+        Tensor& copy_(const Tensor& src);
 
         Tensor rsub(const Tensor& other) const;
         Tensor rsub(double other) const;
@@ -142,10 +149,14 @@ namespace synapx {
         Tensor squeeze(torch::IntArrayRef dim = {}) const;
         Tensor unsqueeze(int64_t dim) const;
         Tensor reshape(torch::IntArrayRef shape) const;
+        Tensor broadcast_to(torch::IntArrayRef shape) const;
         Tensor transpose(int64_t dim0, int64_t dim1) const;
         Tensor swapdims(int64_t dim0, int64_t dim1) const;
         Tensor movedim(int64_t src, int64_t dest) const;
         Tensor slice(const TensorIndices& indices) const;
+        Tensor select(int64_t dim, int64_t index) const;
+
+        Tensor relu() const;
 
 
         void set_output_nr(uint32_t nr);

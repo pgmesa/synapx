@@ -361,7 +361,7 @@ namespace synapx {
         };
 
         NodeFactory node_factory = [&t](const TensorList& outputs) -> autograd::NodePtr {
-            return std::make_shared<autograd::ExpBackward0>(t, outputs[0]);
+            return std::make_shared<autograd::ExpBackward0>(outputs[0]);
         };
 
         Tensor output = apply_operation(inputs, operation, node_factory)[0];
@@ -393,7 +393,7 @@ namespace synapx {
         };
 
         NodeFactory node_factory = [&t](const TensorList& outputs) -> autograd::NodePtr {
-            return std::make_shared<autograd::SqrtBackward0>(t, outputs[0]);
+            return std::make_shared<autograd::SqrtBackward0>(outputs[0]);
         };
 
         Tensor output = apply_operation(inputs, operation, node_factory)[0];
@@ -507,11 +507,12 @@ namespace synapx {
         TensorList inputs {t};
 
         Operation operation = [&t, dim]() -> TorchList {
-            return { torch::squeeze(t.data(), dim) };
+            torch::Tensor result = dim.empty()? torch::squeeze(t.data()) : torch::squeeze(t.data(), dim); 
+            return { result };
         };
 
         NodeFactory node_factory = [&t, dim](const TensorList& outputs) -> autograd::NodePtr {
-            return std::make_shared<autograd::NotImplementedBackward>();
+            return std::make_shared<autograd::SqueezeBackward0>(t, dim);
         };
 
         Tensor output = apply_operation(inputs, operation, node_factory)[0];
@@ -526,8 +527,8 @@ namespace synapx {
             return { torch::unsqueeze(t.data(), dim) };
         };
 
-        NodeFactory node_factory = [&t, dim](const TensorList& outputs) -> autograd::NodePtr {
-            return std::make_shared<autograd::NotImplementedBackward>();
+        NodeFactory node_factory = [dim](const TensorList& outputs) -> autograd::NodePtr {
+            return std::make_shared<autograd::UnsqueezeBackward0>(dim);
         };
 
         Tensor output = apply_operation(inputs, operation, node_factory)[0];
@@ -542,8 +543,8 @@ namespace synapx {
             return { torch::reshape(t.data(), shape) };
         };
 
-        NodeFactory node_factory = [&t, shape](const TensorList& outputs) -> autograd::NodePtr {
-            return std::make_shared<autograd::NotImplementedBackward>();
+        NodeFactory node_factory = [&t](const TensorList& outputs) -> autograd::NodePtr {
+            return std::make_shared<autograd::ReshapeBackward0>(t);
         };
 
         Tensor output = apply_operation(inputs, operation, node_factory)[0];
@@ -574,8 +575,8 @@ namespace synapx {
             return { torch::transpose(t.data(), dim0, dim1) };
         };
 
-        NodeFactory node_factory = [&t, dim0, dim1](const TensorList& outputs) -> autograd::NodePtr {
-            return std::make_shared<autograd::NotImplementedBackward>();
+        NodeFactory node_factory = [dim0, dim1](const TensorList& outputs) -> autograd::NodePtr {
+            return std::make_shared<autograd::TransposeBackward0>(dim0, dim1);
         };
 
         Tensor output = apply_operation(inputs, operation, node_factory)[0];
@@ -594,8 +595,8 @@ namespace synapx {
             return { torch::movedim(t.data(), src, dest) };
         };
 
-        NodeFactory node_factory = [&t, src, dest](const TensorList& outputs) -> autograd::NodePtr {
-            return std::make_shared<autograd::NotImplementedBackward>();
+        NodeFactory node_factory = [src, dest](const TensorList& outputs) -> autograd::NodePtr {
+            return std::make_shared<autograd::MovedimBackward0>(src, dest);
         };
 
         Tensor output = apply_operation(inputs, operation, node_factory)[0];
@@ -611,6 +612,22 @@ namespace synapx {
         };
 
         NodeFactory node_factory = [&t, &indices](const TensorList& outputs) -> autograd::NodePtr {
+            return std::make_shared<autograd::SliceBackward0>(t, indices);
+        };
+
+        Tensor output = apply_operation(inputs, operation, node_factory)[0];
+
+        return output;
+    }
+
+    Tensor select(const Tensor& t, int64_t dim, int64_t index) {
+        TensorList inputs {t};
+
+        Operation operation = [&t, dim, index]() -> TorchList {
+            return { t.data().select(dim, index) };
+        };
+
+        NodeFactory node_factory = [](const TensorList& outputs) -> autograd::NodePtr {
             return std::make_shared<autograd::NotImplementedBackward>();
         };
 
@@ -631,8 +648,8 @@ namespace synapx {
             return { torch::concat(torch_tensors, dim) };
         };
 
-        NodeFactory node_factory = [dim](const TensorList& outputs) -> autograd::NodePtr {
-            return std::make_shared<autograd::NotImplementedBackward>();
+        NodeFactory node_factory = [&inputs, dim](const TensorList& outputs) -> autograd::NodePtr {
+            return std::make_shared<autograd::ConcatBackward0>(inputs, dim);
         };
 
         Tensor output = apply_operation(inputs, operation, node_factory)[0];
@@ -653,7 +670,7 @@ namespace synapx {
         };
 
         NodeFactory node_factory = [dim](const TensorList& outputs) -> autograd::NodePtr {
-            return std::make_shared<autograd::NotImplementedBackward>();
+            return std::make_shared<autograd::StackBackward0>(dim);
         };
 
         Tensor output = apply_operation(inputs, operation, node_factory)[0];
@@ -662,13 +679,29 @@ namespace synapx {
     }
 
     TensorList unbind(const Tensor& t, int64_t dim) {
-        const TensorList& inputs {t};
+        const TensorList inputs {t};
 
         Operation operation = [&t, dim]() -> TorchList {
             return torch::unbind(t.data(), dim);
         };
 
-        NodeFactory node_factory = [dim](const TensorList& outputs) -> autograd::NodePtr {
+        NodeFactory node_factory = [&t, dim](const TensorList& outputs) -> autograd::NodePtr {
+            return std::make_shared<autograd::UnbindBackward0>(t, dim);
+        };
+
+        TensorList outputs = apply_operation(inputs, operation, node_factory);
+
+        return outputs;
+    }
+
+    TensorList split(const Tensor& t, torch::IntArrayRef split_size, int64_t dim) {
+        const TensorList inputs {t};
+
+        Operation operation = [&t, split_size, dim]() -> TorchList {
+            return torch::split(t.data(), split_size, dim);
+        };
+
+        NodeFactory node_factory = [](const TensorList& outputs) -> autograd::NodePtr {
             return std::make_shared<autograd::NotImplementedBackward>();
         };
 
@@ -676,5 +709,51 @@ namespace synapx {
 
         return outputs;
     }
+
+
+    Tensor relu(const Tensor& t) {
+        const TensorList inputs {t};
+
+        Operation operation = [&t]() -> TorchList {
+            return { torch::relu(t.data()) };
+        };
+
+        NodeFactory node_factory = [&t](const TensorList& outputs) -> autograd::NodePtr {
+            return std::make_shared<autograd::ReLUBackward0>(t);
+        };
+
+        Tensor output = apply_operation(inputs, operation, node_factory)[0];
+
+        return output;
+    }
+
+
+    Tensor linear(const Tensor& inp, const Tensor& weight, std::optional<Tensor> bias) {
+        TensorList inputs {inp, weight};
+        if (bias.has_value()) inputs.push_back(bias.value());
+
+        Operation operation = [&inp, &weight, &bias]() -> TorchList {
+            std::optional<torch::Tensor> bias_data = 
+                bias.has_value() ? std::optional<torch::Tensor>(bias.value().data()) : std::nullopt;
+            return { torch::linear(inp.data(), weight.data(), bias_data) };
+        };
+
+        NodeFactory node_factory;
+        if (bias.has_value()) {
+            node_factory = [&inp, &weight, &bias](const TensorList& outputs) -> autograd::NodePtr {
+                return std::make_shared<autograd::AddmmBackward0>(inp, weight, bias.value());
+            };
+
+        } else {
+            node_factory = [&inp, &weight](const TensorList& outputs) -> autograd::NodePtr {
+                return std::make_shared<autograd::MatmulBackward0>(inp, weight);
+            };
+        }
+
+        Tensor output = apply_operation(inputs, operation, node_factory)[0];
+
+        return output;
+    }
+
 
 } // namespace synapx
