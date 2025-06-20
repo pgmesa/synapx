@@ -18,13 +18,11 @@ namespace synapx::autograd {
     void run_backward(const Tensor& tensor, const Tensor& grad) {
         spdlog::debug("Backward called");
 
-        if (!tensor.defined())
-            throw std::runtime_error("Tensor passed to compute backward pass is not defined");
-
-        NodePtr grad_fn = tensor.grad_fn();
-
-        if (!grad_fn) {
-            throw std::runtime_error("No backward function defined for this tensor");
+        if (!tensor.defined()) {
+            throw std::runtime_error("Tensor passed to compute the backward pass is not defined");
+        }
+        else if (!tensor.requires_grad() || !tensor.grad_fn()) {
+            throw std::runtime_error("Tensor does not require grad and does not have a grad_fn");
         }
 
         // Validate grad_output shape
@@ -40,7 +38,7 @@ namespace synapx::autograd {
             throw std::runtime_error("Shape mismatch between input gradient and tensor");
         }
 
-        // 1) Build topological order
+        // 1) Build topological order (Depth-First-Search)
         std::vector<NodePtr> topo;
         std::unordered_set<NodePtr> seen;
         std::unordered_map<autograd::Node*, TensorList> grad_map;
@@ -56,6 +54,7 @@ namespace synapx::autograd {
             }
             topo.push_back(grad_fn);
         };
+        NodePtr& grad_fn = tensor.grad_fn();
         dfs(grad_fn);
 
         grad_map[grad_fn.get()][tensor.output_nr()] = grad_output;

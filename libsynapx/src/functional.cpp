@@ -125,7 +125,7 @@ namespace synapx {
         };
 
         NodeFactory node_factory = [&t1, &t2](const TensorList& outputs) -> autograd::NodePtr {
-            return std::make_shared<autograd::AddBackward>(t1, t2);
+            return std::make_shared<autograd::AddBackward0>(t1, t2);
         };
 
         Tensor output = apply_operation(inputs, operation, node_factory)[0];
@@ -147,7 +147,7 @@ namespace synapx {
         };
 
         NodeFactory node_factory = [&t1, &t2](const TensorList& outputs) -> autograd::NodePtr {
-            return std::make_shared<autograd::SubBackward>(t1, t2);
+            return std::make_shared<autograd::SubBackward0>(t1, t2);
         };
 
         Tensor output = apply_operation(inputs, operation, node_factory)[0];
@@ -169,7 +169,7 @@ namespace synapx {
         };
 
         NodeFactory node_factory = [&t1, &t2](const TensorList& outputs) -> autograd::NodePtr {
-            return std::make_shared<autograd::MulBackward>(t1, t2);
+            return std::make_shared<autograd::MulBackward0>(t1, t2);
         };
 
         Tensor output = apply_operation(inputs, operation, node_factory)[0];
@@ -191,7 +191,7 @@ namespace synapx {
         };
 
         NodeFactory node_factory = [&t1, &t2](const TensorList& outputs) -> autograd::NodePtr {
-            return std::make_shared<autograd::DivBackward>(t1, t2);
+            return std::make_shared<autograd::DivBackward0>(t1, t2);
         };
 
         Tensor output = apply_operation(inputs, operation, node_factory)[0];
@@ -219,7 +219,7 @@ namespace synapx {
             };
         } else {
             node_factory = [&t1, &t2](const TensorList& outputs) -> autograd::NodePtr {
-                return std::make_shared<autograd::MatmulBackward>(t1, t2);
+                return std::make_shared<autograd::MatmulBackward0>(t1, t2);
             };
         }
 
@@ -238,7 +238,7 @@ namespace synapx {
         };
 
         NodeFactory node_factory = [&base, &exp](const TensorList& outputs) -> autograd::NodePtr {
-            return std::make_shared<autograd::PowBackward>(base, exp, outputs[0]);
+            return std::make_shared<autograd::PowBackward0>(base, exp, outputs[0]);
         };
 
         Tensor output = apply_operation(inputs, operation, node_factory)[0];
@@ -327,8 +327,8 @@ namespace synapx {
             return { torch::clone(t.data()) };
         };
 
-        NodeFactory node_factory = [&t](const TensorList& outputs) -> autograd::NodePtr {
-            return std::make_shared<autograd::NotImplementedBackward>();
+        NodeFactory node_factory = [](const TensorList& outputs) -> autograd::NodePtr {
+            return std::make_shared<autograd::CloneBackward0>();
         };
 
         Tensor output = apply_operation(inputs, operation, node_factory)[0];
@@ -345,7 +345,7 @@ namespace synapx {
         };
 
         NodeFactory node_factory = [&inp, &mat1, &mat2](const TensorList& outputs) -> autograd::NodePtr {
-            return std::make_shared<autograd::NotImplementedBackward>();
+            return std::make_shared<autograd::AddmmBackward0>(inp, mat1, mat2);
         };
 
         Tensor output = apply_operation(inputs, operation, node_factory)[0];
@@ -361,7 +361,7 @@ namespace synapx {
         };
 
         NodeFactory node_factory = [&t](const TensorList& outputs) -> autograd::NodePtr {
-            return std::make_shared<autograd::NotImplementedBackward>();
+            return std::make_shared<autograd::ExpBackward0>(t, outputs[0]);
         };
 
         Tensor output = apply_operation(inputs, operation, node_factory)[0];
@@ -377,7 +377,7 @@ namespace synapx {
         };
 
         NodeFactory node_factory = [&t](const TensorList& outputs) -> autograd::NodePtr {
-            return std::make_shared<autograd::NotImplementedBackward>();
+            return std::make_shared<autograd::LogBackward0>(t);
         };
 
         Tensor output = apply_operation(inputs, operation, node_factory)[0];
@@ -393,7 +393,7 @@ namespace synapx {
         };
 
         NodeFactory node_factory = [&t](const TensorList& outputs) -> autograd::NodePtr {
-            return std::make_shared<autograd::NotImplementedBackward>();
+            return std::make_shared<autograd::SqrtBackward0>(t, outputs[0]);
         };
 
         Tensor output = apply_operation(inputs, operation, node_factory)[0];
@@ -409,7 +409,7 @@ namespace synapx {
         };
 
         NodeFactory node_factory = [&t, dim, keepdim](const TensorList& outputs) -> autograd::NodePtr {
-            return std::make_shared<autograd::SumBackward>(t, dim, keepdim);
+            return std::make_shared<autograd::SumBackward0>(t, dim, keepdim);
         };
 
         Tensor output = apply_operation(inputs, operation, node_factory)[0];
@@ -425,7 +425,7 @@ namespace synapx {
         };
 
         NodeFactory node_factory = [&t, dim, keepdim](const TensorList& outputs) -> autograd::NodePtr {
-            return std::make_shared<autograd::NotImplementedBackward>();
+            return std::make_shared<autograd::MeanBackward0>(t, dim, keepdim);
         };
 
         Tensor output = apply_operation(inputs, operation, node_factory)[0];
@@ -441,7 +441,7 @@ namespace synapx {
         };
 
         NodeFactory node_factory = [&t](const TensorList& outputs) -> autograd::NodePtr {
-            return std::make_shared<autograd::NotImplementedBackward>();
+            return std::make_shared<autograd::MaxBackward1>(t, outputs[0]);
         };
 
         Tensor output = apply_operation(inputs, operation, node_factory)[0];
@@ -459,8 +459,8 @@ namespace synapx {
             return { output };
         };
 
-        NodeFactory node_factory = [&t, dim, keepdim](const TensorList& outputs) -> autograd::NodePtr {
-            return std::make_shared<autograd::NotImplementedBackward>();
+        NodeFactory node_factory = [&t, dim, keepdim, &max_indices](const TensorList& outputs) -> autograd::NodePtr {
+            return std::make_shared<autograd::MaxBackward0>(t, dim, keepdim, max_indices);
         };
 
         Tensor output = apply_operation(inputs, operation, node_factory)[0];
@@ -476,7 +476,7 @@ namespace synapx {
         };
 
         NodeFactory node_factory = [&t](const TensorList& outputs) -> autograd::NodePtr {
-            return std::make_shared<autograd::NotImplementedBackward>();
+            return std::make_shared<autograd::MinBackward1>(t, outputs[0]);
         };
 
         Tensor output = apply_operation(inputs, operation, node_factory)[0];
@@ -494,8 +494,8 @@ namespace synapx {
             return { output };
         };
 
-        NodeFactory node_factory = [&t, dim, keepdim](const TensorList& outputs) -> autograd::NodePtr {
-            return std::make_shared<autograd::NotImplementedBackward>();
+        NodeFactory node_factory = [&t, dim, keepdim, &min_indices](const TensorList& outputs) -> autograd::NodePtr {
+            return std::make_shared<autograd::MinBackward0>(t, dim, keepdim, min_indices);
         };
 
         Tensor output = apply_operation(inputs, operation, node_factory)[0];

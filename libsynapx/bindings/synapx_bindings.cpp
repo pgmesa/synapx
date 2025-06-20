@@ -115,6 +115,11 @@ PYBIND11_MODULE(_C, m) {
     m.def("is_detailed_repr_enabled", &TensorReprConfig::is_detailed_repr_enabled, 
           "Check if detailed tensor representation is enabled");
 
+
+    py::class_<synapx::autograd::Node, synapx::autograd::NodePtr>(m, "Node")
+        .def("name", &synapx::autograd::Node::name)
+        ;
+
     // SynapX Tensor class
     py::class_<synapx::Tensor>(m, "Tensor")
         .def_property_readonly("data", &synapx::Tensor::data)
@@ -129,12 +134,12 @@ PYBIND11_MODULE(_C, m) {
         .def_property_readonly("device", &synapx::Tensor::device, "Underlying torch device")
         .def_property_readonly("grad", [](const synapx::Tensor& self) -> py::object {
             synapx::Tensor grad_tensor = self.grad();
-            if (grad_tensor.defined()) {
-                return py::cast(grad_tensor);
-            } else {
-                return py::none();
-            }
-        }, "Union[None, synapx.Tensor]: Gradient tensor or None")
+            return grad_tensor.defined()? py::cast(grad_tensor) : py::none();
+        }, "Gradient tensor or None")
+        .def_property_readonly("grad_fn", [](const synapx::Tensor& self) -> py::object {
+            synapx::autograd::NodePtr grad_fn = self.grad_fn();
+            return grad_fn? py::cast(grad_fn) : py::none();
+        }, "Backward function")
         .def("numel", &synapx::Tensor::numel)
         .def("dim", &synapx::Tensor::dim)
         .def("requires_grad_", &synapx::Tensor::requires_grad_)
@@ -156,6 +161,9 @@ PYBIND11_MODULE(_C, m) {
             return torch_to_numpy(self.data());
         })
         .def("detach", &synapx::Tensor::detach)
+        .def("count_nonzero", &synapx::Tensor::count_nonzero)
+        .def("argmax", &synapx::Tensor::argmax, py::arg("dim") = py::none(), py::arg("keepdim") = false)
+        .def("argmin", &synapx::Tensor::argmin, py::arg("dim") = py::none(), py::arg("keepdim") = false)
         .def("backward", [](synapx::Tensor& self, py::object grad) {
             if (grad.is_none()) {
                 self.backward();
@@ -236,6 +244,14 @@ PYBIND11_MODULE(_C, m) {
         .def("__pow__", py::overload_cast<double>(&synapx::Tensor::pow, py::const_), py::arg("exponent"))
 
         .def("__neg__", &synapx::Tensor::neg)
+
+
+        .def("__eq__", &synapx::Tensor::operator==, py::is_operator())
+        .def("__ne__", &synapx::Tensor::operator!=, py::is_operator())
+        .def("__lt__", &synapx::Tensor::operator<,  py::is_operator())
+        .def("__le__", &synapx::Tensor::operator<=, py::is_operator())
+        .def("__gt__", &synapx::Tensor::operator>,  py::is_operator())
+        .def("__ge__", &synapx::Tensor::operator>=, py::is_operator())
 
 
         // In-place operations

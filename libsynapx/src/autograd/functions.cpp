@@ -10,6 +10,8 @@
 
 namespace synapx::autograd
 {
+    constexpr int64_t epsilon = 1e-12;
+
 
     AccumulateGrad::AccumulateGrad(const Tensor& variable): variable(variable) {
         if (!variable.requires_grad())
@@ -33,7 +35,7 @@ namespace synapx::autograd
     }
 
 
-    AddBackward::AddBackward(const Tensor& t1, const Tensor& t2)
+    AddBackward0::AddBackward0(const Tensor& t1, const Tensor& t2)
         : t1_req_grad(t1.requires_grad()), t2_req_grad(t2.requires_grad()) {
 
         if (t1_req_grad) {
@@ -46,11 +48,11 @@ namespace synapx::autograd
         }
     }
 
-    std::string AddBackward::name() const { 
-        return "AddBackward"; 
+    std::string AddBackward0::name() const { 
+        return "AddBackward0"; 
     }
 
-    TensorList AddBackward::apply(const TensorList& inputs) {
+    TensorList AddBackward0::apply(const TensorList& inputs) {
         const Tensor& grad_output = inputs[0];
         
         Tensor grad_t1, grad_t2;
@@ -63,7 +65,7 @@ namespace synapx::autograd
     }
 
 
-    SubBackward::SubBackward(const Tensor& t1, const Tensor& t2)
+    SubBackward0::SubBackward0(const Tensor& t1, const Tensor& t2)
         : t1_req_grad(t1.requires_grad()), t2_req_grad(t2.requires_grad()) {
         if (t1_req_grad) {
             t1_shape.reserve(t1.dim());
@@ -75,11 +77,11 @@ namespace synapx::autograd
         }
     }
 
-    std::string SubBackward::name() const { 
-        return "SubBackward";
+    std::string SubBackward0::name() const { 
+        return "SubBackward0";
     }
 
-    TensorList SubBackward::apply(const TensorList& inputs) {
+    TensorList SubBackward0::apply(const TensorList& inputs) {
         const Tensor& grad_output = inputs[0];
         
         Tensor grad_t1, grad_t2;
@@ -92,7 +94,7 @@ namespace synapx::autograd
     }
 
 
-    MulBackward::MulBackward(const Tensor& t1, const Tensor& t2)
+    MulBackward0::MulBackward0(const Tensor& t1, const Tensor& t2)
         : t1_req_grad(t1.requires_grad()), t2_req_grad(t2.requires_grad()) {
         if (t1_req_grad) {
             this->t2 = t2;
@@ -107,11 +109,11 @@ namespace synapx::autograd
         }
     }
 
-    std::string MulBackward::name() const { 
-        return "MulBackward"; 
+    std::string MulBackward0::name() const { 
+        return "MulBackward0"; 
     }
 
-    TensorList MulBackward::apply(const TensorList& inputs) {
+    TensorList MulBackward0::apply(const TensorList& inputs) {
         const Tensor& grad_output = inputs[0];
         
         Tensor grad_t1, grad_t2;
@@ -125,7 +127,7 @@ namespace synapx::autograd
     }
 
 
-    DivBackward::DivBackward(const Tensor& t1, const Tensor& t2)
+    DivBackward0::DivBackward0(const Tensor& t1, const Tensor& t2)
         : t1_req_grad(t1.requires_grad()), t2_req_grad(t2.requires_grad()) {
         if (t1_req_grad) {
             this->t2 = t2;
@@ -139,11 +141,11 @@ namespace synapx::autograd
         }
     }
 
-    std::string DivBackward::name() const { 
-        return "DivBackward"; 
+    std::string DivBackward0::name() const { 
+        return "DivBackward0"; 
     }
 
-    TensorList DivBackward::apply(const TensorList& inputs) {
+    TensorList DivBackward0::apply(const TensorList& inputs) {
         const Tensor& grad_output = inputs[0];
         
         Tensor grad_t1, grad_t2;
@@ -157,7 +159,7 @@ namespace synapx::autograd
     }
 
 
-    MatmulBackward::MatmulBackward(const Tensor& t1, const Tensor& t2)
+    MatmulBackward0::MatmulBackward0(const Tensor& t1, const Tensor& t2)
         : t1_req_grad(t1.requires_grad()), t2_req_grad(t2.requires_grad()) {
         if (t1_req_grad){
             this->t2 = t2;
@@ -172,11 +174,11 @@ namespace synapx::autograd
         } 
     }
 
-    std::string MatmulBackward::name() const { 
-        return "MatmulBackward"; 
+    std::string MatmulBackward0::name() const { 
+        return "MatmulBackward0"; 
     }
 
-    TensorList MatmulBackward::apply(const TensorList& inputs) {
+    TensorList MatmulBackward0::apply(const TensorList& inputs) {
         const Tensor& grad_output = inputs[0];
         
         Tensor grad_t1, grad_t2;
@@ -194,18 +196,18 @@ namespace synapx::autograd
     }
 
 
-    PowBackward::PowBackward(const Tensor& base, const Tensor& exp, const Tensor& fw_result)
+    PowBackward0::PowBackward0(const Tensor& base, const Tensor& exp, const Tensor& fw_result)
         : base_req_grad(base.requires_grad()), exp_req_grad(exp.requires_grad()), base(base), fw_result(fw_result) {
         
         if (base_req_grad)
             this->exp = exp;
     }
 
-    std::string PowBackward::name() const { 
-        return "PowBackward"; 
+    std::string PowBackward0::name() const { 
+        return "PowBackward0"; 
     }
 
-    TensorList PowBackward::apply(const TensorList& inputs) {
+    TensorList PowBackward0::apply(const TensorList& inputs) {
         const Tensor& grad_output = inputs[0];
         
         Tensor grad_base, grad_exp;
@@ -220,110 +222,98 @@ namespace synapx::autograd
     }
 
 
-    // std::string Addmm::name() const { return "Addmm"; };
+    std::string CloneBackward0::name() const { 
+        return "CloneBackward0"; 
+    }
 
-    // std::vector<torch::Tensor> Addmm::forward(const std::vector<torch::Tensor>& inputs) { 
-    //     const torch::Tensor& inp = inputs[0];
-    //     const torch::Tensor& mat1 = inputs[1];
-    //     const torch::Tensor& mat2 = inputs[2];
+    TensorList CloneBackward0::apply(const TensorList& inputs) {
+        return inputs;
+    }
 
-    //     torch::Tensor out = torch::addmm(inp, mat1, mat2);
+
+    AddmmBackward0::AddmmBackward0(const Tensor& inp, const Tensor& mat1, const Tensor& mat2)
+        : inp_req_grad(inp.requires_grad()), mat1_req_grad(mat1.requires_grad()), mat2_req_grad(mat2.requires_grad()) {
         
-    //     if (t1_req_grad) {
-    //         inp_shape.reserve(inp.dim());
-    //         inp_shape = inp.sizes().vec();
-    //     }
+        if (inp_req_grad) {
+            inp_shape.reserve(inp.dim());
+            inp_shape = inp.sizes().vec();
+        }
         
-    //     if (t2_req_grad)
-    //         this->mat2 = mat2;
+        if (mat1_req_grad)
+            this->mat2 = mat2;
         
-    //     if (requires_grad_flags[2])
-    //         this->mat1 = mat1;
+        if (mat2_req_grad)
+            this->mat1 = mat1;
 
-    //     return {out};
-    // }
+    }
 
-    // std::vector<torch::Tensor> Addmm::backward(const torch::Tensor& grad_output, int output_idx) {
-    //     torch::Tensor grad_inp, grad_mat1, grad_mat2;
+    std::string AddmmBackward0::name() const { 
+        return "AddmmBackward0"; 
+    }
 
-    //     if (t1_req_grad) 
-    //         grad_inp = unbroadcast(grad_output, inp_shape);
+    TensorList AddmmBackward0::apply(const TensorList& inputs) {
+        const Tensor& grad_output = inputs[0];
+        Tensor grad_inp, grad_mat1, grad_mat2;
+
+        if (inp_req_grad) 
+            grad_inp = unbroadcast(grad_output, inp_shape);
         
-    //     if (t2_req_grad) 
-    //         grad_mat1 = torch::matmul(grad_output, torch::swapdims(mat2, -2, -1));
+        if (mat1_req_grad) 
+            grad_mat1 = synapx::matmul(grad_output, synapx::swapdims(mat2, -2, -1));
         
-    //     if (requires_grad_flags[2]) 
-    //         grad_mat2 = torch::matmul(torch::swapdims(mat1, -2, -1), grad_output);
+        if (mat2_req_grad) 
+            grad_mat2 = synapx::matmul(synapx::swapdims(mat1, -2, -1), grad_output);
 
-    //     return {grad_inp, grad_mat1, grad_mat2};
-    // }
-
-
-    // std::string Clone::name() const { return "Clone"; };
-
-    // std::vector<torch::Tensor> Clone::forward(const std::vector<torch::Tensor>& inputs) { 
-    //     return {inputs[0].clone()};
-    // }
-
-    // std::vector<torch::Tensor> Clone::backward(const torch::Tensor& grad_output, int output_idx) {
-    //     return {grad_output};
-    // }
+        return {grad_inp, grad_mat1, grad_mat2};
+    }
 
 
-    // std::string Exp::name() const { return "Exp"; };
+    ExpBackward0::ExpBackward0(const Tensor& t, const Tensor& fw_result) : t_req_grad(t.requires_grad()) {
+        if (t_req_grad)
+            this->fw_result = fw_result;
+    }
 
-    // std::vector<torch::Tensor> Exp::forward(const std::vector<torch::Tensor>& inputs) { 
-    //     const torch::Tensor& t = inputs[0];
-        
-    //     torch::Tensor out = torch::exp(t);
-        
-    //     if (t1_req_grad)
-    //         this->forward_result = out;
-        
-    //         return {out};
-    // }
+    std::string ExpBackward0::name() const { 
+        return "ExpBackward0"; 
+    }
 
-    // std::vector<torch::Tensor> Exp::backward(const torch::Tensor& grad_output, int output_idx) {
-    //     return {forward_result * grad_output};
-    // }
+    TensorList ExpBackward0::apply(const TensorList& inputs) {
+        const Tensor& grad_output = inputs[0];
+        return {fw_result * grad_output};
+    }
+
+    
+    LogBackward0::LogBackward0(const Tensor& t) : t_req_grad(t.requires_grad()) {
+        if (t_req_grad)
+            this->t = t;
+    }
+
+    std::string LogBackward0::name() const { 
+        return "LogBackward0"; 
+    }
+
+    TensorList LogBackward0::apply(const TensorList& inputs) {
+        const Tensor& grad_output = inputs[0];
+        return {grad_output / (t + epsilon)};
+    }
+    
+
+    SqrtBackward0::SqrtBackward0(const Tensor& t, const Tensor& fw_result) : t_req_grad(t.requires_grad()) {
+        if (t_req_grad)
+            this->fw_result = fw_result;
+    }
+
+    std::string SqrtBackward0::name() const { 
+        return "SqrtBackward0"; 
+    }
+
+    TensorList SqrtBackward0::apply(const TensorList& inputs) {
+        const Tensor& grad_output = inputs[0];
+        return {grad_output / (2 * fw_result)};
+    }
 
 
-    // std::string Log::name() const { return "Log"; };
-
-    // std::vector<torch::Tensor> Log::forward(const std::vector<torch::Tensor>& inputs) { 
-    //     const torch::Tensor& t = inputs[0];
-        
-    //     torch::Tensor out = torch::log(t + epsilon);
-
-    //     if (t1_req_grad)
-    //        this->t = t;
-        
-    //     return {out};
-    // }
-
-    // std::vector<torch::Tensor> Log::backward(const torch::Tensor& grad_output, int output_idx) {
-    //     return {grad_output / (t + epsilon)};
-    // }
-
-
-    // std::string Sqrt::name() const { return "Sqrt"; };
-
-    // std::vector<torch::Tensor> Sqrt::forward(const std::vector<torch::Tensor>& inputs) { 
-    //     const torch::Tensor& t = inputs[0];
-        
-    //     torch::Tensor out = torch::sqrt(t);
-        
-    //     if (t1_req_grad)
-    //         this->forward_result = out;
-        
-    //     return {out};
-    // }
-
-    // std::vector<torch::Tensor> Sqrt::backward(const torch::Tensor& grad_output, int output_idx) {
-    //     return {grad_output / (2 * forward_result)};
-    // }
-
-    SumBackward::SumBackward(const Tensor& t, const torch::IntArrayRef& dim, bool keepdim)
+    SumBackward0::SumBackward0(const Tensor& t, const torch::IntArrayRef& dim, bool keepdim)
         : t_req_grad(t.requires_grad()), dim(dim.vec()), keepdim(keepdim) {
         
         if (t_req_grad) {
@@ -332,11 +322,11 @@ namespace synapx::autograd
         }
     }
 
-    std::string SumBackward::name() const { 
-        return "SumBackward"; 
+    std::string SumBackward0::name() const { 
+        return "SumBackward0"; 
     }
 
-    TensorList SumBackward::apply(const TensorList& inputs) {
+    TensorList SumBackward0::apply(const TensorList& inputs) {
         const Tensor& grad_output = inputs[0];
         
         Tensor grad = grad_output;
@@ -348,135 +338,129 @@ namespace synapx::autograd
     }
 
 
-    // Mean::Mean(const torch::IntArrayRef& dim, bool keepdim): dim(dim.vec()), keepdim(keepdim) {}
-
-    // std::string Mean::name() const { return "Mean"; };
-
-    // std::vector<torch::Tensor> Mean::forward(const std::vector<torch::Tensor>& inputs) {
-    //     const torch::Tensor& t = inputs[0];
-
-    //     if (t1_req_grad) {
-    //         t_shape.reserve(t.dim());
-    //         t_shape = t.sizes().vec();
-            
-    //         normalized_dims = normalize_dims(t.dim(), dim);
-    //     }
+    MeanBackward0::MeanBackward0(const Tensor& t, const torch::IntArrayRef& dim, bool keepdim)
+        : t_req_grad(t.requires_grad()), dim(dim.vec()), keepdim(keepdim) {
         
-    //     return {torch::mean(t, dim, keepdim)}; 
-    // }
+        if (t_req_grad) {
+            t_shape.reserve(t.dim());
+            t_shape = t.sizes().vec();
 
-    // std::vector<torch::Tensor> Mean::backward(const torch::Tensor& grad_output, int output_idx) {
-    //     torch::Tensor grad = grad_output;
+            normalized_dims = normalize_dims(t.dim(), dim);
+        }
+    }
 
-    //     if(!keepdim && !dim.empty()) {
-    //         grad = expand_dims(grad, normalized_dims, /*normalized=*/true);
-    //     }
+    std::string MeanBackward0::name() const { 
+        return "MeanBackward0"; 
+    }
 
-    //     int num_samples = 1;
-    //     for (int64_t d : normalized_dims) {
-    //         num_samples *= t_shape[d];
-    //     }
-    //     grad = torch::broadcast_to(grad, t_shape) / num_samples;
-
-    //     return {grad};
-    // }
-
-
-    // Max::Max(std::optional<int64_t> dim, bool keepdim): dim(dim), keepdim(keepdim) {}
-
-    // std::string Max::name() const { return "Max"; };
-
-    // std::vector<torch::Tensor> Max::forward(const std::vector<torch::Tensor>& inputs) {
-    //     const torch::Tensor& t = inputs[0];
+    TensorList MeanBackward0::apply(const TensorList& inputs) {
+        const Tensor& grad_output = inputs[0];
         
-    //     torch::Tensor result;
-    //     if (!dim.has_value()) {
-    //         result = torch::max(t);
-    //         this->t = t;        
-    //         max_values = result;
-    //     } else {
-    //         auto [values, indices] = torch::max(t, dim.value(), keepdim);
-    //         result = values;
-    //         max_indices = indices;
-    //     }
-        
-    //     if (t1_req_grad) {
-    //         t_shape.reserve(t.dim());
-    //         t_shape = t.sizes().vec();
-    //     }
-        
-    //     return {result};
-    // }
+        Tensor grad = grad_output;
 
-    // std::vector<torch::Tensor> Max::backward(const torch::Tensor& grad_output, int output_idx) {
-    //     torch::Tensor grad = grad_output;
-    //     torch::Tensor mask;
-    
-    //     if (!dim.has_value()) {
-    //         mask = (t == max_values).to(grad.dtype());
-    //         mask /= mask.count_nonzero();
-    //     } else {
-    //         // Along specific dimension
-    //         mask = torch::zeros(t_shape, grad.options());
-    //         torch::Tensor indices = max_indices;
-    //         if (!keepdim) {
-    //             grad.unsqueeze_(dim.value());
-    //             indices.unsqueeze_(dim.value());
-    //         }
-    //         mask.scatter_(dim.value(), indices, 1);
-    //     }
+        if(!keepdim && !dim.empty())
+            grad = expand_dims(grad, normalized_dims, /*normalized=*/true);
         
-    //     return {grad * mask};
-    // }
+        int num_samples = 1;
+        for (int64_t d : normalized_dims) {
+            num_samples *= t_shape[d];
+        }
+        grad = synapx::broadcast_to(grad, t_shape) / num_samples;
+
+        return {grad};
+    }
 
 
-    // Min::Min(std::optional<int64_t> dim, bool keepdim): dim(dim), keepdim(keepdim) {}
-
-    // std::string Min::name() const { return "Min"; };
-
-    // std::vector<torch::Tensor> Min::forward(const std::vector<torch::Tensor>& inputs) {
-    //     const torch::Tensor& t = inputs[0];
+    MaxBackward0::MaxBackward0(const Tensor& t, int64_t dim, bool keepdim, const Tensor& max_indices)
+        : t_req_grad(t.requires_grad()), dim(dim), keepdim(keepdim), max_indices(max_indices) {
         
-    //     torch::Tensor result;
-    //     if (!dim.has_value()) {
-    //         result = torch::min(t);
-    //         this->t = t;        
-    //         min_values = result;
-    //     } else {
-    //         auto [values, indices] = torch::min(t, dim.value(), keepdim);
-    //         result = values;
-    //         min_indices = indices;
-    //     }
-        
-    //     if (t1_req_grad) {
-    //         t_shape.reserve(t.dim());
-    //         t_shape = t.sizes().vec();
-    //     }
-        
-    //     return {result};
-    // }
+        if (t_req_grad) {
+            t_shape.reserve(t.dim());
+            t_shape = t.sizes().vec();
+        }
+    }
 
-    // std::vector<torch::Tensor> Min::backward(const torch::Tensor& grad_output, int output_idx) {
-    //     torch::Tensor grad = grad_output;
-    //     torch::Tensor mask;
-    
-    //     if (!dim.has_value()) {
-    //         mask = (t == min_values).to(grad.dtype());
-    //         mask /= mask.count_nonzero();
-    //     } else {
-    //         // Along specific dimension
-    //         mask = torch::zeros(t_shape, grad.options());
-    //         torch::Tensor indices = min_indices;
-    //         if (!keepdim) {
-    //             grad.unsqueeze_(dim.value());
-    //             indices.unsqueeze_(dim.value());
-    //         }
-    //         mask.scatter_(dim.value(), indices, 1);
-    //     }
-        
-    //     return {grad * mask};
-    // }
+    std::string MaxBackward0::name() const { 
+        return "MaxBackward0"; 
+    }
 
+    TensorList MaxBackward0::apply(const TensorList& inputs) {
+        const Tensor& grad_output = inputs[0];
+        
+        Tensor grad = grad_output;
+        Tensor mask = synapx::zeros(t_shape, false, grad.options());
+
+        // Along specific dimension
+        Tensor indices = max_indices;
+        if (!keepdim) {
+            grad.unsqueeze_(dim);
+            indices.unsqueeze_(dim);
+        }
+        mask.scatter_(dim, indices, 1);
+        
+        return {grad * mask};
+    }
+
+    MaxBackward1::MaxBackward1(const Tensor& t, const Tensor& max_value) : t(t), max_value(max_value) {}
+
+    std::string MaxBackward1::name() const { 
+        return "MaxBackward1";
+    }
+
+    TensorList MaxBackward1::apply(const TensorList& inputs) {
+        const Tensor& grad_output = inputs[0];
+        
+        Tensor mask = (t == max_value).to(grad_output.dtype());
+        mask /= mask.count_nonzero();
+        
+        return {grad_output * mask};
+    }
+
+
+    MinBackward0::MinBackward0(const Tensor& t, int64_t dim, bool keepdim, const Tensor& min_indices)
+        : t_req_grad(t.requires_grad()), dim(dim), keepdim(keepdim), min_indices(min_indices) {
+        
+        if (t_req_grad) {
+            t_shape.reserve(t.dim());
+            t_shape = t.sizes().vec();
+        }
+    }
+
+    std::string MinBackward0::name() const { 
+        return "MinBackward0"; 
+    }
+
+    TensorList MinBackward0::apply(const TensorList& inputs) {
+        const Tensor& grad_output = inputs[0];
+        
+        Tensor grad = grad_output;
+        Tensor mask = synapx::zeros(t_shape, false, grad.options());
+
+        // Along specific dimension
+        Tensor indices = min_indices;
+        if (!keepdim) {
+            grad.unsqueeze_(dim);
+            indices.unsqueeze_(dim);
+        }
+        mask.scatter_(dim, indices, 1);
+        
+        return {grad * mask};
+    }
+
+    MinBackward1::MinBackward1(const Tensor& t, const Tensor& min_value) : t(t), min_value(min_value) {}
+
+    std::string MinBackward1::name() const { 
+        return "MinBackward1";
+    }
+
+    TensorList MinBackward1::apply(const TensorList& inputs) {
+        const Tensor& grad_output = inputs[0];
+        
+        Tensor mask = (t == min_value).to(grad_output.dtype());
+        mask /= mask.count_nonzero();
+        
+        return {grad_output * mask};
+    }
 
     // Squeeze::Squeeze(const torch::IntArrayRef& dim): dim(dim.vec()) {}
 

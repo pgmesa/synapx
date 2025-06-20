@@ -21,10 +21,15 @@ def main():
             # Add torch import
             content = content.replace("import numpy", "import torch\nimport numpy")
             
-            # Replace grad return value 
+            # Replace wrong return value 
             content = content.replace(
                 "def grad(self) -> typing.Any:", 
-                "def grad(self) -> typing.Union[Tensor, None]:"
+                "def grad(self) -> Tensor | None:"
+            )
+            
+            content = content.replace(
+                "def grad_fn(self) -> typing.Any:", 
+                "def grad_fn(self) -> Node | None:"
             )
             
             # Wrong generated type

@@ -5,6 +5,7 @@
 #include <memory>
 #include <vector>
 #include <cstddef>
+#include <optional>
 
 #include <torch/torch.h>
 
@@ -46,11 +47,12 @@ namespace synapx {
 
         torch::Scalar item() const;
         Tensor detach() const;
+        Tensor count_nonzero() const;
+        Tensor argmax(std::optional<int64_t> dim = std::nullopt, bool keepdim = false) const;
+        Tensor argmin(std::optional<int64_t> dim = std::nullopt, bool keepdim = false) const;
 
         const Tensor grad() const;
         void set_grad(const Tensor& grad);
-        void index_put_(const TensorIndices& idx, const Tensor& value);
-        void index_put_(const TensorIndices& idx, double value);
 
         std::shared_ptr<autograd::Node> grad_fn() const;
         void set_grad_fn(std::shared_ptr<autograd::Node> grad_fn);
@@ -76,6 +78,13 @@ namespace synapx {
         Tensor& operator*=(double other);
         Tensor& operator/=(const Tensor& other);
         Tensor& operator/=(double other);
+        
+        Tensor operator==(const Tensor& other) const;
+        Tensor operator!=(const Tensor& other) const;
+        Tensor operator<(const Tensor& other) const;
+        Tensor operator<=(const Tensor& other) const;
+        Tensor operator>(const Tensor& other) const;
+        Tensor operator>=(const Tensor& other) const;
 
         Tensor add(const Tensor& other) const;
         Tensor add(double other) const;
@@ -102,6 +111,10 @@ namespace synapx {
         Tensor& div_(double other);
         Tensor& neg_();
         Tensor& zero_();
+        Tensor& unsqueeze_(int64_t dim);
+        Tensor& scatter_(int64_t dim, const Tensor& index, double value);
+        void index_put_(const TensorIndices& idx, const Tensor& value);
+        void index_put_(const TensorIndices& idx, double value);
 
         Tensor rsub(const Tensor& other) const;
         Tensor rsub(double other) const;
@@ -134,6 +147,7 @@ namespace synapx {
         Tensor movedim(int64_t src, int64_t dest) const;
         Tensor slice(const TensorIndices& indices) const;
 
+
         void set_output_nr(uint32_t nr);
         uint32_t output_nr() const;
 
@@ -144,6 +158,11 @@ namespace synapx {
         struct Impl;
         std::shared_ptr<Impl> impl_;
     };
+
+    Tensor operator+(double scalar, const Tensor& tensor);
+    Tensor operator*(double scalar, const Tensor& tensor);
+    Tensor operator-(double scalar, const Tensor& tensor);
+    Tensor operator/(double scalar, const Tensor& tensor);
 
 } // namespace synapx
 

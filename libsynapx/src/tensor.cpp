@@ -108,6 +108,18 @@ namespace synapx {
         return Tensor(impl_->data, false);
     }
 
+    Tensor Tensor::count_nonzero() const {
+        return Tensor(impl_->data.count_nonzero(), false);
+    }
+
+    Tensor Tensor::argmax(std::optional<int64_t> dim, bool keepdim) const {
+        return Tensor(impl_->data.argmax(dim, keepdim));
+    };
+
+    Tensor Tensor::argmin(std::optional<int64_t> dim, bool keepdim) const {
+        return Tensor(impl_->data.argmin(dim, keepdim));
+    };
+
     torch::Scalar Tensor::item() const {
         return impl_->data.item();
     }
@@ -166,14 +178,6 @@ namespace synapx {
         impl_->grad_fn = grad_fn;
     }
 
-    void Tensor::index_put_(const TensorIndices& idx, const Tensor& value) {
-        impl_->data.index_put_(idx, value.data());
-    };
-
-    void Tensor::index_put_(const TensorIndices& idx, double value) {
-        impl_->data.index_put_(idx, value);
-    };
-
     void Tensor::backward(const Tensor& grad) {
         autograd::run_backward(*this, grad);
     }
@@ -217,6 +221,30 @@ namespace synapx {
 
     Tensor Tensor::operator[](const TensorIndices& indices) const {
         return slice(indices);
+    }
+    
+    Tensor Tensor::operator==(const Tensor& other) const {
+        return Tensor(impl_->data == other.data());
+    }
+
+    Tensor Tensor::operator!=(const Tensor& other) const {
+        return Tensor(impl_->data != other.data());
+    }
+
+    Tensor Tensor::operator<(const Tensor& other) const {
+        return Tensor(impl_->data < other.data());
+    }
+
+    Tensor Tensor::operator<=(const Tensor& other) const {
+        return Tensor(impl_->data <= other.data());
+    }
+
+    Tensor Tensor::operator>(const Tensor& other) const {
+        return Tensor(impl_->data > other.data());
+    }
+
+    Tensor Tensor::operator>=(const Tensor& other) const {
+        return Tensor(impl_->data >= other.data());
     }
 
     // Inplace operators
@@ -374,6 +402,28 @@ namespace synapx {
         return *this;
     }
 
+    Tensor& Tensor::unsqueeze_(int64_t dim) {
+        in_place_check(*this);
+        impl_->data.unsqueeze_(dim);
+        return *this;
+    }
+
+    Tensor& Tensor::scatter_(int64_t dim, const Tensor& index, double value) {
+        in_place_check(*this);
+        impl_->data.scatter_(dim, index.data(), value);
+        return *this;
+    }
+
+    void Tensor::index_put_(const TensorIndices& idx, const Tensor& value) {
+        in_place_check(*this);
+        impl_->data.index_put_(idx, value.data());
+    };
+
+    void Tensor::index_put_(const TensorIndices& idx, double value) {
+        in_place_check(*this);
+        impl_->data.index_put_(idx, value);
+    };
+
     // Reverse functions
     Tensor Tensor::rsub(const Tensor& other) const {
         return synapx::rsub(*this, other);
@@ -500,5 +550,23 @@ namespace synapx {
         ss << tensor;
         return ss.str();
     }
+
+
+    Tensor operator+(double scalar, const Tensor& tensor) {
+        return tensor.add(scalar);
+    };
+
+    Tensor operator*(double scalar, const Tensor& tensor) {
+        return tensor.mul(scalar);
+    };
+
+    Tensor operator-(double scalar, const Tensor& tensor) {
+        return tensor.rsub(scalar);
+    };
+
+    Tensor operator/(double scalar, const Tensor& tensor) {
+        return tensor.rdiv(scalar);
+    };
+    
     
 } // namespace synapx

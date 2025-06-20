@@ -248,20 +248,20 @@ def test_parameter_update():
 # # ******* Other ops *******
 # # *************************
 
-# def test_clone():
-#     op_tester([(1000, 1000)], lambda x: x.clone(), name='clone')
+def test_clone():
+    op_tester([(1000, 1000)], lambda x: x.clone(), name='clone')
 
-# def test_addmm():
-#     op_tester([(10, 10), (10, 10), (10, 10)], lambda engine, x, y, z: engine.addmm(x, y, z), name='addmm', module_func=True)
+def test_addmm():
+    op_tester([(10, 10), (10, 10), (10, 10)], lambda engine, x, y, z: engine.addmm(x, y, z), name='addmm', module_func=True)
 
-# def test_log():
-#     op_tester([(1000, 1000)], lambda x: x.log(), name='log', factor=5, offset=0.1)
+def test_log():
+    op_tester([(1000, 1000)], lambda x: x.log(), name='log', factor=5, offset=0.1)
 
-# def test_exp():
-#     op_tester([(1000, 1000)], lambda x: x.exp(), name='exp')
+def test_exp():
+    op_tester([(1000, 1000)], lambda x: x.exp(), name='exp')
 
-# def test_sqrt():
-#     op_tester([(1000, 1000)], lambda x: x.sqrt(), name='sqrt')
+def test_sqrt():
+    op_tester([(1000, 1000)], lambda x: x.sqrt(), name='sqrt')
 
 def test_sum():
     op_tester([(1000, 1500)], lambda x: x.sum(), name='sum')
@@ -270,37 +270,37 @@ def test_sum():
     op_tester([(1000, 1500)], lambda x: x.sum(dim=-1), name='sum')
     op_tester([(1000, 1500, 3)], lambda engine, x: engine.sum(x, dim=-1), name='engine.sum', module_func=True)
 
-# def test_mean():
-#     op_tester([(1000, 1500)], lambda x: x.mean(dim=0), name='mean')
-#     op_tester([(1000, 1500)], lambda x: x.mean(dim=1), name='mean')
-#     op_tester([(1000, 1500)], lambda x: x.mean(dim=-1), name='mean')
-#     op_tester([(1000, 1500, 3)], lambda engine, x: engine.mean(x, dim=(1,2)), name='engine.mean', module_func=True)
+def test_mean():
+    op_tester([(1000, 1500)], lambda x: x.mean(dim=0), name='mean')
+    op_tester([(1000, 1500)], lambda x: x.mean(dim=1), name='mean')
+    op_tester([(1000, 1500)], lambda x: x.mean(dim=-1), name='mean')
+    op_tester([(1000, 1500, 3)], lambda engine, x: engine.mean(x, dim=(1,2)), name='engine.mean', module_func=True)
 
-# def test_max():
-#     op_tester([(4, 4)], lambda x: x.max(), name='max')
-#     op_tester([(4, 4)], lambda x: x.max(), name='max_ones', ones=True) # When more than one element is equal to max_value
-#     op_tester([(1000, 1500)], lambda x: x.max(dim=0), name='max_d0')
-#     op_tester([(1000, 1500)], lambda x: x.max(dim=0), name='max_d0_ones', ones=True)
-#     op_tester([(1000, 1500)], lambda x: x.max(dim=1), name='max_d1')
-#     op_tester([(1000, 1500)], lambda x: x.max(dim=1), name='max_d1_ones', ones=True)
-#     op_tester([(1000, 1500)], lambda x: x.max(dim=1, keepdim=True), name='max_d1')
-#     op_tester([(1000, 3, 4, 5)], lambda x: x.max(dim=2), name='max_d2')
-#     op_tester([(1000, 3, 4, 5)], lambda x: x.max(dim=3), name='max_d3')
-#     op_tester([(1000, 3, 4, 5)], lambda x: x.max(dim=-1), name='max_d3')
-#     op_tester([(1000, 3, 4, 5)], lambda x: x.max(dim=-2), name='max_d3')
+def test_max():
+    op_tester([(4, 4)], lambda x: x.max(), name='max')
+    op_tester([(4, 4)], lambda x: x.max(), name='max_ones', ones=True) # When more than one element is equal to max_value
+    op_tester([(1000, 1500)], lambda x: x.max(dim=0), name='max_d0')
+    op_tester([(1000, 1500)], lambda x: x.max(dim=0), name='max_d0_ones', ones=True)
+    op_tester([(1000, 1500)], lambda x: x.max(dim=1), name='max_d1')
+    op_tester([(1000, 1500)], lambda x: x.max(dim=1), name='max_d1_ones', ones=True)
+    op_tester([(1000, 1500)], lambda x: x.max(dim=1, keepdim=True), name='max_d1')
+    op_tester([(1000, 3, 4, 5)], lambda x: x.max(dim=2), name='max_d2')
+    op_tester([(1000, 3, 4, 5)], lambda x: x.max(dim=3), name='max_d3')
+    op_tester([(1000, 3, 4, 5)], lambda x: x.max(dim=-1), name='max_d3')
+    op_tester([(1000, 3, 4, 5)], lambda x: x.max(dim=-2), name='max_d3')
     
-# def test_min():
-#     op_tester([(4, 4)], lambda x: x.min(), name='min')
-#     op_tester([(4, 4)], lambda x: x.min(), name='min_ones', ones=True) # When more than one element is equal to min_value
-#     op_tester([(1000, 1500)], lambda x: x.min(dim=0), name='min_d0')
-#     op_tester([(1000, 1500)], lambda x: x.min(dim=0), name='min_d0_ones', ones=True)
-#     op_tester([(1000, 1500)], lambda x: x.min(dim=1), name='min_d1')
-#     op_tester([(1000, 1500)], lambda x: x.min(dim=1), name='min_d1_ones', ones=True)
-#     op_tester([(1000, 1500)], lambda x: x.min(dim=1, keepdim=True), name='min_d1')
-#     op_tester([(1000, 3, 4, 5)], lambda x: x.min(dim=2), name='min_d2')
-#     op_tester([(1000, 3, 4, 5)], lambda x: x.min(dim=3), name='min_d3')
-#     op_tester([(1000, 3, 4, 5)], lambda x: x.min(dim=-1), name='min_d3')
-#     op_tester([(1000, 3, 4, 5)], lambda x: x.min(dim=-2), name='min_d3')
+def test_min():
+    op_tester([(4, 4)], lambda x: x.min(), name='min')
+    op_tester([(4, 4)], lambda x: x.min(), name='min_ones', ones=True) # When more than one element is equal to min_value
+    op_tester([(1000, 1500)], lambda x: x.min(dim=0), name='min_d0')
+    op_tester([(1000, 1500)], lambda x: x.min(dim=0), name='min_d0_ones', ones=True)
+    op_tester([(1000, 1500)], lambda x: x.min(dim=1), name='min_d1')
+    op_tester([(1000, 1500)], lambda x: x.min(dim=1), name='min_d1_ones', ones=True)
+    op_tester([(1000, 1500)], lambda x: x.min(dim=1, keepdim=True), name='min_d1')
+    op_tester([(1000, 3, 4, 5)], lambda x: x.min(dim=2), name='min_d2')
+    op_tester([(1000, 3, 4, 5)], lambda x: x.min(dim=3), name='min_d3')
+    op_tester([(1000, 3, 4, 5)], lambda x: x.min(dim=-1), name='min_d3')
+    op_tester([(1000, 3, 4, 5)], lambda x: x.min(dim=-2), name='min_d3')
 
 # def test_squeeze():
 #     op_tester([(100, 1)], lambda x: x.squeeze(dim=1), name='squeeze')
