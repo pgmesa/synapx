@@ -378,6 +378,7 @@ PYBIND11_MODULE(_C, c) {
         .def("reshape", &synapx::Tensor::reshape, py::arg("shape"))
 
         .def("transpose", &synapx::Tensor::transpose, py::arg("dim0"), py::arg("dim1"))
+        .def("t", &synapx::Tensor::t)
 
         .def("swapdims", &synapx::Tensor::swapdims, py::arg("dim0"), py::arg("dim1"))
         
@@ -566,9 +567,9 @@ PYBIND11_MODULE(_C, c) {
     c.def("relu", &synapx::relu, py::arg("tensor"));
 
 
-    // auto nn = c.def_submodule("_nn", "Neural network submodule");
+    auto nn = c.def_submodule("_nn", "Neural network submodule");
 
-    // nn.def("relu", &synapx::relu, py::arg("tensor"));
+    nn.def("relu", &synapx::relu, py::arg("tensor"));
     
-    // nn.def("linear", &synapx::linear, py::arg("inp"), py::arg("weight"), py::arg("bias") = py::none());
+    nn.def("linear", &synapx::linear, py::arg("inp"), py::arg("weight"), py::arg("bias") = py::none());
 }

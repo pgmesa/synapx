@@ -151,6 +151,7 @@ namespace synapx {
         Tensor reshape(torch::IntArrayRef shape) const;
         Tensor broadcast_to(torch::IntArrayRef shape) const;
         Tensor transpose(int64_t dim0, int64_t dim1) const;
+        Tensor t() const;
         Tensor swapdims(int64_t dim0, int64_t dim1) const;
         Tensor movedim(int64_t src, int64_t dest) const;
         Tensor slice(const TensorIndices& indices) const;

@@ -8,6 +8,8 @@ synapx/lib/
 synapx/include/
 synapx/share/
 synapx/_C.pyi
+synapx/_C/
+
 
 # CMake
 CMakeUserPresets.json

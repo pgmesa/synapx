@@ -6,6 +6,7 @@
 #include <cstddef>
 
 #include <torch/torch.h>
+#include <fmt/core.h>
 #include <spdlog/spdlog.h>
 
 #include <synapx/functional.hpp>
@@ -561,6 +562,16 @@ namespace synapx {
 
     Tensor Tensor::transpose(int64_t dim0, int64_t dim1) const {
         return synapx::transpose(*this, dim0, dim1);
+    }
+
+    Tensor Tensor::t() const {
+        if (dim() > 2) {
+            std::string msg = fmt::format(
+                "t() expects a tensor with <= 2 dimensions, but self is {}D", dim()
+            );
+            throw std::runtime_error(msg);
+        }
+        return synapx::transpose(*this, 0, 1);
     }
 
     Tensor Tensor::swapdims(int64_t dim0, int64_t dim1) const {

@@ -730,27 +730,13 @@ namespace synapx {
 
     Tensor linear(const Tensor& inp, const Tensor& weight, std::optional<Tensor> bias) {
         TensorList inputs {inp, weight};
-        if (bias.has_value()) inputs.push_back(bias.value());
 
-        Operation operation = [&inp, &weight, &bias]() -> TorchList {
-            std::optional<torch::Tensor> bias_data = 
-                bias.has_value() ? std::optional<torch::Tensor>(bias.value().data()) : std::nullopt;
-            return { torch::linear(inp.data(), weight.data(), bias_data) };
-        };
-
-        NodeFactory node_factory;
+        Tensor output;
         if (bias.has_value()) {
-            node_factory = [&inp, &weight, &bias](const TensorList& outputs) -> autograd::NodePtr {
-                return std::make_shared<autograd::AddmmBackward0>(inp, weight, bias.value());
-            };
-
+            output = addmm(bias.value(), inp, weight.t());
         } else {
-            node_factory = [&inp, &weight](const TensorList& outputs) -> autograd::NodePtr {
-                return std::make_shared<autograd::MatmulBackward0>(inp, weight);
-            };
+            output = matmul(inp, weight.t());
         }
-
-        Tensor output = apply_operation(inputs, operation, node_factory)[0];
 
         return output;
     }

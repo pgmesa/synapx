@@ -62,13 +62,23 @@ for file in target_synapx_lib_dir.iterdir():
         break
 
 if not _C_module_file:
-    raise ImportError(f"Cannot find the synapx._C shared library file for libtorch {torch_version} in {target_synapx_lib_dir}")
+    raise ImportError("Cannot find the synapx._C shared library file for " + 
+                      f"libtorch {torch_version} in {target_synapx_lib_dir}")
 
-# Dynamically load the identified `_C` module
+# Load the C++ extension as a Python module
 spec = importlib.util.spec_from_file_location("synapx._C", _C_module_file)
+if spec is None or spec.loader is None:
+    raise ImportError(f"Cannot load spec for {_C_module_file}")
+
 _C = importlib.util.module_from_spec(spec)
 sys.modules["synapx._C"] = _C
 spec.loader.exec_module(_C)
 
 # Expose everything from the dynamically loaded _C module
 from synapx._C import *
+
+# Import commonly used subpackages
+from synapx import (
+    nn as nn,
+    optim as optim
+)
