@@ -203,6 +203,13 @@ PYBIND11_MODULE(_C, c) {
                 if (end_pos != std::string::npos) {
                     repr_str.replace(end_pos, end.length(), tensor_info);
                 }
+            } else if (self.requires_grad()) {
+                std::string tensor_info = ", requires_grad=True)";
+                const std::string end = ")";
+                size_t end_pos = repr_str.find(end);
+                if (end_pos != std::string::npos) {
+                    repr_str.replace(end_pos, end.length(), tensor_info);
+                }
             }
 
             return repr_str;
