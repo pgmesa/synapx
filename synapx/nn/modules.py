@@ -9,6 +9,10 @@ class Parameter(Tensor):
     """
     Wrapper class for Tensor that allows it to be used as a module parameter.
     """ 
+    def __init__(self, data: Tensor):
+        super().__init__(data)
+        self._is_param = True
+    
     def __repr__(self) -> str:
         return f"Parameter containing:\n{super().__repr__()}"
 

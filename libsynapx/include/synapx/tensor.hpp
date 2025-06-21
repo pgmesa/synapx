@@ -26,10 +26,9 @@ namespace synapx {
         Tensor();
         Tensor(const torch::Tensor& data, bool requires_grad=false);
 
-        const torch::Tensor& data() const;
+        torch::Tensor data() const;
         bool defined() const;
         bool requires_grad() const;
-        void requires_grad_(bool _requires_grad);
         torch::Dtype dtype() const;
         torch::Device device() const;
         torch::TensorOptions options() const;
@@ -105,6 +104,7 @@ namespace synapx {
         Tensor matmul(const Tensor& other) const;
         Tensor neg() const;
 
+        Tensor& requires_grad_(bool _requires_grad);
         Tensor& add_(const Tensor& other);
         Tensor& add_(double other);
         Tensor& sub_(const Tensor& other);
@@ -117,6 +117,9 @@ namespace synapx {
         Tensor& div_(double other);
         Tensor& neg_();
         Tensor& zero_();
+        Tensor& fill_(double value);
+        Tensor& uniform_(double from = 0, double to = 1);
+        Tensor& normal_(double mean = 0, double std = 1);
         Tensor& unsqueeze_(int64_t dim);
         Tensor& scatter_(int64_t dim, const Tensor& index, double value);
         Tensor& index_put_(const TensorIndices& idx, const Tensor& value);

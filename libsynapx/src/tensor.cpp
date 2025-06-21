@@ -53,15 +53,15 @@ namespace synapx {
         return impl_->output_nr;
     }
 
-    const torch::Tensor& Tensor::data() const { 
-        return impl_->data; 
+    torch::Tensor Tensor::data() const { 
+        return impl_->data.detach();
     }
 
     bool Tensor::requires_grad() const { 
         return impl_->requires_grad; 
     }
 
-    void Tensor::requires_grad_(bool _requires_grad) {
+    Tensor& Tensor::requires_grad_(bool _requires_grad) {
         if (!is_leaf()) {
             throw std::runtime_error(
                 "You can only change requires_grad flags of leaf variables. "
@@ -75,6 +75,7 @@ namespace synapx {
         }
             
         impl_->requires_grad = _requires_grad;
+        return *this;
     }
 
     torch::TensorOptions Tensor::options() const {
@@ -426,6 +427,25 @@ namespace synapx {
         impl_->data.zero_();
         return *this;
     }
+
+    Tensor& Tensor::fill_(double value) {
+        in_place_check(*this);
+        impl_->data.fill_(value);
+        return *this;
+    }
+
+    Tensor& Tensor::uniform_(double from, double to) {
+        in_place_check(*this);
+        impl_->data.uniform_(from, to);
+        return *this;
+    }
+
+    Tensor& Tensor::normal_(double mean, double std) {
+        in_place_check(*this);
+        impl_->data.normal_(mean, std);
+        return *this;
+    }
+
 
     Tensor& Tensor::unsqueeze_(int64_t dim) {
         in_place_check(*this);

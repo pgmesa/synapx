@@ -122,6 +122,9 @@ PYBIND11_MODULE(_C, c) {
 
     // SynapX Tensor class
     py::class_<synapx::Tensor>(c, "Tensor")
+        .def(py::init([](const synapx::Tensor& tensor) {
+            return tensor;
+        }))
         .def_property_readonly("data", &synapx::Tensor::data)
         .def_property_readonly("shape", [](const synapx::Tensor& self) -> py::tuple {
             pybind11::tuple py_shape = pybind11::cast(self.shape());
@@ -337,6 +340,9 @@ PYBIND11_MODULE(_C, c) {
         
         .def("neg_", &synapx::Tensor::neg_)
         .def("zero_", &synapx::Tensor::zero_)
+        .def("fill_", &synapx::Tensor::fill_)
+        .def("uniform_", &synapx::Tensor::uniform_, py::arg("from_") = 0, py::arg("to") = 1)
+        .def("normal_", &synapx::Tensor::normal_, py::arg("mean") = 0, py::arg("std") = 1)
         
         // Other operations
         .def("clone", &synapx::Tensor::clone)
