@@ -578,11 +578,20 @@ PYBIND11_MODULE(_C, c) {
 
 
     c.def("relu", &synapx::relu, py::arg("tensor"));
+    c.def("sigmoid", &synapx::sigmoid, py::arg("tensor"));
 
 
     auto nn = c.def_submodule("_nn", "Neural network submodule");
 
+    // Activations
     nn.def("relu", &synapx::relu, py::arg("tensor"));
-    
+    nn.def("sigmoid", &synapx::sigmoid, py::arg("tensor"));
+
+    // Losses
+    nn.def("mse_loss", [](const synapx::Tensor& input, const synapx::Tensor& target, const std::string& reduction) {
+        return synapx::mse_loss(input, target, get_reduction(reduction));
+    }, py::arg("input"), py::arg("target"), py::arg("reduction") = "mean");
+
+    // Layer operations
     nn.def("linear", &synapx::linear, py::arg("inp"), py::arg("weight"), py::arg("bias") = py::none());
 }

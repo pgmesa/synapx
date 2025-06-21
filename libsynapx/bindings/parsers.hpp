@@ -138,4 +138,21 @@ private:
     }
 };
 
+
+synapx::Reduction get_reduction(const std::string& reduction) {
+    synapx::Reduction reduction_;
+
+    if (reduction == "none") {
+        reduction_ = synapx::Reduction::None;
+    } else if (reduction == "mean") {
+        reduction_ = synapx::Reduction::Mean;
+    } else if (reduction == "sum") {
+        reduction_ = synapx::Reduction::Sum;
+    } else {
+        throw std::invalid_argument(reduction + " is not a valid value for reduction");
+    }
+
+    return reduction_;
+}
+
 #endif

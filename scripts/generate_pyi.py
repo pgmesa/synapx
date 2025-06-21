@@ -1,5 +1,6 @@
 
 import sys
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -12,10 +13,17 @@ cpp_module_name = '_C'
 
     
 def main():
+    stubs_path = project_path / f'synapx/{cpp_module_name}'
+    
+    # Remove previous stubs
+    if stubs_path.exists():
+        shutil.rmtree(stubs_path)
+    
+    # Generate new stubs
     command = ['pybind11-stubgen', f'synapx.{cpp_module_name}', '--output', '.']
     subprocess.run(command, cwd=project_path)
     
-    stubs_path = project_path / f'synapx/{cpp_module_name}'
+    # Adjust generated stubs
     if stubs_path.is_dir():
         for stub_file in stubs_path.iterdir():
             

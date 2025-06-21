@@ -615,6 +615,10 @@ namespace synapx {
         return synapx::relu(*this);
     }
 
+    Tensor Tensor::sigmoid() const {
+        return synapx::sigmoid(*this);
+    }
+
 
     std::string Tensor::to_string() const {
         std::stringstream ss;

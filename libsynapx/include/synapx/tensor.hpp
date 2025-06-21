@@ -161,6 +161,7 @@ namespace synapx {
         Tensor select(int64_t dim, int64_t index) const;
 
         Tensor relu() const;
+        Tensor sigmoid() const;
 
 
         void set_output_nr(uint32_t nr);

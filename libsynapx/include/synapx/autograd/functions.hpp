@@ -6,6 +6,7 @@
 #include <stdexcept>
 
 #include <fmt/core.h>
+#include <synapx/functional.hpp>
 
 
 namespace synapx::autograd {
@@ -365,6 +366,7 @@ namespace synapx::autograd {
     };
 
 
+    // Activations
     class ReLUBackward0: public Node {
     public:
         ReLUBackward0(const Tensor& t);
@@ -374,6 +376,32 @@ namespace synapx::autograd {
     private:
         Tensor t;
     };
+
+    class SigmoidBackward0: public Node {
+    public:
+        SigmoidBackward0(const Tensor& fw_result);
+        std::string name() const override;
+        TensorList apply(const TensorList& inputs) override;
+
+    private:
+        Tensor fw_result;
+    };
+
+
+    // Losses
+    class MSELossBackward0: public Node {
+    public:
+        MSELossBackward0(const Tensor& input, const Tensor& target, const Tensor& diff, Reduction reduction);
+        std::string name() const override;
+        TensorList apply(const TensorList& inputs) override;
+
+    private:
+        bool input_req_grad;
+        bool target_req_grad;
+        Tensor diff;
+        Reduction reduction;
+    };
+
 
 } // namespace synapx::autograd
 

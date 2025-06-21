@@ -570,6 +570,7 @@ namespace synapx::autograd
     }
 
 
+    // Activations
     ReLUBackward0::ReLUBackward0(const Tensor& t) : t(t) {}
 
     std::string ReLUBackward0::name() const { 
@@ -579,6 +580,46 @@ namespace synapx::autograd
     TensorList ReLUBackward0::apply(const TensorList& inputs) { 
         const Tensor& grad_input = inputs[0];
         return {grad_input * (t > 0)};
+    }
+
+
+    SigmoidBackward0::SigmoidBackward0(const Tensor& fw_result) : fw_result(fw_result) {}
+
+    std::string SigmoidBackward0::name() const { 
+        return "SigmoidBackward0";
+    }
+
+    TensorList SigmoidBackward0::apply(const TensorList& inputs) { 
+        const Tensor& grad_input = inputs[0];
+        return {grad_input * fw_result * (1 - fw_result)};
+    }
+
+
+    // Losses
+    MSELossBackward0::MSELossBackward0(const Tensor& input, const Tensor& target, const Tensor& diff, Reduction reduction) 
+        : input_req_grad(input.requires_grad()), target_req_grad(target.requires_grad()), diff(diff), reduction(reduction) {}
+
+    std::string MSELossBackward0::name() const { 
+        return "MSELossBackward0";
+    }
+
+    TensorList MSELossBackward0::apply(const TensorList& inputs) { 
+        const Tensor& grad_input = inputs[0];
+
+        Tensor input_grad, target_grad;
+        float scale = 2.0f;
+        if (reduction == Reduction::Mean) {
+            scale /= static_cast<float>(diff.numel());
+        }
+
+        if (input_req_grad) {
+            input_grad = scale * diff * grad_input;
+        }
+        if (target_req_grad) {
+            target_grad = -scale * diff * grad_input;
+        }
+
+        return {input_grad, target_grad};
     }
 
     

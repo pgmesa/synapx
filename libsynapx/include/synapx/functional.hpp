@@ -11,6 +11,12 @@
 
 namespace synapx {
 
+    enum SYNAPX_API Reduction {
+        None, // Do not reduce
+        Mean, // Mean of losses
+        Sum, // Sum losses
+    };
+
     SYNAPX_API Tensor empty(torch::IntArrayRef shape, bool requires_grad = false, torch::TensorOptions options = {});
     SYNAPX_API Tensor empty_like(Tensor t, bool requires_grad = false, torch::TensorOptions options = {});
     SYNAPX_API Tensor ones(torch::IntArrayRef shape, bool requires_grad = false, torch::TensorOptions options = {});
@@ -72,8 +78,14 @@ namespace synapx {
     SYNAPX_API TensorList unbind(const Tensor& t, int64_t dim = 0);
     SYNAPX_API TensorList split(const Tensor& t, torch::IntArrayRef split_size, int64_t dim);
 
+    // Activations
     SYNAPX_API Tensor relu(const Tensor& t);
+    SYNAPX_API Tensor sigmoid(const Tensor& t);
 
+    // Losses
+    SYNAPX_API Tensor mse_loss(const Tensor& input, const Tensor& target, Reduction reduction);
+
+    // Layer operations
     SYNAPX_API Tensor linear(const Tensor& inp, const Tensor& weight, std::optional<Tensor> bias);
 
 }

@@ -710,7 +710,7 @@ namespace synapx {
         return outputs;
     }
 
-
+    // Activations
     Tensor relu(const Tensor& t) {
         const TensorList inputs {t};
 
@@ -727,7 +727,54 @@ namespace synapx {
         return output;
     }
 
+    Tensor sigmoid(const Tensor& t) {
+        const TensorList inputs {t};
 
+        Operation operation = [&t]() -> TorchList {
+            return { torch::sigmoid(t.data()) };
+        };
+
+        NodeFactory node_factory = [&t](const TensorList& outputs) -> autograd::NodePtr {
+            return std::make_shared<autograd::SigmoidBackward0>(outputs[0]);
+        };
+
+        Tensor output = apply_operation(inputs, operation, node_factory)[0];
+
+        return output;
+    }
+
+    namespace {
+
+        torch::Tensor apply_reduction(torch::Tensor tensor, Reduction reduction) {
+            if (reduction == Reduction::Mean) return tensor.mean();
+            else if (reduction == Reduction::Sum) return tensor.sum();
+            return tensor;
+        }
+
+    }
+
+    // Losses
+    Tensor mse_loss(const Tensor& input, const Tensor& target, Reduction reduction) {
+        TensorList inputs {input, target};
+
+        Tensor diff;
+        Operation operation = [&input, &target, &diff, reduction]() -> TorchList {
+            torch::Tensor diff_data = input.data() - target.data();
+            diff = Tensor(diff_data);
+            return { apply_reduction(diff_data.pow(2), reduction) };
+        };
+
+        NodeFactory node_factory = [&input, &target, &diff, reduction](const TensorList& outputs) -> autograd::NodePtr {
+            return std::make_shared<autograd::MSELossBackward0>(input, target, diff, reduction);
+        };
+
+        Tensor output = apply_operation(inputs, operation, node_factory)[0];
+
+        return output;
+    }
+
+
+    // Layer operations
     Tensor linear(const Tensor& inp, const Tensor& weight, std::optional<Tensor> bias) {
         TensorList inputs {inp, weight};
 
