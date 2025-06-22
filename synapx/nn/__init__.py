@@ -10,7 +10,7 @@ from synapx.nn.losses import (
     Loss, MSELoss, CrossEntropyLoss, NLLLoss, BCELoss, BCEWithLogitsLoss
 )
 from synapx.nn.layers import (
-    Linear #, Neuron, Flatten, Unfold, Fold, Dropout,
+    Linear, Flatten, Dropout, #  Unfold, Fold
     # MaxPool1d, MaxPool2d, AvgPool1d, AvgPool2d, Conv1d, Conv2d,
     # BatchNorm1d, BatchNorm2d
 )

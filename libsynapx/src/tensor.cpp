@@ -623,6 +623,10 @@ namespace synapx {
         return synapx::sigmoid(*this);
     }
 
+    Tensor Tensor::flatten(int64_t start_dim, int64_t end_dim) const {
+        return synapx::flatten(*this, start_dim, end_dim);
+    }
+
 
     std::string Tensor::to_string() const {
         std::stringstream ss;

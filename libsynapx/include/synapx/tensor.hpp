@@ -163,6 +163,7 @@ namespace synapx {
 
         Tensor relu() const;
         Tensor sigmoid() const;
+        Tensor flatten(int64_t start_dim = 0, int64_t end_dim = -1) const;
 
 
         void set_output_nr(uint32_t nr);

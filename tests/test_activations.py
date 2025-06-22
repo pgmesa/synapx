@@ -31,3 +31,15 @@ def check_activation(act, act_t):
 
 def test_relu():
     check_activation(synapx.nn.ReLU(), torch.nn.ReLU())
+    
+    
+def test_sigmoid():
+    check_activation(synapx.nn.Sigmoid(), torch.nn.Sigmoid())
+    
+    
+# def test_softmax():
+#     check_activation(synapx.nn.Softmax(dim=1), torch.nn.Softmax(dim=1))
+    
+    
+# def test_log_softmax():
+#     check_activation(synapx.nn.LogSoftmax(dim=1), torch.nn.LogSoftmax(dim=1))

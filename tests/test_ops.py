@@ -359,8 +359,15 @@ def test_linear():
     op_tester([(100, 200), (300, 200)], lambda F, x, w: F.linear(x, w), name='linear', module_func=True, nn_functional=True)
     op_tester([(100, 200), (300, 200), (100, 300)], lambda F, x, w, b: F.linear(x, w, b), name='linear', module_func=True, nn_functional=True)
 
-# def test_flatten():
-#     op_tester([(100, 200, 300)], lambda x: x.flatten(), name='flatten')
-#     op_tester([(100, 200, 300)], lambda x: x.flatten(start_dim=0, end_dim=1), name='flatten_0_1')
-#     op_tester([(100, 200, 300)], lambda x: x.flatten(start_dim=1, end_dim=2), name='flatten_1_2')
-#     op_tester([(100, 200, 300)], lambda x: x.flatten(start_dim=0, end_dim=2), name='flatten_0_2')
+def test_flatten():
+    op_tester([(100, 200, 300)], lambda x: x.flatten(), name='flatten')
+    op_tester([(100, 200, 300)], lambda x: x.flatten(start_dim=0, end_dim=1), name='flatten_0_1')
+    op_tester([(100, 200, 300)], lambda x: x.flatten(start_dim=1, end_dim=2), name='flatten_1_2')
+    op_tester([(100, 200, 300)], lambda x: x.flatten(start_dim=0, end_dim=2), name='flatten_0_2')
+    op_tester([(100, 200, 300)], lambda x: x.flatten(start_dim=0, end_dim=0), name='flatten_0_0')
+    
+def test_relu():
+    op_tester([(100, 200, 300)], lambda x: x.relu(), name='relu')
+    
+def test_sigmoid():
+    op_tester([(100, 200, 300)], lambda x: x.sigmoid(), name='sigmoid')

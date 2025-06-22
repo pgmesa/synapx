@@ -39,3 +39,24 @@ def test_linear():
             
         assert check_tensors(out, out_t)
         assert check_tensors(inp.grad, inp_t.grad)
+        
+    
+def test_flatten():
+    data = torch.randn((30,28,28,3,4))
+    
+    # synapgrad
+    inp = synapx.tensor(data, requires_grad=True)
+    linear = synapx.nn.Flatten(start_dim=1, end_dim=2)
+    out_l = linear(inp)
+    out = out_l.sum()
+    out.backward()
+    
+    # torch
+    inp_t = data.requires_grad_(True)
+    linear_t = torch.nn.Flatten(start_dim=1, end_dim=2)
+    out_tl = linear_t(inp_t)
+    out_t = out_tl.sum()
+    out_t.backward()
+
+    assert check_tensors(out_l, out_tl)
+    assert check_tensors(inp.grad, inp_t.grad)

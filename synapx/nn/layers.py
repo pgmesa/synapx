@@ -3,7 +3,7 @@ import math
 
 import torch
 import synapx
-from synapx import nn
+from synapx import nn, Tensor
 from synapx.nn import functional as F, init
 
 
@@ -67,6 +67,63 @@ class Linear(nn.Module):
         if self.bias is not None:
             init.uniform_(self.bias, -std, std)
         
-    def forward(self, x: synapx.Tensor) -> synapx.Tensor:
+    def forward(self, x: Tensor) -> Tensor:
         assert x.shape[1] == self.in_features, f"Expected input size '{self.in_features}' but received '{x.shape[1]}'"
         return F.linear(x, self.weight, self.bias)
+    
+    
+class Flatten(nn.Module):
+    
+    def __init__(self, start_dim=1, end_dim=-1) -> None:
+        """ 
+        Flattens a tensor over the specified start and end dimensions
+        
+        Reference:
+            - https://pytorch.org/docs/stable/generated/torch.flatten.html
+            
+        Args:
+            start_dim (int): The dimension to start flattening.
+            end_dim (int): The dimension to end flattening.
+        
+        Returns:
+            A tensor of shape (batch_size, *output_shape)
+        
+        Example:
+            >>> layer = nn.Flatten()
+            >>> x = synapgrad.ones((2, 3, 4, 5))
+            >>> y = layer(x)
+        """
+        super().__init__()
+        self.start_dim = start_dim
+        self.end_dim = end_dim
+    
+    def forward(self, x: Tensor) -> Tensor:
+        return x.flatten(self.start_dim, self.end_dim)
+    
+
+class Dropout(nn.Module):
+
+    def __init__(self, p=0.5) -> None:
+        """
+        Randomly zeroes some of the elements of the input tensor with probability p
+        using samples from a Bernoulli distribution. The values are also scaled by 1/(1-p)
+        
+        Reference:
+            - https://pytorch.org/docs/stable/generated/torch.nn.Dropout.html
+            
+        Args:
+            p (float): The probability of an element to be zeroed.
+        
+        Returns:
+            A tensor of the same shape as the input tensor.
+        
+        Example:
+            >>> layer = nn.Dropout(p=0.5)
+            >>> x = synapgrad.ones((2, 3))
+            >>> y = layer(x)
+        """
+        super().__init__()
+        self.p = p
+        
+    def forward(self, x: Tensor) -> Tensor:
+        return F.droput(x, self.p, self.training)

@@ -418,6 +418,10 @@ PYBIND11_MODULE(_C, c) {
         .def("movedim", &synapx::Tensor::movedim, py::arg("source"), py::arg("destination"))
 
         .def("relu", &synapx::Tensor::relu)
+
+        .def("sigmoid", &synapx::Tensor::sigmoid)
+
+        .def("flatten", &synapx::Tensor::flatten, py::arg("start_dim") = 0, py::arg("end_dim") = -1)
         ;
     
     // Initializers
@@ -599,6 +603,8 @@ PYBIND11_MODULE(_C, c) {
 
     c.def("relu", &synapx::relu, py::arg("tensor"));
     c.def("sigmoid", &synapx::sigmoid, py::arg("tensor"));
+    c.def("flatten", &synapx::flatten, py::arg("tensor"), py::arg("start_dim") = 0, py::arg("end_dim") = -1);
+    c.def("dropout", &synapx::dropout, py::arg("tensor"), py::arg("p"), py::arg("train"));
 
 
     auto nn = c.def_submodule("_nn", "Neural network submodule");
@@ -614,4 +620,6 @@ PYBIND11_MODULE(_C, c) {
 
     // Layer operations
     nn.def("linear", &synapx::linear, py::arg("inp"), py::arg("weight"), py::arg("bias") = py::none());
+    nn.def("flatten", &synapx::flatten, py::arg("tensor"), py::arg("start_dim") = 0, py::arg("end_dim") = -1);
+    nn.def("dropout", &synapx::dropout, py::arg("tensor"), py::arg("p"), py::arg("train"));
 }

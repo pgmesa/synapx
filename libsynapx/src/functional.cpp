@@ -715,7 +715,7 @@ namespace synapx {
         const TensorList inputs {t};
 
         Operation operation = [&t]() -> TorchList {
-            return { torch::relu(t.data()) };
+            return { t.data().relu() };
         };
 
         NodeFactory node_factory = [&t](const TensorList& outputs) -> autograd::NodePtr {
@@ -731,7 +731,7 @@ namespace synapx {
         const TensorList inputs {t};
 
         Operation operation = [&t]() -> TorchList {
-            return { torch::sigmoid(t.data()) };
+            return { t.data().sigmoid() };
         };
 
         NodeFactory node_factory = [&t](const TensorList& outputs) -> autograd::NodePtr {
@@ -742,6 +742,14 @@ namespace synapx {
 
         return output;
     }
+
+    // SYNAPX_API Tensor softmax(const Tensor& t, int64_t dim) {
+
+    // }
+
+    // SYNAPX_API Tensor log_softmax(const Tensor& t, int64_t dim) {
+
+    // }
 
     namespace {
 
@@ -776,16 +784,45 @@ namespace synapx {
 
     // Layer operations
     Tensor linear(const Tensor& inp, const Tensor& weight, std::optional<Tensor> bias) {
-        TensorList inputs {inp, weight};
+        return bias.has_value()? addmm(bias.value(), inp, weight.t()) : matmul(inp, weight.t());
+    }
 
-        Tensor output;
-        if (bias.has_value()) {
-            output = addmm(bias.value(), inp, weight.t());
-        } else {
-            output = matmul(inp, weight.t());
+    Tensor flatten(const Tensor& inp, int64_t start_dim, int64_t end_dim) {
+        int64_t rank = static_cast<int64_t>(inp.dim());
+        int64_t start = start_dim >= 0 ? start_dim : start_dim + rank;
+        int64_t end = end_dim >= 0 ? end_dim : end_dim + rank;
+
+        if (start > end || start < 0 || end >= rank)
+            throw std::runtime_error("flatten() has invalid args: start_dim or end_dim is out of bounds");
+
+        IntArray new_shape;
+        int64_t flattened_dim = 1;
+
+        for (int64_t i = 0; i < rank; ++i) {
+            if (i < start || i > end) {
+                new_shape.push_back(inp.size(i));
+            } else {
+                flattened_dim *= inp.size(i);
+            }
         }
 
-        return output;
+        new_shape.insert(new_shape.begin() + start, flattened_dim);
+
+        return reshape(inp, new_shape);
+    }
+
+    Tensor dropout(const Tensor& t, double p, bool train) {
+        if (!train || p == 0.0) return t;
+
+        if (p < 0.0 || p >= 1.0)
+            throw std::runtime_error("dropout(): p must be in the range [0.0, 1.0)");
+
+        // Create a mask with the same shape as the input tensor
+        double keep_prob = 1.0 - p;
+        Tensor mask = (synapx::rand_like(t) < keep_prob).to(t.dtype());  // binary mask
+        mask = mask / keep_prob; // Scale the mask to preserve the expected value
+
+        return t * mask;
     }
 
 

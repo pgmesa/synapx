@@ -81,12 +81,16 @@ namespace synapx {
     // Activations
     SYNAPX_API Tensor relu(const Tensor& t);
     SYNAPX_API Tensor sigmoid(const Tensor& t);
+    // SYNAPX_API Tensor softmax(const Tensor& t, int64_t dim);
+    // SYNAPX_API Tensor log_softmax(const Tensor& t, int64_t dim);
 
     // Losses
     SYNAPX_API Tensor mse_loss(const Tensor& input, const Tensor& target, Reduction reduction);
 
     // Layer operations
     SYNAPX_API Tensor linear(const Tensor& inp, const Tensor& weight, std::optional<Tensor> bias);
+    SYNAPX_API Tensor flatten(const Tensor& inp, int64_t start_dim = 0, int64_t end_dim = -1);
+    SYNAPX_API Tensor dropout(const Tensor& t, double p, bool train);
 
 }
 
