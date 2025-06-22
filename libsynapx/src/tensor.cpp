@@ -221,6 +221,10 @@ namespace synapx {
         return neg();
     }
 
+    Tensor Tensor::operator[](int64_t index) const {
+        return slice({index});
+    }
+
     Tensor Tensor::operator[](const TensorIndices& indices) const {
         return slice(indices);
     }

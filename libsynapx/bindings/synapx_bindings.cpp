@@ -219,10 +219,30 @@ PYBIND11_MODULE(_C, c) {
             return self.shape()[0];
         })
 
-        .def("__getitem__", [](const synapx::Tensor& self, const py::object& key) {
-            auto indices = TensorIndexConverter::convert(key, self);
+        .def("__getitem__", [](const synapx::Tensor& self, int64_t idx) {
+            if (idx >= self.shape()[0]) {
+                throw py::index_error("index " + std::to_string(idx) + 
+                                " is out of bounds for dimension 0 with size " + 
+                                std::to_string(self.shape()[0]));
+            }
+            return self[idx];
+        }, py::arg("idx"), "Simple indexing")
+
+        .def("__getitem__", [](const synapx::Tensor& self, const py::object& slice) {
+            auto indices = TensorIndexConverter::convert(slice, self);
             return self[indices];
-        }, py::arg("key"), "Index tensor using Python notation")
+        }, py::arg("slice_"), "Index tensor using Python notation")
+
+        // TODO: Improve this. Not efficient, but works. Iteration is not ending
+        // correctly at (__len__() - 1) only with __getitem__ and __len__ implementations
+        .def("__iter__", [](const synapx::Tensor& self) {
+            py::list items;
+            
+            for (size_t i = 0; i < self.shape()[0]; ++i) {
+                items.append(self[static_cast<int64_t>(i)]);
+            }
+            return py::iter(items);
+        })
 
         // Add basic setitem functionality (if more advanced is required the underlying torch data can be used)
         .def("__setitem__", [](synapx::Tensor& self, const py::object& key, const synapx::Tensor& value) {

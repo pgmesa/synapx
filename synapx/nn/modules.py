@@ -123,9 +123,9 @@ class Module:
     def num_params(self, trainable=False, non_trainable=False) -> int:
         num_params = 0; num_trainable = 0; num_non_trainable = 0
         for p in self.parameters():
-            num_params += p.size
-            if p.requires_grad: num_trainable += p.size
-            else: num_non_trainable += p.size
+            num_params += p.numel()
+            if p.requires_grad: num_trainable += p.numel()
+            else: num_non_trainable += p.numel()
         
         if trainable: return num_trainable
         elif non_trainable: return num_non_trainable

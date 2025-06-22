@@ -67,6 +67,7 @@ namespace synapx {
         Tensor operator/(const Tensor& other) const;
         Tensor operator/(double other) const;
         Tensor operator-() const;
+        Tensor operator[](int64_t index) const;
         Tensor operator[](const TensorIndices& indices) const;
 
         Tensor& operator+=(const Tensor& other);
