@@ -9,11 +9,11 @@ def test_MSELoss():
     true = [1.0, 0]
     pred = [[2.0], [-1.0]]
     
-    # synapgrad
+    # synapx
     y_true = synapx.tensor(true)
     inp = synapx.tensor(pred, requires_grad=True)
     
-    y_pred = synapx.nn.Sigmoid()(inp)
+    y_pred = synapx.sigmoid(inp)
     y_pred = y_pred.squeeze()
     loss = synapx.nn.MSELoss(reduction='mean')(y_pred, y_true)
     loss.backward()
@@ -24,7 +24,7 @@ def test_MSELoss():
     y_true_t = torch.tensor(true)
     inp_t = torch.tensor(pred, requires_grad=True)
     
-    y_pred_t = torch.nn.Sigmoid()(inp_t)
+    y_pred_t = torch.sigmoid(inp_t)
     y_pred_t = y_pred_t.squeeze()
     loss_t = torch.nn.MSELoss(reduction='mean')(y_pred_t, y_true_t)
     loss_t.backward()
@@ -39,18 +39,18 @@ def test_NLLLoss():
     pred = [[0.14, 0.3],[-0.2, 0.9],[-3, 0.1]]
     label = [0, 1, 0]
     
-    # synapgrad
-    ypred = synapx.nn.LogSoftmax(dim=1)(synapx.tensor(pred, requires_grad=True))
-    ypred.retain_grad()
-    ylabel = synapx.tensor(label, dtype=torch.int8)
-    loss = synapx.nn.NLLLoss()(ypred, ylabel)
+    # synapx
+    ypred = synapx.tensor(pred, requires_grad=True)
+    log_soft = synapx.log_softmax(ypred, dim=1)
+    ylabel = synapx.tensor(label, dtype=torch.long)
+    loss = synapx.nn.NLLLoss()(log_soft, ylabel)
     loss.backward()
 
     # torch
-    ypred_t = torch.nn.LogSoftmax(dim=1)(torch.tensor(pred, requires_grad=True))
-    ypred_t.retain_grad()
-    ylabel_t = torch.tensor(label).type(torch.LongTensor)
-    loss_t = torch.nn.NLLLoss()(ypred_t, ylabel_t)
+    ypred_t = torch.tensor(pred, requires_grad=True)
+    log_soft_t = torch.log_softmax(ypred_t, dim=1)
+    ylabel_t = torch.tensor(label, dtype=torch.long)
+    loss_t = torch.nn.NLLLoss()(log_soft_t, ylabel_t)
     loss_t.backward()
 
     print(ypred_t.grad)
@@ -64,7 +64,7 @@ def test_NLLLoss():
 #     pred = [0.3, 0.4, 0.999, 1, 0]
 #     label = [0, 1, 0, 1, 1]
     
-#     # synapgrad
+#     # synapx
 #     ypred = Tensor(pred, requires_grad=True)
 #     ylabel = Tensor(label)
 #     loss = nn.BCELoss()(ypred, ylabel)
@@ -88,7 +88,7 @@ def test_NLLLoss():
 #     pred = [0.3, 0.4, 0.7, -2, -1]
 #     label = [0, 1, 0, 1, 1]
     
-#     # synapgrad
+#     # synapx
 #     ypred = Tensor(pred, requires_grad=True)
 #     ylabel = Tensor(label)
 #     loss = nn.BCEWithLogitsLoss()(ypred, ylabel)
@@ -112,7 +112,7 @@ def test_NLLLoss():
 #     pred = [[0.14, 0.3],[-0.2, 0.9],[-3, 0.1]]
 #     label = [0, 1, 0]
     
-#     # synapgrad
+#     # synapx
 #     ypred = Tensor(pred, requires_grad=True)
 #     ylabel = Tensor(label, dtype=np.int8)
 #     loss = nn.CrossEntropyLoss()(ypred, ylabel)

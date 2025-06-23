@@ -10,14 +10,14 @@ def test_linear_train():
     opt = synapx.optim.SGD(model.parameters(), lr=0.1)
     
     model_t = torch.nn.Linear(3, 3)
-    model_t.weight = torch.nn.parameter.Parameter(model.weight.torch())
-    model_t.bias = torch.nn.parameter.Parameter(model.bias.torch())
+    model_t.weight = torch.nn.parameter.Parameter(model.weight.torch().clone())
+    model_t.bias = torch.nn.parameter.Parameter(model.bias.torch().clone())
     opt_t = torch.optim.SGD(model_t.parameters(), lr=0.1)
     
     for _ in range(100):
         data = torch.randn((3, 3), dtype=torch.float32)
         inp = synapx.tensor(data, requires_grad=True)
-        # synapgrad
+        # synapx
         out = model(inp)
         opt.zero_grad()
         out.sum().backward()
@@ -31,9 +31,9 @@ def test_linear_train():
         opt_t.step()
         
         assert check_tensors(inp, inp_t)
-        assert check_tensors(out, out_t)
-        assert check_tensors(inp.grad, inp_t.grad)
         assert check_tensors(model.weight, model_t.weight)
         assert check_tensors(model.bias, model_t.bias)
+        assert check_tensors(out, out_t)
+        assert check_tensors(inp.grad, inp_t.grad)
         assert check_tensors(model.weight.grad, model_t.weight.grad)
         assert check_tensors(model.bias.grad, model_t.bias.grad)

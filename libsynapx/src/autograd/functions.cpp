@@ -666,27 +666,28 @@ namespace synapx::autograd
     TensorList NLLLossBackward0::apply(const TensorList& inputs) { 
         const Tensor& grad = inputs[0];
 
-        Tensor input_grad = torch::zeros(input.sizes(), grad.options());
+        Tensor input_grad = synapx::zeros(input.sizes(), false, grad.options());
+        Tensor target_grad;
         
         int64_t batch_size = input.size(0);
         int64_t num_classes = input.size(1);
         
         for (int64_t i = 0; i < batch_size; i++) {
             int64_t target_class = target[i].item().toInt();
-            
+
             // Only update gradient for the target class
             if (target_class >= 0 && target_class < num_classes) {
                 if (reduction == Reduction::Mean) {
-                    input_grad[i][target_class] = -grad / batch_size;
+                    input_grad.index_put_({i, target_class}, -grad / batch_size);
                 } else if (reduction == Reduction::Sum) {
-                    input_grad[i][target_class] = -grad;
+                    input_grad.index_put_({i, target_class}, -grad);
                 } else {
-                    input_grad[i][target_class] = -grad[i];
+                    input_grad.index_put_({i, target_class}, -grad[i]);
                 }
             }
         }
-            
-        return {input_grad};
+
+        return {input_grad, target_grad};
     }
 
     

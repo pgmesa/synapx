@@ -8,7 +8,7 @@ from utils import check_tensors
 def check_activation(act, act_t):
     l1 = [[-1.0,-2.0, 4.0, 5.0, 1.0, 7.0], [-1.0,-2.0, 2.0, 1.0, 10.0, -4.0]]
     
-    # synapgrad
+    # synapx
     a = synapx.tensor(l1, requires_grad=True)
     b = (a*4)/7 - 2
     out = act(b)*b

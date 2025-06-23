@@ -12,7 +12,7 @@ def test_linear():
         bias = True
         if i == 0: bias = False
         
-        # synapgrad
+        # synapx
         inp = synapx.tensor(data, requires_grad=True)
         linear = synapx.nn.Linear(6,3, bias=bias)
         out = linear(inp)
@@ -22,9 +22,9 @@ def test_linear():
         # torch
         inp_t = data.detach().requires_grad_(True)
         linear_t = torch.nn.Linear(6,3, bias=bias)
-        linear_t.weight = torch.nn.parameter.Parameter(linear.weight.torch())
+        linear_t.weight = torch.nn.parameter.Parameter(linear.weight.torch().clone())
         if bias:
-            linear_t.bias = torch.nn.parameter.Parameter(linear.bias.torch())
+            linear_t.bias = torch.nn.parameter.Parameter(linear.bias.torch().clone())
         out_t = linear_t(inp_t)
         out_t = out_t.sum()
         out_t.backward()
@@ -44,7 +44,7 @@ def test_linear():
 def test_flatten():
     data = torch.randn((30,28,28,3,4))
     
-    # synapgrad
+    # synapx
     inp = synapx.tensor(data, requires_grad=True)
     linear = synapx.nn.Flatten(start_dim=1, end_dim=2)
     out_l = linear(inp)

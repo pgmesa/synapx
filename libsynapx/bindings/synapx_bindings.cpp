@@ -367,7 +367,7 @@ PYBIND11_MODULE(_C, c) {
         
         .def("neg_", &synapx::Tensor::neg_)
         .def("zero_", &synapx::Tensor::zero_)
-        .def("fill_", &synapx::Tensor::fill_)
+        .def("fill_", &synapx::Tensor::fill_, py::arg("value"))
         .def("uniform_", &synapx::Tensor::uniform_, py::arg("from_") = 0, py::arg("to") = 1)
         .def("normal_", &synapx::Tensor::normal_, py::arg("mean") = 0, py::arg("std") = 1)
         

@@ -10,7 +10,7 @@ def test_basic_chain_ops():
     l1 = [[[2.0, 4.0], [2.0,4.3]], [[2.0, 4.0], [2.0,4.3]]]
     l2 = [2.0, 4.0]
     
-    # synapgrad
+    # synapx
     a = synapx.tensor(l1, requires_grad=True)
     b = synapx.tensor(l2, requires_grad=True)
     c = (a.exp()+b)*b.log().sqrt().mean(dim=0, keepdim=True)
@@ -49,7 +49,7 @@ def test_reduction_ops():
 #     l1 = [[-4.0, 0.7, 5.0], [6.3, 3.2, 1.3]]
 #     l2 = [[2.0, 2,  3.0], [2.4, 1.7, 0.5]]
     
-#     # synapgrad
+#     # synapx
 #     a = synapx.tensor(l1, requires_grad=True).unsqueeze(0)**2
 #     a.retain_grad()
 #     b = 2**synapx.tensor(l2, requires_grad=True).unsqueeze(0)
