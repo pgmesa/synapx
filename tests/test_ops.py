@@ -371,3 +371,9 @@ def test_relu():
     
 def test_sigmoid():
     op_tester([(100, 200, 300)], lambda x: x.sigmoid(), name='sigmoid')
+    
+def test_softmax():
+    op_tester([(100, 200)], lambda x: x.softmax(dim=1), name='softmax')
+    
+def test_log_softmax():
+    op_tester([(100, 200)], lambda x: x.log_softmax(dim=1), name='log_softmax')

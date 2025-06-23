@@ -15,6 +15,7 @@
 namespace synapx {
 
     class Tensor;
+    class TensorIterator;
     namespace autograd { class Node; }
 
     using IntArray = std::vector<int64_t>;
@@ -163,12 +164,17 @@ namespace synapx {
 
         Tensor relu() const;
         Tensor sigmoid() const;
+        Tensor softmax(int64_t dim) const;
+        Tensor log_softmax(int64_t dim) const;
         Tensor flatten(int64_t start_dim = 0, int64_t end_dim = -1) const;
 
 
         void set_output_nr(uint32_t nr);
         uint32_t output_nr() const;
 
+        TensorIterator begin() const;
+        TensorIterator end() const;
+    
         std::string to_string() const;
         static std::string to_string(torch::Tensor tensor);
 
@@ -181,6 +187,19 @@ namespace synapx {
     Tensor operator*(double scalar, const Tensor& tensor);
     Tensor operator-(double scalar, const Tensor& tensor);
     Tensor operator/(double scalar, const Tensor& tensor);
+
+    class SYNAPX_API TensorIterator {
+    private:
+        Tensor tensor;
+        int64_t index;
+
+    public:
+        TensorIterator(Tensor t, int64_t i) : tensor(t), index(i) {}
+        Tensor operator*() const { return tensor[index]; }
+        TensorIterator& operator++() { ++index; return *this; }
+        bool operator==(const TensorIterator& other) const { return index == other.index;}
+        bool operator!=(const TensorIterator& other) const { return index != other.index; }
+    };
 
 } // namespace synapx
 

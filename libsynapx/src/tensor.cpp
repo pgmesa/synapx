@@ -623,8 +623,25 @@ namespace synapx {
         return synapx::sigmoid(*this);
     }
 
+    Tensor Tensor::softmax(int64_t dim) const {
+        return synapx::softmax(*this, dim);
+    }
+    
+    Tensor Tensor::log_softmax(int64_t dim) const {
+        return synapx::log_softmax(*this, dim);
+    }
+
     Tensor Tensor::flatten(int64_t start_dim, int64_t end_dim) const {
         return synapx::flatten(*this, start_dim, end_dim);
+    }
+
+
+    TensorIterator Tensor::begin() const { 
+        return TensorIterator(*this, 0); 
+    }
+
+    TensorIterator Tensor::end() const { 
+        return TensorIterator(*this, size(0)); 
     }
 
 

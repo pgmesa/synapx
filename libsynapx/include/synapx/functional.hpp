@@ -78,14 +78,18 @@ namespace synapx {
     SYNAPX_API TensorList unbind(const Tensor& t, int64_t dim = 0);
     SYNAPX_API TensorList split(const Tensor& t, torch::IntArrayRef split_size, int64_t dim);
 
+    SYNAPX_API Tensor diag(const Tensor& t, int64_t diagonal = 0);
+    SYNAPX_API Tensor outer(const Tensor& input, const Tensor& vec2);
+
     // Activations
     SYNAPX_API Tensor relu(const Tensor& t);
     SYNAPX_API Tensor sigmoid(const Tensor& t);
-    // SYNAPX_API Tensor softmax(const Tensor& t, int64_t dim);
-    // SYNAPX_API Tensor log_softmax(const Tensor& t, int64_t dim);
+    SYNAPX_API Tensor softmax(const Tensor& t, int64_t dim);
+    SYNAPX_API Tensor log_softmax(const Tensor& t, int64_t dim);
 
     // Losses
     SYNAPX_API Tensor mse_loss(const Tensor& input, const Tensor& target, Reduction reduction);
+    SYNAPX_API Tensor nll_loss(const Tensor& input, const Tensor& target, Reduction reduction);
 
     // Layer operations
     SYNAPX_API Tensor linear(const Tensor& inp, const Tensor& weight, std::optional<Tensor> bias);

@@ -35,29 +35,29 @@ def test_MSELoss():
     assert check_tensors(inp.grad, inp_t.grad)
     
     
-# def test_NLLLoss():
-#     pred = [[0.14, 0.3],[-0.2, 0.9],[-3, 0.1]]
-#     label = [0, 1, 0]
+def test_NLLLoss():
+    pred = [[0.14, 0.3],[-0.2, 0.9],[-3, 0.1]]
+    label = [0, 1, 0]
     
-#     # synapgrad
-#     ypred = nn.LogSoftmax(dim=1)(Tensor(pred, requires_grad=True))
-#     ypred.retain_grad()
-#     ylabel = Tensor(label, dtype=np.int8)
-#     loss = nn.NLLLoss()(ypred, ylabel)
-#     loss.backward()
+    # synapgrad
+    ypred = synapx.nn.LogSoftmax(dim=1)(synapx.tensor(pred, requires_grad=True))
+    ypred.retain_grad()
+    ylabel = synapx.tensor(label, dtype=torch.int8)
+    loss = synapx.nn.NLLLoss()(ypred, ylabel)
+    loss.backward()
 
-#     # torch
-#     ypred_t = torch.nn.LogSoftmax(dim=1)(torch.tensor(pred, requires_grad=True))
-#     ypred_t.retain_grad()
-#     ylabel_t = torch.tensor(label).type(torch.LongTensor)
-#     loss_t = torch.nn.NLLLoss()(ypred_t, ylabel_t)
-#     loss_t.backward()
+    # torch
+    ypred_t = torch.nn.LogSoftmax(dim=1)(torch.tensor(pred, requires_grad=True))
+    ypred_t.retain_grad()
+    ylabel_t = torch.tensor(label).type(torch.LongTensor)
+    loss_t = torch.nn.NLLLoss()(ypred_t, ylabel_t)
+    loss_t.backward()
 
-#     print(ypred_t.grad)
-#     print(ypred.grad)
+    print(ypred_t.grad)
+    print(ypred.grad)
     
-#     assert check_tensors(loss, loss_t)
-#     assert check_tensors(ypred.grad, ypred_t.grad)
+    assert check_tensors(loss, loss_t)
+    assert check_tensors(ypred.grad, ypred_t.grad)
 
     
 # def test_BCELoss():

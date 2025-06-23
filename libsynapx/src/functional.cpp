@@ -710,6 +710,41 @@ namespace synapx {
         return outputs;
     }
 
+
+    Tensor diag(const Tensor& t, int64_t diagonal) {
+        TensorList inputs {t};
+
+        Operation operation = [&t, diagonal]() -> TorchList {
+            return { torch::diag(t.data(), diagonal) };
+        };
+
+        NodeFactory node_factory = [](const TensorList& outputs) -> autograd::NodePtr {
+            return std::make_shared<autograd::NotImplementedBackward>();
+        };
+
+        Tensor output = apply_operation(inputs, operation, node_factory)[0];
+
+        return output;
+    }
+
+
+    Tensor outer(const Tensor& input, const Tensor& vec2) {
+        TensorList inputs {input, vec2};
+
+        Operation operation = [&input, &vec2]() -> TorchList {
+            return { torch::outer(input.data(), vec2.data()) };
+        };
+
+        NodeFactory node_factory = [](const TensorList& outputs) -> autograd::NodePtr {
+            return std::make_shared<autograd::NotImplementedBackward>();
+        };
+
+        Tensor output = apply_operation(inputs, operation, node_factory)[0];
+
+        return output;
+    }
+
+
     // Activations
     Tensor relu(const Tensor& t) {
         const TensorList inputs {t};
@@ -734,7 +769,7 @@ namespace synapx {
             return { t.data().sigmoid() };
         };
 
-        NodeFactory node_factory = [&t](const TensorList& outputs) -> autograd::NodePtr {
+        NodeFactory node_factory = [](const TensorList& outputs) -> autograd::NodePtr {
             return std::make_shared<autograd::SigmoidBackward0>(outputs[0]);
         };
 
@@ -743,13 +778,37 @@ namespace synapx {
         return output;
     }
 
-    // SYNAPX_API Tensor softmax(const Tensor& t, int64_t dim) {
+    SYNAPX_API Tensor softmax(const Tensor& t, int64_t dim) {
+        const TensorList inputs {t};
 
-    // }
+        Operation operation = [&t, dim]() -> TorchList {
+            return { t.data().softmax(dim) };
+        };
 
-    // SYNAPX_API Tensor log_softmax(const Tensor& t, int64_t dim) {
+        NodeFactory node_factory = [dim](const TensorList& outputs) -> autograd::NodePtr {
+            return std::make_shared<autograd::SoftmaxBackward0>(outputs[0], dim);
+        };
 
-    // }
+        Tensor output = apply_operation(inputs, operation, node_factory)[0];
+
+        return output;
+    }
+
+    SYNAPX_API Tensor log_softmax(const Tensor& t, int64_t dim) {
+        const TensorList inputs {t};
+
+        Operation operation = [&t, dim]() -> TorchList {
+            return { t.data().log_softmax(dim) };
+        };
+
+        NodeFactory node_factory = [dim](const TensorList& outputs) -> autograd::NodePtr {
+            return std::make_shared<autograd::LogSoftmaxBackward0>(outputs[0], dim);
+        };
+
+        Tensor output = apply_operation(inputs, operation, node_factory)[0];
+
+        return output;
+    }
 
     namespace {
 
@@ -774,6 +833,22 @@ namespace synapx {
 
         NodeFactory node_factory = [&input, &target, &diff, reduction](const TensorList& outputs) -> autograd::NodePtr {
             return std::make_shared<autograd::MSELossBackward0>(input, target, diff, reduction);
+        };
+
+        Tensor output = apply_operation(inputs, operation, node_factory)[0];
+
+        return output;
+    }
+
+    Tensor nll_loss(const Tensor& input, const Tensor& target, Reduction reduction) {
+        TensorList inputs {input, target};
+
+        Operation operation = [&input, &target, reduction]() -> TorchList {
+            return { torch::nll_loss(input.data(), target.data(), std::nullopt, reduction) };
+        };
+
+        NodeFactory node_factory = [&input, &target, reduction](const TensorList& outputs) -> autograd::NodePtr {
+            return std::make_shared<autograd::NLLLossBackward0>(input, target, reduction);
         };
 
         Tensor output = apply_operation(inputs, operation, node_factory)[0];

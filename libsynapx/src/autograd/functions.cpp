@@ -578,8 +578,8 @@ namespace synapx::autograd
     }
 
     TensorList ReLUBackward0::apply(const TensorList& inputs) { 
-        const Tensor& grad_input = inputs[0];
-        return {grad_input * (t > 0)};
+        const Tensor& grad = inputs[0];
+        return {grad * (t > 0)};
     }
 
 
@@ -590,8 +590,42 @@ namespace synapx::autograd
     }
 
     TensorList SigmoidBackward0::apply(const TensorList& inputs) { 
-        const Tensor& grad_input = inputs[0];
-        return {grad_input * fw_result * (1 - fw_result)};
+        const Tensor& grad = inputs[0];
+        return {grad * fw_result * (1 - fw_result)};
+    }
+
+
+    SoftmaxBackward0::SoftmaxBackward0(const Tensor& fw_result, int64_t dim) : fw_result(fw_result), dim(dim) {}
+
+    std::string SoftmaxBackward0::name() const { 
+        return "SoftmaxBackward0";
+    }
+
+    TensorList SoftmaxBackward0::apply(const TensorList& inputs) { 
+        const Tensor& grad = inputs[0];
+        
+        Tensor softmax_grad_prod = fw_result * grad;
+        Tensor sum_term = softmax_grad_prod.sum(dim, /*keepdim=*/true);
+        Tensor input_grad = fw_result * (grad - sum_term);
+        
+        return {input_grad};
+    }
+
+
+    LogSoftmaxBackward0::LogSoftmaxBackward0(const Tensor& fw_result, int64_t dim) : fw_result(fw_result), dim(dim) {}
+
+    std::string LogSoftmaxBackward0::name() const { 
+        return "LogSoftmaxBackward0";
+    }
+
+    TensorList LogSoftmaxBackward0::apply(const TensorList& inputs) { 
+        const Tensor& grad = inputs[0];
+
+        Tensor grad_sum = grad.sum(dim, /*keepdim=*/true);
+        Tensor softmax_output = fw_result.exp();
+        Tensor input_grad = grad - softmax_output * grad_sum;
+        
+        return {input_grad};
     }
 
 
@@ -604,7 +638,7 @@ namespace synapx::autograd
     }
 
     TensorList MSELossBackward0::apply(const TensorList& inputs) { 
-        const Tensor& grad_input = inputs[0];
+        const Tensor& grad = inputs[0];
 
         Tensor input_grad, target_grad;
         float scale = 2.0f;
@@ -613,13 +647,46 @@ namespace synapx::autograd
         }
 
         if (input_req_grad) {
-            input_grad = scale * diff * grad_input;
+            input_grad = scale * diff * grad;
         }
         if (target_req_grad) {
-            target_grad = -scale * diff * grad_input;
+            target_grad = -scale * diff * grad;
         }
 
         return {input_grad, target_grad};
+    }
+
+    NLLLossBackward0::NLLLossBackward0(const Tensor& input, const Tensor& target, Reduction reduction) 
+        : input(input), target(target), reduction(reduction) {}
+
+    std::string NLLLossBackward0::name() const { 
+        return "NLLLossBackward0";
+    }
+
+    TensorList NLLLossBackward0::apply(const TensorList& inputs) { 
+        const Tensor& grad = inputs[0];
+
+        Tensor input_grad = torch::zeros(input.sizes(), grad.options());
+        
+        int64_t batch_size = input.size(0);
+        int64_t num_classes = input.size(1);
+        
+        for (int64_t i = 0; i < batch_size; i++) {
+            int64_t target_class = target[i].item().toInt();
+            
+            // Only update gradient for the target class
+            if (target_class >= 0 && target_class < num_classes) {
+                if (reduction == Reduction::Mean) {
+                    input_grad[i][target_class] = -grad / batch_size;
+                } else if (reduction == Reduction::Sum) {
+                    input_grad[i][target_class] = -grad;
+                } else {
+                    input_grad[i][target_class] = -grad[i];
+                }
+            }
+        }
+            
+        return {input_grad};
     }
 
     

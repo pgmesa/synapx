@@ -420,6 +420,8 @@ PYBIND11_MODULE(_C, c) {
         .def("relu", &synapx::Tensor::relu)
 
         .def("sigmoid", &synapx::Tensor::sigmoid)
+        .def("softmax", &synapx::Tensor::softmax, py::arg("dim"))
+        .def("log_softmax", &synapx::Tensor::log_softmax, py::arg("dim"))
 
         .def("flatten", &synapx::Tensor::flatten, py::arg("start_dim") = 0, py::arg("end_dim") = -1)
         ;
@@ -602,7 +604,12 @@ PYBIND11_MODULE(_C, c) {
 
 
     c.def("relu", &synapx::relu, py::arg("tensor"));
+
     c.def("sigmoid", &synapx::sigmoid, py::arg("tensor"));
+    
+    c.def("softmax", &synapx::softmax, py::arg("tensor"), py::arg("dim"));
+    c.def("log_softmax", &synapx::log_softmax, py::arg("tensor"), py::arg("dim"));
+
     c.def("flatten", &synapx::flatten, py::arg("tensor"), py::arg("start_dim") = 0, py::arg("end_dim") = -1);
     c.def("dropout", &synapx::dropout, py::arg("tensor"), py::arg("p"), py::arg("train"));
 
@@ -612,10 +619,16 @@ PYBIND11_MODULE(_C, c) {
     // Activations
     nn.def("relu", &synapx::relu, py::arg("tensor"));
     nn.def("sigmoid", &synapx::sigmoid, py::arg("tensor"));
+    nn.def("softmax", &synapx::softmax, py::arg("tensor"), py::arg("dim"));
+    nn.def("log_softmax", &synapx::log_softmax, py::arg("tensor"), py::arg("dim"));
 
     // Losses
     nn.def("mse_loss", [](const synapx::Tensor& input, const synapx::Tensor& target, const std::string& reduction) {
         return synapx::mse_loss(input, target, get_reduction(reduction));
+    }, py::arg("input"), py::arg("target"), py::arg("reduction") = "mean");
+
+    nn.def("nll_loss", [](const synapx::Tensor& input, const synapx::Tensor& target, const std::string& reduction) {
+        return synapx::nll_loss(input, target, get_reduction(reduction));
     }, py::arg("input"), py::arg("target"), py::arg("reduction") = "mean");
 
     // Layer operations

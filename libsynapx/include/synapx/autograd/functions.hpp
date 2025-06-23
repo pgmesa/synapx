@@ -387,6 +387,28 @@ namespace synapx::autograd {
         Tensor fw_result;
     };
 
+    class SoftmaxBackward0: public Node {
+    public:
+        SoftmaxBackward0(const Tensor& fw_result, int64_t dim);
+        std::string name() const override;
+        TensorList apply(const TensorList& inputs) override;
+
+    private:
+        Tensor fw_result;
+        int64_t dim;
+    };
+
+    class LogSoftmaxBackward0: public Node {
+    public:
+        LogSoftmaxBackward0(const Tensor& fw_result, int64_t dim);
+        std::string name() const override;
+        TensorList apply(const TensorList& inputs) override;
+
+    private:
+        Tensor fw_result;
+        int64_t dim;
+    };
+
 
     // Losses
     class MSELossBackward0: public Node {
@@ -399,6 +421,18 @@ namespace synapx::autograd {
         bool input_req_grad;
         bool target_req_grad;
         Tensor diff;
+        Reduction reduction;
+    };
+
+    class NLLLossBackward0: public Node {
+    public:
+        NLLLossBackward0(const Tensor& input, const Tensor& target, Reduction reduction);
+        std::string name() const override;
+        TensorList apply(const TensorList& inputs) override;
+
+    private:
+        Tensor input;
+        Tensor target;
         Reduction reduction;
     };
 
