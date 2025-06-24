@@ -1,12 +1,13 @@
 
 import sys
 import shutil
-import subprocess
 from pathlib import Path
 
 project_path = Path(__file__).parent.parent.absolute()
 if project_path not in sys.path:
     sys.path.append(str(project_path))
+
+import pybind11_stubgen
 
 
 cpp_module_name = '_C'
@@ -20,8 +21,8 @@ def main():
         shutil.rmtree(stubs_path)
     
     # Generate new stubs
-    command = ['pybind11-stubgen', f'synapx.{cpp_module_name}', '--output', '.']
-    subprocess.run(command, cwd=project_path)
+    sys.argv = [None, f'synapx.{cpp_module_name}', '--output', '.']
+    pybind11_stubgen.main()
     
     # Adjust generated stubs
     if stubs_path.is_dir():
