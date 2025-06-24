@@ -9,6 +9,7 @@ synapx/include/
 synapx/share/
 synapx/_C.pyi
 synapx/_C/
+mnist/
 
 
 # CMake

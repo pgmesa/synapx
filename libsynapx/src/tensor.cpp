@@ -614,6 +614,14 @@ namespace synapx {
         return synapx::select(*this, dim, index);
     }
 
+    Tensor Tensor::where(const Tensor& condition, const Tensor& other) const {
+       return synapx::where(condition, *this, other); 
+    }
+
+    Tensor Tensor::where(const Tensor& condition, double other) const {
+        return synapx::where(condition, *this, other);
+    }
+
 
     Tensor Tensor::relu() const {
         return synapx::relu(*this);

@@ -161,6 +161,8 @@ namespace synapx {
         Tensor movedim(int64_t src, int64_t dest) const;
         Tensor slice(const TensorIndices& indices) const;
         Tensor select(int64_t dim, int64_t index) const;
+        Tensor where(const Tensor& condition, const Tensor& other) const;
+        Tensor where(const Tensor& condition, double other) const;
 
         Tensor relu() const;
         Tensor sigmoid() const;

@@ -438,7 +438,13 @@ namespace synapx::autograd
                     this->dim.push_back(i);
             }
         } else {
-            this->dim = normalize_dims(t.dim(), dim);
+            IntArray norm_dims = normalize_dims(t.dim(), dim);
+            // Only add dimensions that have been squeezed
+            for (int64_t d : dim) {
+                if (t.size(d) == 1) {
+                    this->dim.push_back(d); 
+                }
+            }
         }
     }
 
@@ -579,7 +585,7 @@ namespace synapx::autograd
 
     TensorList ReLUBackward0::apply(const TensorList& inputs) { 
         const Tensor& grad = inputs[0];
-        return {grad * (t > 0)};
+        return {grad.where(t > 0, 0)};
     }
 
 
@@ -590,8 +596,8 @@ namespace synapx::autograd
     }
 
     TensorList SigmoidBackward0::apply(const TensorList& inputs) { 
-        const Tensor& grad = inputs[0];
-        return {grad * fw_result * (1 - fw_result)};
+        Tensor grad = inputs[0];
+        return { grad * fw_result * (1 - fw_result) };
     }
 
 

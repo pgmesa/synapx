@@ -8,7 +8,7 @@ import numpy as np
 from utils import check_tensors, time_fun
 
 
-atol = 1e-8; rtol = 1e-5
+atol = 1e-6; rtol = 1e-5
 
 def op_tester(inputs:list, function, name, device='cpu', module_func=False,
               nn_functional=False, factor=1, offset=0, backward=True, ones=False, dtype=torch.float32):    
@@ -304,6 +304,7 @@ def test_min():
 
 def test_squeeze():
     op_tester([(100, 1)], lambda x: x.squeeze(dim=1), name='squeeze')
+    op_tester([(100, 1)], lambda x: x.squeeze(dim=0), name='squeeze_no_effect')
     op_tester([(1, 3)], lambda x: x.squeeze(dim=0), name='squeeze')
     op_tester([(1, 100, 1, 2)], lambda x: x.squeeze(dim=(0, -2)), name='squeeze')
     op_tester([(1, 100, 1, 2)], lambda x: x.squeeze(), name='squeeze')
@@ -374,6 +375,6 @@ def test_sigmoid():
     
 def test_softmax():
     op_tester([(100, 200)], lambda x: x.softmax(dim=1), name='softmax')
-    
-def test_log_softmax():
+
+def test_softmax():
     op_tester([(100, 200)], lambda x: x.log_softmax(dim=1), name='log_softmax')

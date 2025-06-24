@@ -80,6 +80,8 @@ namespace synapx {
 
     SYNAPX_API Tensor diag(const Tensor& t, int64_t diagonal = 0);
     SYNAPX_API Tensor outer(const Tensor& input, const Tensor& vec2);
+    SYNAPX_API Tensor where(const Tensor& condition, const Tensor& input, const Tensor& other);
+    SYNAPX_API Tensor where(const Tensor& condition, const Tensor& input, double other);
 
     // Activations
     SYNAPX_API Tensor relu(const Tensor& t);

@@ -126,4 +126,4 @@ class Dropout(nn.Module):
         self.p = p
         
     def forward(self, x: Tensor) -> Tensor:
-        return F.droput(x, self.p, self.training)
+        return F.dropout(x, self.p, self.training)

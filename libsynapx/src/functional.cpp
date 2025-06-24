@@ -76,7 +76,7 @@ namespace synapx {
                 if (!t.defined())
                     throw std::invalid_argument("Input tensors must be valid");
                 
-                any_grad = any_grad || t.requires_grad();
+                any_grad = autograd::is_grad_enabled() && (any_grad || t.requires_grad());
             }
             
             std::vector<torch::Tensor> outputs_data = operation();
@@ -744,6 +744,26 @@ namespace synapx {
         return output;
     }
 
+    Tensor where(const Tensor& condition, const Tensor& input, const Tensor& other) {
+        TensorList inputs {condition, input, other};
+
+        Operation operation = [&condition, &input, &other]() -> TorchList {
+            return { torch::where(condition.data(), input.data(), other.data()) };
+        };
+
+        NodeFactory node_factory = [](const TensorList& outputs) -> autograd::NodePtr {
+            return std::make_shared<autograd::NotImplementedBackward>();
+        };
+
+        Tensor output = apply_operation(inputs, operation, node_factory)[0];
+
+        return output;
+    }
+
+    Tensor where(const Tensor& condition, const Tensor& input, double other) {
+        return where(condition, input, Tensor(torch::tensor(other)));
+    }
+
 
     // Activations
     Tensor relu(const Tensor& t) {
@@ -754,7 +774,7 @@ namespace synapx {
         };
 
         NodeFactory node_factory = [&t](const TensorList& outputs) -> autograd::NodePtr {
-            return std::make_shared<autograd::ReLUBackward0>(t);
+            return std::make_shared<autograd::ReLUBackward0>(outputs[0]);
         };
 
         Tensor output = apply_operation(inputs, operation, node_factory)[0];
