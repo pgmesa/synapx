@@ -151,14 +151,6 @@ PYBIND11_MODULE(_C, c) {
         .def("item", [](const synapx::Tensor& self) -> py::object {
             return py::cast(self.data().item());
         })
-        .def("to", [](const synapx::Tensor& self, PyDevice device) -> synapx::Tensor {
-            return self.to(device.get());
-        }, py::arg("device"))
-        .def("to", [](const synapx::Tensor& self, PyDtype dtype) -> synapx::Tensor {
-            return self.to(dtype.get());
-        }, py::arg("dtype"))
-        .def("cpu", &synapx::Tensor::cpu)
-        .def("cuda", &synapx::Tensor::cuda, py::arg("index") = 0)
         .def("torch", &synapx::Tensor::data)
         .def("numpy", [](const synapx::Tensor& self) -> py::array {
             return torch_to_numpy(self.data());
@@ -366,12 +358,36 @@ PYBIND11_MODULE(_C, c) {
         .def("div_", py::overload_cast<double>(&synapx::Tensor::div_), py::arg("other"))
         
         .def("neg_", &synapx::Tensor::neg_)
+
         .def("zero_", &synapx::Tensor::zero_)
+
         .def("fill_", &synapx::Tensor::fill_, py::arg("value"))
+
         .def("uniform_", &synapx::Tensor::uniform_, py::arg("from_") = 0, py::arg("to") = 1)
+
         .def("normal_", &synapx::Tensor::normal_, py::arg("mean") = 0, py::arg("std") = 1)
+
+        .def("copy_", &synapx::Tensor::copy_, py::arg("src"))
+
+        .def("to_", [](synapx::Tensor& self, PyDevice device) -> synapx::Tensor {
+            return self.to_(device.get());
+        }, py::arg("device"))
+        .def("to_", [](synapx::Tensor& self, PyDtype dtype) -> synapx::Tensor {
+            return self.to_(dtype.get());
+        }, py::arg("dtype"))
         
         // Other operations
+        .def("to", [](const synapx::Tensor& self, PyDevice device) -> synapx::Tensor {
+            return self.to(device.get());
+        }, py::arg("device"))
+        .def("to", [](const synapx::Tensor& self, PyDtype dtype) -> synapx::Tensor {
+            return self.to(dtype.get());
+        }, py::arg("dtype"))
+
+        .def("cpu", &synapx::Tensor::cpu)
+        
+        .def("cuda", &synapx::Tensor::cuda, py::arg("index") = 0)
+
         .def("clone", &synapx::Tensor::clone)
 
         .def("exp", &synapx::Tensor::exp)

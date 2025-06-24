@@ -124,6 +124,17 @@ namespace synapx::autograd {
         Tensor exp;
     };
 
+    class ToCopyBackward0: public Node {
+    public:
+        ToCopyBackward0(torch::Device);
+        ToCopyBackward0(torch::Dtype);
+        std::string name() const override;
+        TensorList apply(const TensorList& inputs) override;
+
+    private:
+        std::optional<torch::Device> device;
+        std::optional<torch::Dtype> dtype;
+    };
 
     class CloneBackward0: public Node {
     public:

@@ -28,6 +28,8 @@ namespace synapx {
         Tensor(const torch::Tensor& data, bool requires_grad=false);
 
         torch::Tensor data() const;
+        void set_data(const Tensor& other);
+
         bool defined() const;
         bool requires_grad() const;
         torch::Dtype dtype() const;
@@ -127,6 +129,8 @@ namespace synapx {
         Tensor& index_put_(const TensorIndices& idx, const Tensor& value);
         Tensor& index_put_(const TensorIndices& idx, double value);
         Tensor& copy_(const Tensor& src);
+        Tensor& to_(torch::Device device);
+        Tensor& to_(torch::Dtype dtype);
 
         Tensor rsub(const Tensor& other) const;
         Tensor rsub(double other) const;

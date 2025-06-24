@@ -57,6 +57,10 @@ namespace synapx {
         return impl_->data.detach();
     }
 
+    void Tensor::set_data(const Tensor& other) {
+        impl_->data = other.data();
+    }
+
     bool Tensor::requires_grad() const { 
         return impl_->requires_grad; 
     }
@@ -478,6 +482,18 @@ namespace synapx {
     Tensor& Tensor::copy_(const Tensor& src) {
         in_place_check(*this);
         impl_->data.copy_(src.data());
+        return *this;
+    }
+
+    Tensor& Tensor::to_(torch::Device device) {
+        in_place_check(*this);
+        impl_->data = impl_->data.to(device);
+        return *this;
+    }
+
+    Tensor& Tensor::to_(torch::Dtype dtype) {
+        in_place_check(*this);
+        impl_->data = impl_->data.to(dtype);
         return *this;
     }
 

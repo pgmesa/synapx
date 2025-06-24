@@ -54,7 +54,7 @@ namespace synapx::autograd {
             }
             topo.push_back(grad_fn);
         };
-        NodePtr& grad_fn = tensor.grad_fn();
+        NodePtr grad_fn = tensor.grad_fn();
         dfs(grad_fn);
 
         grad_map[grad_fn.get()][tensor.output_nr()] = grad_output;

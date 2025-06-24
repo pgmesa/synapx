@@ -289,13 +289,13 @@ namespace synapx {
     // Other functions
     Tensor copy_to(const Tensor& t, torch::Device device) {
         TensorList inputs {t};
-
+        
         Operation operation = [&t, device]() -> TorchList {
             return { t.data().to(device) };
         };
 
-        NodeFactory node_factory = [&t, device](const TensorList& outputs) -> autograd::NodePtr {
-            return std::make_shared<autograd::NotImplementedBackward>();
+        NodeFactory node_factory = [&t](const TensorList& outputs) -> autograd::NodePtr {
+            return std::make_shared<autograd::ToCopyBackward0>(t.device());
         };
 
         Tensor output = apply_operation(inputs, operation, node_factory)[0];
@@ -310,8 +310,8 @@ namespace synapx {
             return { t.data().to(dtype) };
         };
 
-        NodeFactory node_factory = [&t, dtype](const TensorList& outputs) -> autograd::NodePtr {
-            return std::make_shared<autograd::NotImplementedBackward>();
+        NodeFactory node_factory = [&t](const TensorList& outputs) -> autograd::NodePtr {
+            return std::make_shared<autograd::ToCopyBackward0>(t.dtype());
         };
 
         Tensor output = apply_operation(inputs, operation, node_factory)[0];

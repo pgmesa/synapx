@@ -221,6 +221,27 @@ namespace synapx::autograd
         return {grad_base, grad_exp};
     }
 
+    ToCopyBackward0::ToCopyBackward0(torch::Device device) : device(device), dtype(std::nullopt) {}
+    ToCopyBackward0::ToCopyBackward0(torch::Dtype dtype) : device(std::nullopt), dtype(dtype) {}
+
+    std::string ToCopyBackward0::name() const { 
+        return "ToCopyBackward0"; 
+    }
+
+    TensorList ToCopyBackward0::apply(const TensorList& inputs) {
+        const Tensor& grad = inputs[0];
+
+        Tensor grad_input;
+        if (device.has_value()) {
+            grad_input = grad.to(device.value());
+        }
+        else if (dtype.has_value()) {
+            grad_input = grad.to(dtype.value());
+        }
+
+        return { grad_input };
+    }
+
 
     std::string CloneBackward0::name() const { 
         return "CloneBackward0"; 

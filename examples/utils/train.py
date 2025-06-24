@@ -44,8 +44,8 @@ class Evaluator:
             tuple: [('metric_name', metric_val), ...]
         """
         
-        labels_numpy = labels.squeeze().detach().numpy()
-        outputs_numpy = outputs.squeeze().detach().numpy()
+        labels_numpy = labels.squeeze().detach().cpu().numpy()
+        outputs_numpy = outputs.squeeze().detach().cpu().numpy()
         
         
         if self.mode == self.BINARY:
@@ -238,11 +238,11 @@ class Trainer:
         with self.engine.no_grad():
             for data in test_loader:
                 *inputs, labels = data
-                for l in labels.numpy():
+                for l in labels.cpu().numpy():
                     y_true.append(l)
                 pred = self.model(*inputs).squeeze(dim=1)
                 for p in pred:
-                    preds.append(p.numpy())
+                    preds.append(p.cpu().numpy())
 
         y_true = np.array(y_true)
         y_pred = np.array(preds)

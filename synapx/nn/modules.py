@@ -2,6 +2,8 @@
 from typing import Any
 from collections import OrderedDict
 
+import torch
+import synapx
 from synapx import Tensor
 
 
@@ -133,34 +135,30 @@ class Module:
     
     def forward(self, *args, **kwargs) -> Tensor:
         raise NotImplementedError("All subclasses of Module must implement forward method")
-    
+
+    def to(self, device: torch.device):
+        """
+        Move all parameters and submodules to device
+        """
+        with synapx.no_grad():
+            for param in self.parameters():
+                param.to_(device)
+                if param.grad is not None:
+                    param.grad.to_(device)
+        
+        return self
+
     def cpu(self):
         """
         Move all parameters and submodules to CPU
         """
-        for name, param in self.named_parameters():
-            # Get the nested attribute path and replace the parameter
-            obj = self
-            attrs = name.split('.')
-            for attr in attrs[:-1]:
-                obj = getattr(obj, attr)
-            setattr(obj, attrs[-1], param.cpu())
-        
-        return self
+        return self.to('cpu')
     
     def cuda(self, index:int=0):
         """
         Move all parameters and submodules to CUDA
         """
-        for name, param in self.named_parameters():
-            # Get the nested attribute path and replace the parameter
-            obj = self
-            attrs = name.split('.')
-            for attr in attrs[:-1]:
-                obj = getattr(obj, attr)
-            setattr(obj, attrs[-1], param.cuda(index))
-        
-        return self
+        self.to(f'cuda:{index}')
     
     def __repr__(self) -> str:
         return (f"{self.__class__.__name__}(submodules={len(self.submodules())}, " +

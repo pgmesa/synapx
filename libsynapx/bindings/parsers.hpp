@@ -49,37 +49,48 @@ torch::Tensor numpy_to_torch(py::array array) {
 // Converts a torch::Tensor → numpy.ndarray
 py::array torch_to_numpy(const torch::Tensor& torch_tensor) {
     auto contig = torch_tensor.contiguous();
-    void* data_ptr = contig.data_ptr();
+    
+    // Create a shared pointer to keep the tensor alive
+    auto tensor_keeper = std::make_shared<torch::Tensor>(contig);
+    
+    void* data_ptr = tensor_keeper->data_ptr();
     std::vector<ssize_t> shape(contig.sizes().begin(), contig.sizes().end());
     std::vector<ssize_t> strides(contig.strides().begin(), contig.strides().end());
-
-    // Convert strides (in elements) → strides in bytes:
+    
+    // Convert strides to bytes
     for (auto& st : strides) {
         st *= contig.element_size();
     }
-
-    // Figure out numpy dtype:
+    
+    // Figure out numpy dtype (same as before)
     py::dtype dtype;
     switch (contig.scalar_type()) {
-        case torch::kFloat32: dtype = py::dtype::of<float>();   break;
-        case torch::kFloat64: dtype = py::dtype::of<double>();  break;
-        case torch::kInt32:   dtype = py::dtype::of<int32_t>(); break;
-        case torch::kInt64:   dtype = py::dtype::of<int64_t>(); break;
-        case torch::kUInt8:   dtype = py::dtype::of<uint8_t>(); break;
-        case torch::kInt8:    dtype = py::dtype::of<int8_t>();  break;
-        case torch::kInt16:   dtype = py::dtype::of<int16_t>(); break;
+        case torch::kFloat32: dtype = py::dtype::of<float>(); break;
+        case torch::kFloat64: dtype = py::dtype::of<double>(); break;
+        case torch::kInt32: dtype = py::dtype::of<int32_t>(); break;
+        case torch::kInt64: dtype = py::dtype::of<int64_t>(); break;
+        case torch::kUInt8: dtype = py::dtype::of<uint8_t>(); break;
+        case torch::kInt8: dtype = py::dtype::of<int8_t>(); break;
+        case torch::kInt16: dtype = py::dtype::of<int16_t>(); break;
         default:
             throw std::runtime_error("Unsupported tensor data type for conversion to NumPy");
     }
-
-    // Return an array that (non‐copying) wraps the PyTorch buffer:
+    
+    // Store the shared_ptr in the capsule's user data
+    auto* keeper_ptr = new std::shared_ptr<torch::Tensor>(tensor_keeper);
+    
+    // Return array that shares ownership with the tensor. This avoids
+    // a previous error where synapx.ones((2,2)).numpy() would make NumPy point to
+    // the tensor's data, but because NumPy didn't own it, after the temporary tensor
+    // went out of scope, the NumPy data would become corrupted.
     return py::array(
         dtype,
         shape,
         strides,
         data_ptr,
-        // Attach a capsule so PyTorch’s memory isn’t freed prematurely:
-        py::capsule(data_ptr, [](void* p){ /* no-op; PyTorch owns it */ })
+        py::capsule(keeper_ptr, [](void* p) {
+            delete static_cast<std::shared_ptr<torch::Tensor>*>(p);
+        })
     );
 }
 
