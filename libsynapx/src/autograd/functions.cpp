@@ -23,12 +23,12 @@ namespace synapx::autograd
     }
 
     TensorList AccumulateGrad::apply(const TensorList& inputs) {
-        const Tensor& grad_input = inputs[0];
+        const Tensor& grad = inputs[0];
         
         if (variable.grad().defined())
-            variable.set_grad(variable.grad() + grad_input);
+            variable.set_grad(variable.grad() + grad);
         else {
-            variable.set_grad(grad_input);
+            variable.set_grad(grad);
         }
 
         return {};
@@ -53,13 +53,13 @@ namespace synapx::autograd
     }
 
     TensorList AddBackward0::apply(const TensorList& inputs) {
-        const Tensor& grad_input = inputs[0];
+        const Tensor& grad = inputs[0];
         
         Tensor grad_t1, grad_t2;
         if (t1_req_grad) 
-            grad_t1 = unbroadcast(grad_input, t1_shape);
+            grad_t1 = unbroadcast(grad, t1_shape);
         if (t2_req_grad) 
-            grad_t2 = unbroadcast(grad_input, t2_shape);
+            grad_t2 = unbroadcast(grad, t2_shape);
 
         return {grad_t1, grad_t2};
     }
@@ -82,13 +82,13 @@ namespace synapx::autograd
     }
 
     TensorList SubBackward0::apply(const TensorList& inputs) {
-        const Tensor& grad_input = inputs[0];
+        const Tensor& grad = inputs[0];
         
         Tensor grad_t1, grad_t2;
         if (t1_req_grad) 
-            grad_t1 = unbroadcast(grad_input, t1_shape);
+            grad_t1 = unbroadcast(grad, t1_shape);
         if (t2_req_grad) 
-            grad_t2 = -unbroadcast(grad_input, t2_shape);
+            grad_t2 = -unbroadcast(grad, t2_shape);
 
         return {grad_t1, grad_t2};
     }
@@ -114,14 +114,14 @@ namespace synapx::autograd
     }
 
     TensorList MulBackward0::apply(const TensorList& inputs) {
-        const Tensor& grad_input = inputs[0];
+        const Tensor& grad = inputs[0];
         
         Tensor grad_t1, grad_t2;
         if (t1_req_grad)
-            grad_t1 = unbroadcast(grad_input * t2, t1_shape);
+            grad_t1 = unbroadcast(grad * t2, t1_shape);
         
         if (t2_req_grad)
-            grad_t2 = unbroadcast(grad_input * t1, t2_shape);
+            grad_t2 = unbroadcast(grad * t1, t2_shape);
 
         return {grad_t1, grad_t2};
     }
@@ -146,14 +146,14 @@ namespace synapx::autograd
     }
 
     TensorList DivBackward0::apply(const TensorList& inputs) {
-        const Tensor& grad_input = inputs[0];
+        const Tensor& grad = inputs[0];
         
         Tensor grad_t1, grad_t2;
         if (t1_req_grad)
-            grad_t1 = unbroadcast(grad_input / t2, t1_shape);
+            grad_t1 = unbroadcast(grad / t2, t1_shape);
         
         if (t2_req_grad)
-            grad_t2 = unbroadcast((-grad_input * t1) / (t2 * t2), t2.sizes());
+            grad_t2 = unbroadcast((-grad * t1) / (t2 * t2), t2.sizes());
 
         return {grad_t1, grad_t2};
     }
@@ -179,16 +179,16 @@ namespace synapx::autograd
     }
 
     TensorList MatmulBackward0::apply(const TensorList& inputs) {
-        const Tensor& grad_input = inputs[0];
+        const Tensor& grad = inputs[0];
         
         Tensor grad_t1, grad_t2;
         if (t1_req_grad) {
-            grad_t1 = synapx::matmul(grad_input, synapx::swapdims(t2, -2, -1));
+            grad_t1 = synapx::matmul(grad, synapx::swapdims(t2, -2, -1));
             grad_t1 = unbroadcast(grad_t1, t1_shape);
         }
 
         if (t2_req_grad) {
-            grad_t2 = synapx::matmul(synapx::swapdims(t1, -2, -1), grad_input);
+            grad_t2 = synapx::matmul(synapx::swapdims(t1, -2, -1), grad);
             grad_t2 = unbroadcast(grad_t2, t2_shape);
         } 
 
@@ -208,15 +208,15 @@ namespace synapx::autograd
     }
 
     TensorList PowBackward0::apply(const TensorList& inputs) {
-        const Tensor& grad_input = inputs[0];
+        const Tensor& grad = inputs[0];
         
         Tensor grad_base, grad_exp;
 
         if (base_req_grad)
-            grad_base = exp * fw_result.div(base) * grad_input;
+            grad_base = exp * fw_result.div(base) * grad;
         
         if (exp_req_grad)
-            grad_exp = fw_result * base.log() * grad_input;
+            grad_exp = fw_result * base.log() * grad;
 
         return {grad_base, grad_exp};
     }
@@ -273,17 +273,17 @@ namespace synapx::autograd
     }
 
     TensorList AddmmBackward0::apply(const TensorList& inputs) {
-        const Tensor& grad_input = inputs[0];
+        const Tensor& grad = inputs[0];
         Tensor grad_inp, grad_mat1, grad_mat2;
 
         if (inp_req_grad) 
-            grad_inp = unbroadcast(grad_input, inp_shape);
+            grad_inp = unbroadcast(grad, inp_shape);
         
         if (mat1_req_grad) 
-            grad_mat1 = synapx::matmul(grad_input, synapx::swapdims(mat2, -2, -1));
+            grad_mat1 = synapx::matmul(grad, synapx::swapdims(mat2, -2, -1));
         
         if (mat2_req_grad) 
-            grad_mat2 = synapx::matmul(synapx::swapdims(mat1, -2, -1), grad_input);
+            grad_mat2 = synapx::matmul(synapx::swapdims(mat1, -2, -1), grad);
 
         return {grad_inp, grad_mat1, grad_mat2};
     }
@@ -296,8 +296,8 @@ namespace synapx::autograd
     }
 
     TensorList ExpBackward0::apply(const TensorList& inputs) {
-        const Tensor& grad_input = inputs[0];
-        return {fw_result * grad_input};
+        const Tensor& grad = inputs[0];
+        return {fw_result * grad};
     }
 
     
@@ -308,8 +308,8 @@ namespace synapx::autograd
     }
 
     TensorList LogBackward0::apply(const TensorList& inputs) {
-        const Tensor& grad_input = inputs[0];
-        return {grad_input / (t + epsilon)};
+        const Tensor& grad = inputs[0];
+        return {grad / (t + epsilon)};
     }
     
 
@@ -320,8 +320,8 @@ namespace synapx::autograd
     }
 
     TensorList SqrtBackward0::apply(const TensorList& inputs) {
-        const Tensor& grad_input = inputs[0];
-        return {grad_input / (2 * fw_result)};
+        const Tensor& grad = inputs[0];
+        return {grad / (2 * fw_result)};
     }
 
 
@@ -333,14 +333,14 @@ namespace synapx::autograd
     }
 
     TensorList SumBackward0::apply(const TensorList& inputs) {
-        const Tensor& grad_input = inputs[0];
+        const Tensor& grad = inputs[0];
         
-        Tensor grad = grad_input;
+        Tensor input_grad = grad;
 
         if(!keepdim && !dim.empty())
-            grad = expand_dims(grad, dim);
+            input_grad = expand_dims(input_grad, dim);
         
-        return {synapx::broadcast_to(grad, t_shape)};
+        return {synapx::broadcast_to(input_grad, t_shape)};
     }
 
 
@@ -352,20 +352,20 @@ namespace synapx::autograd
     }
 
     TensorList MeanBackward0::apply(const TensorList& inputs) {
-        const Tensor& grad_input = inputs[0];
+        const Tensor& grad = inputs[0];
         
-        Tensor grad = grad_input;
+        Tensor input_grad = grad;
 
         if(!keepdim && !dim.empty())
-            grad = expand_dims(grad, normalized_dims, /*normalized=*/true);
+            input_grad = expand_dims(input_grad, normalized_dims, /*normalized=*/true);
         
         int num_samples = 1;
         for (int64_t d : normalized_dims) {
             num_samples *= t_shape[d];
         }
-        grad = synapx::broadcast_to(grad, t_shape) / num_samples;
+        input_grad = synapx::broadcast_to(input_grad, t_shape) / num_samples;
 
-        return {grad};
+        return {input_grad};
     }
 
 
@@ -377,20 +377,20 @@ namespace synapx::autograd
     }
 
     TensorList MaxBackward0::apply(const TensorList& inputs) {
-        const Tensor& grad_input = inputs[0];
+        const Tensor& grad = inputs[0];
         
-        Tensor grad = grad_input;
-        Tensor mask = synapx::zeros(t_shape, false, grad.options());
+        Tensor input_grad = grad;
+        Tensor mask = synapx::zeros(t_shape, false, input_grad.options());
 
         // Along specific dimension
         Tensor indices = max_indices;
         if (!keepdim) {
-            grad.unsqueeze_(dim);
+            input_grad.unsqueeze_(dim);
             indices.unsqueeze_(dim);
         }
         mask.scatter_(dim, indices, 1);
         
-        return {grad * mask};
+        return {input_grad * mask};
     }
 
     MaxBackward1::MaxBackward1(const Tensor& t, const Tensor& max_value) : t(t), max_value(max_value) {}
@@ -400,12 +400,12 @@ namespace synapx::autograd
     }
 
     TensorList MaxBackward1::apply(const TensorList& inputs) {
-        const Tensor& grad_input = inputs[0];
+        const Tensor& grad = inputs[0];
         
-        Tensor mask = (t == max_value).to(grad_input.dtype());
+        Tensor mask = (t == max_value).to(grad.dtype());
         mask /= mask.count_nonzero();
         
-        return {grad_input * mask};
+        return {grad * mask};
     }
 
 
@@ -417,20 +417,20 @@ namespace synapx::autograd
     }
 
     TensorList MinBackward0::apply(const TensorList& inputs) {
-        const Tensor& grad_input = inputs[0];
+        const Tensor& grad = inputs[0];
         
-        Tensor grad = grad_input;
-        Tensor mask = synapx::zeros(t_shape, false, grad.options());
+        Tensor input_grad = grad;
+        Tensor mask = synapx::zeros(t_shape, false, input_grad.options());
 
         // Along specific dimension
         Tensor indices = min_indices;
         if (!keepdim) {
-            grad.unsqueeze_(dim);
+            input_grad.unsqueeze_(dim);
             indices.unsqueeze_(dim);
         }
         mask.scatter_(dim, indices, 1);
         
-        return {grad * mask};
+        return {input_grad * mask};
     }
 
     MinBackward1::MinBackward1(const Tensor& t, const Tensor& min_value) : t(t), min_value(min_value) {}
@@ -440,12 +440,12 @@ namespace synapx::autograd
     }
 
     TensorList MinBackward1::apply(const TensorList& inputs) {
-        const Tensor& grad_input = inputs[0];
+        const Tensor& grad = inputs[0];
         
-        Tensor mask = (t == min_value).to(grad_input.dtype());
+        Tensor mask = (t == min_value).to(grad.dtype());
         mask /= mask.count_nonzero();
         
-        return {grad_input * mask};
+        return {grad * mask};
     }
 
 
@@ -474,11 +474,11 @@ namespace synapx::autograd
     }
 
     TensorList SqueezeBackward0::apply(const TensorList& inputs) {
-        const Tensor& grad_input = inputs[0];
+        const Tensor& grad = inputs[0];
 
-        Tensor grad = expand_dims(grad_input, dim, true);
+        Tensor input_grad = expand_dims(grad, dim, true);
         
-        return {grad};
+        return {input_grad};
     }
 
 
@@ -489,8 +489,8 @@ namespace synapx::autograd
     }
 
     TensorList UnsqueezeBackward0::apply(const TensorList& inputs) {
-        const Tensor& grad_input = inputs[0];
-        return {grad_input.squeeze(dim)};
+        const Tensor& grad = inputs[0];
+        return {grad.squeeze(dim)};
     }
 
 
@@ -502,8 +502,8 @@ namespace synapx::autograd
     }
 
     TensorList ReshapeBackward0::apply(const TensorList& inputs) {
-        const Tensor& grad_input = inputs[0];
-        return {grad_input.reshape(t_shape)};
+        const Tensor& grad = inputs[0];
+        return {grad.reshape(t_shape)};
     }
 
 
@@ -514,8 +514,8 @@ namespace synapx::autograd
     }
 
     TensorList TransposeBackward0::apply(const TensorList& inputs) {
-        const Tensor& grad_input = inputs[0];
-        return {grad_input.transpose(dim0, dim1)};
+        const Tensor& grad = inputs[0];
+        return {grad.transpose(dim0, dim1)};
     }
 
 
@@ -526,8 +526,8 @@ namespace synapx::autograd
     }
 
     TensorList MovedimBackward0::apply(const TensorList& inputs) {
-        const Tensor& grad_input = inputs[0];
-        return {grad_input.movedim(src, dest)};
+        const Tensor& grad= inputs[0];
+        return {grad.movedim(src, dest)};
     }
 
 
@@ -539,10 +539,10 @@ namespace synapx::autograd
     }
 
     TensorList SliceBackward0::apply(const TensorList& inputs) {
-        const Tensor& grad_input = inputs[0];
-        Tensor grad = synapx::zeros(t_shape, false, grad_input.options());
-        grad.index_put_(indices, grad_input);
-        return {grad};
+        const Tensor& grad = inputs[0];
+        Tensor input_grad = synapx::zeros(t_shape, false, grad.options());
+        input_grad.index_put_(indices, grad);
+        return {input_grad};
     }
 
 
@@ -557,8 +557,8 @@ namespace synapx::autograd
     }
 
     TensorList ConcatBackward0::apply(const TensorList& inputs) {
-        const Tensor& grad_input = inputs[0];
-        return synapx::split(grad_input, sizes, dim);
+        const Tensor& grad = inputs[0];
+        return synapx::split(grad, sizes, dim);
     }
 
 
@@ -569,8 +569,8 @@ namespace synapx::autograd
     }
 
     TensorList StackBackward0::apply(const TensorList& inputs) {
-        const Tensor& grad_input = inputs[0];
-        return synapx::unbind(grad_input, dim);
+        const Tensor& grad = inputs[0];
+        return synapx::unbind(grad, dim);
     }
 
 
@@ -586,14 +586,14 @@ namespace synapx::autograd
         int64_t actual_dim = dim < 0 ? t_shape.size() + dim : dim;
         
         // Create zero tensor and fill slices
-        Tensor grad = synapx::zeros(t_shape, false, inputs[0].options());
+        Tensor input_grad = synapx::zeros(t_shape, false, inputs[0].options());
         for (size_t inp_idx = 0; inp_idx < inputs.size(); inp_idx++) {
-            const Tensor& input_grad = inputs[inp_idx];
-            if (!input_grad.defined()) continue;
-            grad.select(actual_dim, inp_idx).copy_(input_grad);
+            const Tensor& grad = inputs[inp_idx];
+            if (!grad.defined()) continue;
+            input_grad.select(actual_dim, inp_idx).copy_(grad);
         }
         
-        return {grad};
+        return {input_grad};
     }
 
 
@@ -694,7 +694,7 @@ namespace synapx::autograd
         const Tensor& grad = inputs[0];
 
         Tensor input_grad = synapx::zeros(input.sizes(), false, grad.options());
-        Tensor target_grad;
+        Tensor target_grad; // Not computed
         
         int64_t batch_size = input.size(0);
         int64_t num_classes = input.size(1);
