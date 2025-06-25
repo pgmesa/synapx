@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "synapx"
 dynamic = ["version"]
-description = "A deep learning library with an autograd engine and core operations implemented in C++, featuring a Torch-like API."
+description = "A deep learning library powered by a C++ autograd engine, featuring a PyTorch-like API and cross-platform support."
 readme = "README.md"
 requires-python = ">=3.9, <3.13"
 license = {text = "MIT"}
@@ -20,7 +20,7 @@ dependencies = [
 ]
 
 classifiers = [
-    "Development Status :: 1 - Planning",
+    "Development Status :: 3 - Alpha",
 
     "Intended Audience :: Developers",
     "Intended Audience :: Education",
