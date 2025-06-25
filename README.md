@@ -240,4 +240,4 @@ SynapX is compiled for specific combinations of Python and libtorch versions. Wi
 - **Add PyNode support** to let users define backward functions in Python that get called from the C++ engine
 - **Multi-backend support**: Instead of relying only on libtorch, add the ability to switch between libtorch, xtensor, etc. This would require decoupling some logic from the current Tensor class and restructuring parts of the codebase, but it could be interesting for comparing the autograd engine with different tensor operation backends
 
-The last point would be quite ambitious - adding support for the wide range of operations needed for a complete autograd system using libraries not specifically designed for N-dimensional tensors with complex indexing and slicing would be a significant undertaking.
+The last point would be quite ambitious. Adding support for the wide range of operations needed for a complete autograd system using libraries not specifically designed for N-dimensional tensors with complex indexing and slicing (like Eigen, Blaze, or similar linear algebra libraries) would be a significant undertaking.
