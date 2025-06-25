@@ -16,7 +16,7 @@ The aim was to create an autograd engine in C++, implement Python bindings, buil
 
 Any contributions or ideas are more than welcome!
 
-> **Note:** This project builds on my previous exploration [synapgrad](link), which implemented the same autograd concepts purely in Python using numpy for tensor operations.
+> **Note:** This project builds on my previous exploration [synapgrad](https://github.com/pgmesa/synapgrad), which implemented the same autograd concepts purely in Python using numpy for tensor operations.
 
 ## Quick Start
 
