@@ -8,6 +8,7 @@ matplotlib>=3.0.0,<4.0.0
 
 # Examples
 pkbar==0.5
+torchvision
 scikit-learn>=1.2.1,<2.0.0
 
 # Build bindings and stubs
