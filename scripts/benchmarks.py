@@ -12,7 +12,6 @@ import synapx
 import synapgrad
 import numpy as np
 
-import torch.nn.functional as F
 import matplotlib.pyplot as plt
 
 
@@ -246,11 +245,11 @@ class MLPTest(BenchmarkTest):
             
             h = x_torch.reshape(self._config.batch_size, -1)
             h = h @ w1.t()
-            h = F.relu(h)
+            h = torch.relu(h)
             h = h @ w2.t()
-            h = F.relu(h)
+            h = torch.relu(h)
             h = h @ w3.t()
-            out = F.log_softmax(h, dim=1)
+            out = torch.log_softmax(h, dim=1)
             
             result.forward_times.append((time.perf_counter() - start) * 1000)
             
@@ -266,7 +265,40 @@ class MLPTest(BenchmarkTest):
         return result
     
     def run_synapx(self) -> Optional[BenchmarkResult]:
-        return None  # Synapx doesn't support automatic differentiation
+        result = BenchmarkResult(self.name + " (SynapX)", self.description)
+        x = self._generate_data()
+        x_synapx = synapx.tensor(x, requires_grad=True)
+        
+        input_size = self._config.input_channels * self._config.input_height * self._config.input_width
+        
+        # Define weights
+        w1 = synapx.randn((self._config.hidden_sizes[0], input_size), requires_grad=True)
+        w2 = synapx.randn((self._config.hidden_sizes[1], self._config.hidden_sizes[0]), requires_grad=True)
+        w3 = synapx.randn((self._config.num_classes, self._config.hidden_sizes[1]), requires_grad=True)
+        
+        for _ in range(self._config.num_runs):
+            start = time.perf_counter()
+            
+            h = x_synapx.reshape((self._config.batch_size, -1))
+            h = h @ w1.t()
+            h = synapx.relu(h)
+            h = h @ w2.t()
+            h = synapx.relu(h)
+            h = h @ w3.t()
+            out = synapx.log_softmax(h, dim=1)
+            
+            result.forward_times.append((time.perf_counter() - start) * 1000)
+            
+            start = time.perf_counter()
+            out.sum().backward()
+            result.backward_times.append((time.perf_counter() - start) * 1000)
+            
+            x_synapx.grad.zero_()
+            w1.grad.zero_()
+            w2.grad.zero_()
+            w3.grad.zero_()
+            
+        return result
     
     def run_synapgrad(self) -> BenchmarkResult:
         result = BenchmarkResult(self.name + " (Synapgrad)", self.description)
