@@ -31,7 +31,8 @@ jobs:
           pip install --upgrade pip setuptools wheel twine build toml packaging \
             "numpy<2.0.0" \
             "pybind11>=2.6.0,<3.0.0" \
-            "pybind11-stubgen>=2.0.0,<3.0.0"
+            "pybind11-stubgen>=2.0.0,<3.0.0" \
+            "pytest>=8.0.0,<9.0.0"
 
       - name: Install GCC 12 and G++ 12
         if: runner.os == 'Linux'

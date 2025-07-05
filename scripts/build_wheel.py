@@ -73,6 +73,9 @@ def main():
         if i == 0:
             subprocess.run([sys.executable, 'scripts/generate_pyi.py'], cwd=project_path, check=True)
 
+        print(f"[%] Running tests...")
+        subprocess.run([sys.executable, '-m', 'pytest', 'tests'], cwd=project_path, check=True)
+    
     print(f"[%] Building wheel...")
     subprocess.run([sys.executable, '-m', 'build'], cwd=project_path, check=True)
     print("[✓] Wheel created successfully")
