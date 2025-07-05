@@ -23,20 +23,21 @@ Any contributions or ideas are more than welcome!
 ## Quick Start
 
 ```python
+
 import synapx
 
-W = synapx.randn(3, 4, requires_grad=True)
-X = synapx.randn(2, 3, requires_grad=True)
+w = synapx.randn((3, 4), requires_grad=True)
+x = synapx.randn((2, 3), requires_grad=True)
 b = synapx.tensor([1.0, 2.0, 3.0, 4.0], requires_grad=True)
 
-# Matrix multiplication and broadcasting (addmm or linear could also be used here)
-Y = synapx.matmul(X, W) + b  # Shape: (2, 4) 
+# Matrix multiplication and broadcasting (addmm or nn.functional.linear could also be used here)
+y = synapx.matmul(x, w) + b  # Shape: (2, 4) 
 
 # Slice operations
-Y_slice = Y[:, 1:3]  # Take columns 1-2
+y_slice = y[:, 1:3]  # Take columns 1-2
 
 # Unbind along dimension 0 (split into individual tensors)
-y1, y2 = synapx.unbind(Y_slice, dim=0)
+y1, y2 = synapx.unbind(y_slice, dim=0)
 
 # Compute loss
 loss = (y1 * y2).sum()
@@ -44,13 +45,13 @@ loss = (y1 * y2).sum()
 # Gradients are computed automatically
 loss.backward()
 
-print(f"W.grad shape: {W.grad.shape}")
-print(f"X.grad shape: {X.grad.shape}")
+print(f"w.grad shape: {w.grad.shape}")
+print(f"x.grad shape: {x.grad.shape}")
 print(f"b.grad: {b.grad}")
 
 # Use no_grad context for inference
 with synapx.no_grad():
-    inference_result = synapx.matmul(X, W) + b
+    inference_result = synapx.addmm(b, x, w)
     print(f"Inference (no gradients): {inference_result}")
 ```
 
@@ -71,8 +72,9 @@ class SimpleNet(nn.Module):
         return self.linear2(x)
 
 model = SimpleNet()
-x = synapx.randn(32, 784)
+x = synapx.randn((32, 784))
 y = model(x)
+print(y.shape) # (32, 10)
 ```
 
 ## Installation
@@ -222,10 +224,10 @@ SynapX is compiled for specific combinations of Python and libtorch versions. Wi
 
 | Python Version | PyTorch Versions | Status |
 |----------------|------------------|--------|
-| 3.9           | 2.0.X, 2.1.X, 2.2.X, 2.3.X, 2.4.X, 2.5.X | ✅ |
-| 3.10          | 2.0.X, 2.1.X, 2.2.X, 2.3.X, 2.4.X, 2.5.X | ✅ |
-| 3.11          | 2.0.X, 2.1.X, 2.2.X, 2.3.X, 2.4.X, 2.5.X | ✅ |
-| 3.12          | 2.2.X, 2.3.X, 2.4.X, 2.5.X | ✅ |
+| 3.9           | 2.4.X, 2.5.X, 2.6.X, 2.7.X | ✅ |
+| 3.10          | 2.4.X, 2.5.X, 2.6.X, 2.7.X | ✅ |
+| 3.11          | 2.4.X, 2.5.X, 2.6.X, 2.7.X | ✅ |
+| 3.12          | 2.4.X, 2.5.X, 2.6.X, 2.7.X | ✅ |
 
 
 ## Current Limitations and TODO
