@@ -62,7 +62,7 @@ def main():
     index_url = 'https://download.pytorch.org/whl/cpu/'
 
     torch_versions = read_torch_versions(toml_file_path)
-    print(f"[+] Detected torch versions to build against: {torch_versions}")
+    print(f"[%] Detected torch versions to build against: {torch_versions}")
 
     for i, v in enumerate(torch_versions):
         cmd = [sys.executable, '-m', 'pip', 'install', f'torch=={v}', f'--index-url={index_url}']
@@ -78,8 +78,8 @@ def main():
     
     print(f"[%] Building wheel...")
     subprocess.run([sys.executable, '-m', 'build'], cwd=project_path, check=True)
-    print("[S] Wheel created successfully")
-    print(f"[S] Elapsed time: {round(time.time() - t0, 2)} s")
+    print("[OK] Wheel created successfully")
+    print(f"[%] Elapsed time: {round(time.time() - t0, 2)} s")
 
 
 if __name__ == '__main__':

@@ -9,7 +9,7 @@ permissions:
 
 jobs:
   build:
-    name: Build and Publish Wheels
+    name: Build and Upload Wheels to Release
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -68,14 +68,21 @@ jobs:
       - name: Build Extension & Wheel
         run: python scripts/build_wheel.py
 
-      # - name: Upload to PyPI
-      #   env:
-      #     TWINE_USERNAME: ${{ secrets.PYPI_USERNAME }}
-      #     TWINE_PASSWORD: ${{ secrets.PYPI_PASSWORD }}
-      #   run: |
-      #     python -m twine upload dist/*
-
       - name: Upload Wheels to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: dist/*.whl
+
+  publish:
+    name: Publish Wheels to PyPI
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      # Collect wheels from all matrix jobs
+      - name: Download all artifacts
+        uses: actions/download-artifact@v3
+        
+      - name: Upload to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
