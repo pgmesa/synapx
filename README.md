@@ -23,20 +23,20 @@ Any contributions or ideas are more than welcome!
 ## Quick Start
 
 ```python
-import synapx as sx
+import synapx
 
-W = sx.randn(3, 4, requires_grad=True)
-X = sx.randn(2, 3, requires_grad=True)
-b = sx.tensor([1.0, 2.0, 3.0, 4.0], requires_grad=True)
+W = synapx.randn(3, 4, requires_grad=True)
+X = synapx.randn(2, 3, requires_grad=True)
+b = synapx.tensor([1.0, 2.0, 3.0, 4.0], requires_grad=True)
 
 # Matrix multiplication and broadcasting (addmm or linear could also be used here)
-Y = sx.matmul(X, W) + b  # Shape: (2, 4) 
+Y = synapx.matmul(X, W) + b  # Shape: (2, 4) 
 
 # Slice operations
 Y_slice = Y[:, 1:3]  # Take columns 1-2
 
 # Unbind along dimension 0 (split into individual tensors)
-y1, y2 = sx.unbind(Y_slice, dim=0)
+y1, y2 = synapx.unbind(Y_slice, dim=0)
 
 # Compute loss
 loss = (y1 * y2).sum()
@@ -49,8 +49,8 @@ print(f"X.grad shape: {X.grad.shape}")
 print(f"b.grad: {b.grad}")
 
 # Use no_grad context for inference
-with sx.no_grad():
-    inference_result = sx.matmul(X, W) + b
+with synapx.no_grad():
+    inference_result = synapx.matmul(X, W) + b
     print(f"Inference (no gradients): {inference_result}")
 ```
 
