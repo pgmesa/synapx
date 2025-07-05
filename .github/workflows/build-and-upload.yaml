@@ -4,6 +4,9 @@ on:
   release:
     types: [published]
 
+permissions:
+  contents: write  # Required to upload files to releases
+
 jobs:
   build:
     name: Build and Publish Wheels
@@ -73,7 +76,6 @@ jobs:
       #     python -m twine upload dist/*
 
       - name: Upload Wheels to GitHub Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           files: dist/*
-        if: github.event_name == 'release'
