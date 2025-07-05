@@ -77,6 +77,32 @@
       "inherits": ["linux-base", "base-release"],
 	    "hidden": true,
       "displayName": "Linux Release"
+    },
+    {
+      "name": "runner-windows",
+      "inherits": "windows-release",
+      "displayName": "GitHub Runner Windows",
+      "generator": "Visual Studio 17 2022",
+      "cacheVariables": {
+        "VCPKG_TARGET_TRIPLET": "x64-windows",
+        "CMAKE_CXX_COMPILER": "cl",
+        "BUILD_PYTHON_BINDINGS": "ON",
+        "BUILD_EXAMPLES": "OFF"
+      }
+    },
+    {
+      "name": "runner-linux",
+      "inherits": "linux-release",
+      "displayName": "GitHub Runner Linux",
+      "generator": "Ninja",
+      "cacheVariables": {
+        "VCPKG_TARGET_TRIPLET": "x64-linux",
+        "CMAKE_C_COMPILER": "/usr/bin/gcc-12",
+        "CMAKE_CXX_COMPILER": "/usr/bin/g++-12",
+        "CMAKE_CUDA_HOST_COMPILER": "/usr/bin/gcc-12",
+        "BUILD_PYTHON_BINDINGS": "ON",
+        "BUILD_EXAMPLES": "OFF"
+      }
     }
   ],
   "buildPresets": [
@@ -103,6 +129,18 @@
 	    "hidden": true,
       "configurePreset": "linux-release",
       "displayName": "Linux Release Build"
+    },
+    {
+      "name": "runner-windows",
+      "configurePreset": "runner-windows",
+      "displayName": "Runner Windows Build",
+      "configuration": "Release"
+    },
+    {
+      "name": "runner-linux",
+      "configurePreset": "runner-linux",
+      "displayName": "Runner Linux Build",
+      "configuration": "Release"
     }
   ]
 }

@@ -1,5 +1,5 @@
 
-from typing import Callable
+from typing import Callable, Union
 
 import pytest
 import torch
@@ -12,7 +12,7 @@ from utils import check_tensors, time_fun
 atol = 1e-6; rtol = 1e-5
 
 def op_tester(
-    inputs: tuple | dict, 
+    inputs: Union[tuple, dict], 
     function: Callable,
     name: str,
     device: str = 'cpu',

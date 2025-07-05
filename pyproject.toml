@@ -8,7 +8,7 @@ dynamic = ["version"]
 description = "A deep learning library powered by a C++ autograd engine, featuring a PyTorch-like API and cross-platform support."
 readme = "README.md"
 requires-python = ">=3.9, <3.13"
-license = {text = "MIT"}
+license = "MIT"
 urls = {Homepage = "https://github.com/pgmesa/synapx"}
 keywords = ["Autograd", "Tensor", "Machine Learning", "Deep Learning", "C++", "Python"]
 authors = [
@@ -16,7 +16,10 @@ authors = [
 ]
 
 dependencies = [
-    "torch>=2.0.0,<3.0.0",
+    "torch>=2.4.0,<=2.7.0; python_version == '3.9'",
+    "torch>=2.4.0,<=2.7.0; python_version == '3.10'",
+    "torch>=2.4.0,<=2.7.0; python_version == '3.11'",
+    "torch>=2.4.0,<=2.7.0; python_version == '3.12'",
 ]
 
 classifiers = [
@@ -25,8 +28,6 @@ classifiers = [
     "Intended Audience :: Developers",
     "Intended Audience :: Education",
     "Intended Audience :: Science/Research",
-
-    "License :: OSI Approved :: MIT License",
 
     "Operating System :: Microsoft :: Windows",
     "Operating System :: POSIX :: Linux",
@@ -44,6 +45,12 @@ classifiers = [
     "Topic :: Software Development",
     "Topic :: Software Development :: Libraries",
     "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[project.optional-dependencies]
+build = [    
+    "pybind11>=2.6.0,<3.0.0",
+    "pybind11-stubgen>=2.0.0,<3.0.0"
 ]
 
 [tool.setuptools]
