@@ -10,7 +10,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-22, windows-latest]
+        os: [windows-latest, ubuntu-latest]
         python-version: ["3.9", "3.10", "3.11", "3.12"]
 
     steps:
@@ -27,6 +27,7 @@ jobs:
         run: sudo apt-get update && sudo apt-get install -y cmake build-essential ninja
 
       - name: Install Python Dependencies
+        shell: bash
         run: |
           pip install --upgrade pip setuptools wheel twine build toml packaging \
             "numpy<2.0.0" \
