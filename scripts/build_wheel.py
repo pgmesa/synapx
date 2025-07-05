@@ -78,8 +78,8 @@ def main():
     
     print(f"[%] Building wheel...")
     subprocess.run([sys.executable, '-m', 'build'], cwd=project_path, check=True)
-    print("[✓] Wheel created successfully")
-    print(f"[✓] Elapsed time: {round(time.time() - t0, 2)} s")
+    print("[S] Wheel created successfully")
+    print(f"[S] Elapsed time: {round(time.time() - t0, 2)} s")
 
 
 if __name__ == '__main__':
