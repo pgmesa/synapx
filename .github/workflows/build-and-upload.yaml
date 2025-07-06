@@ -83,8 +83,10 @@ jobs:
 
   upload-pypi:
     name: Upload Wheels to PyPI
-    needs: build
+    needs: build  
     runs-on: ubuntu-latest
+    # Run if build succeeded OR if build was skipped (manual trigger)
+    if: always() && (needs.build.result == 'success' || needs.build.result == 'skipped')
     
     steps:
       - name: Download wheels from latest release
