@@ -111,7 +111,7 @@ jobs:
           ls -la dist/
 
       - name: Upload to PyPI
-        if: !inputs.skip_pypi
+        if: ${{ !inputs.skip_pypi }}
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}
