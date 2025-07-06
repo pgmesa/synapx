@@ -5,11 +5,6 @@ on:
     types: [published]
   workflow_dispatch:
     inputs:
-      skip_build:
-        description: 'Skip build and use existing release assets'
-        required: false
-        default: true
-        type: boolean
       skip_pypi:
         description: 'Skip PyPI upload to test workflow without publishing'
         required: false
@@ -23,7 +18,7 @@ jobs:
   build:
     name: Build and Upload Wheels to Release
     runs-on: ${{ matrix.os }}
-    if: github.event_name == 'release' || (github.event_name == 'workflow_dispatch' && !inputs.skip_build)
+    if: github.event_name == 'release'
     strategy:
       matrix:
         os: [windows-2022, ubuntu-22.04]
@@ -92,15 +87,7 @@ jobs:
     runs-on: ubuntu-latest
     
     steps:
-      - name: Download built artifacts
-        if: needs.build.result == 'success'
-        uses: actions/download-artifact@v4
-        with:
-          merge-multiple: true
-          path: dist/
-
       - name: Download wheels from latest release
-        if: needs.build.result == 'skipped'
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
