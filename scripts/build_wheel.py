@@ -2,6 +2,7 @@
 import os
 import sys
 import time
+import argparse
 import platform
 import subprocess
 from pathlib import Path
@@ -61,6 +62,13 @@ def read_torch_versions(toml_path) -> list[str]:
 
 
 def main():
+    parser = argparse.ArgumentParser(description="Build SynapX Wheel")
+    parser.add_argument('--preset', required=False, type=str, help="CMake preset to use")
+    
+    args = parser.parse_args()
+    
+    preset = args.preset
+    
     t0 = time.time()
     system = platform.system()
     libsynapx_dir = project_path / 'libsynapx'
@@ -75,7 +83,9 @@ def main():
         cmd = [sys.executable, '-m', 'pip', 'install', f'torch=={v}', f'--index-url={index_url}']
         subprocess.run(cmd, cwd=project_path, check=True)
         
-        preset = 'runner-' + system.lower()
+        if preset is None:
+            preset = 'runner-' + system.lower()
+        
         subprocess.run(['make', 'rebuild', f'preset={preset}', 'target=install'], cwd=libsynapx_dir, check=True)
         if i == 0:
             subprocess.run([sys.executable, 'scripts/generate_pyi.py'], cwd=project_path, check=True)
