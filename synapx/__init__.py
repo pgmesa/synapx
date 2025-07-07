@@ -12,9 +12,9 @@ __version__ = "0.1.0"
 package_path = Path(__file__).parent.absolute()
 
 # Add synapx dlls
-synapx_lib_dir = package_path / 'lib'
+synapx_lib_dirs = package_path / 'lib'
 libtorch_supported_versions = {
-    f.split('-')[1][:-2]: f for f in os.listdir(synapx_lib_dir) if os.path.isdir(synapx_lib_dir / f)
+    f.split('-')[1][:-2]: f for f in os.listdir(synapx_lib_dirs) if os.path.isdir(synapx_lib_dirs / f)
 }
 
 def print_supported_versions():
@@ -26,6 +26,7 @@ def print_supported_versions():
 # Ensures libtorch shared libraries are loaded
 try:
     import torch
+    torch_lib_dir = Path(torch.__file__).parent / 'lib' 
 except Exception as e:
     print("\n[x] Could not load 'torch' module")
     print("SynapX requires LibTorch compiled shared libraries to be installed and available in the environment.")
@@ -38,7 +39,8 @@ except Exception as e:
 torch_version = '.'.join(torch.__version__.split('.')[:2])
 
 if torch_version in libtorch_supported_versions:
-    target_synapx_lib_dir = synapx_lib_dir / libtorch_supported_versions[torch_version]
+    target_synapx_lib_dir = synapx_lib_dirs / libtorch_supported_versions[torch_version]
+    synapx_lib_dir = target_synapx_lib_dir
 else:
     print(f"\n[x] Current installed torch version ({torch.__version__}) is not supported")
     print_supported_versions()

@@ -55,7 +55,7 @@ build = [
 
 [tool.setuptools]
 packages = { find = { where = ["."], include = ["synapx", "synapx.*"]} }
-package-data = {"synapx.lib" = ["**/*"]}
+package-data = { "synapx.lib" = ["**/*"], "synapx" = ["include/**/*", "share/**/*"] }
 
 [tool.setuptools.dynamic]
 version = {attr = "synapx.__version__"}

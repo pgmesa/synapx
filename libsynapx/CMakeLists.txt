@@ -99,7 +99,7 @@ endif()
 target_include_directories(synapx
     PUBLIC
         $<BUILD_INTERFACE:${SYNAPX_INCLUDE_DIR}>
-        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}/synapx>
+        $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>
         ${TORCH_INCLUDE_DIRS}
 )
 
@@ -146,7 +146,7 @@ if(BUILD_PYTHON_BINDINGS)
     )
 
     install(DIRECTORY ${SYNAPX_INCLUDE_DIR}/
-        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}/synapx
+        DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
         FILES_MATCHING PATTERN "*.h" PATTERN "*.hpp"
     )
     # ─────────────────────────────────────────────────────────────────────────────
