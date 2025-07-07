@@ -78,14 +78,7 @@ jobs:
         run: echo "VCPKG_ROOT=${{ github.workspace }}\\vcpkg" >> $env:GITHUB_ENV
         shell: pwsh
 
-      - name: Build Extension & Wheel (Windows)
-        if: runner.os == 'Windows'
-        shell: cmd # Use cmd instead of powershell (io.h not found error)
-        run: python scripts/build_wheel.py
-
-      - name: Build Extension & Wheel (Linux)
-        if: runner.os == 'Linux'
-        shell: bash
+      - name: Build Wheel
         run: python scripts/build_wheel.py
 
       - name: Upload Wheels to GitHub Release

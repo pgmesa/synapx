@@ -98,17 +98,6 @@ def main():
     if system == 'Linux':
         print("[%] Repairing Wheel...")
 
-        # Add libsynapx.so and torch libraries to LD_LIBRARY_PATH
-        from synapx import synapx_lib_dir, torch_lib_dir
-        current_ld_path = os.environ.get('LD_LIBRARY_PATH', '')
-        libs_dir = f"{synapx_lib_dir}:{torch_lib_dir}"
-        new_ld_path = f"{libs_dir}:{current_ld_path}" if current_ld_path else str(libs_dir)
-        print(f"Using LD_LIBRARY_PATH: {new_ld_path}")
-
-        # Create environment with updated LD_LIBRARY_PATH
-        env = os.environ.copy()
-        env['LD_LIBRARY_PATH'] = new_ld_path
-
         # Get wheel file name
         wheel_file = None
         wheel_dir = project_path / 'dist'
@@ -124,7 +113,7 @@ def main():
         # Run auditwheel
         print("[%] Running auditwheel...")
         subprocess.run(
-            ['auditwheel', 'repair', str(wheel_file), '-w', 'dist'], env=env, check=True
+            ['auditwheel', 'repair', str(wheel_file), '-w', 'dist', '--exclude', '*.so'], check=True
         )
         
         print(f"[%] Removing {wheel_file}...")

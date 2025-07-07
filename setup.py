@@ -1,49 +1,33 @@
 import os
-import platform
 from pathlib import Path
 from setuptools import setup, Extension
+from setuptools.command.build_ext import build_ext
 
 
 cwd = Path(__file__).parent.absolute()
 
-stub_c = """
-#include <Python.h>
-
-#ifndef _WIN32
-#ifdef __cplusplus
-extern "C"
-#endif
-__attribute__((visibility("default"))) PyObject* PyInit__C(void);
-#endif
-
-PyMODINIT_FUNC PyInit__C(void)
-{
-  return NULL;
-}
-"""
-
 synapx_lib_dir = cwd / 'synapx/lib'
 lib_dirs = [str((synapx_lib_dir/d).relative_to(cwd)) for d in os.listdir(synapx_lib_dir)]
 
-main_sources = []
-if platform.system() == 'Windows':
-    # Minimal stub
-    stub_file = cwd / 'stub.c'
-    with open(stub_file, 'w') as f:
-        f.write(stub_c)
+
+class SkipBuildExt(build_ext):
     
-    main_sources.append('stub.c')
+    def build_extension(self, ext):
+        # Skip building the extension entirely
+        print(f"Skipping build for extension {ext.name}")
+
 
 extensions = [
     Extension(
         'synapx._C',
+        sources=[],
         libraries=['synapx'],
         language="C++",
-        sources=main_sources,
         library_dirs=lib_dirs
     )
 ]
 
 setup(
     ext_modules=extensions,
+    cmdclass={'build_ext': SkipBuildExt},
 )
