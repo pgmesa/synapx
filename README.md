@@ -1,6 +1,6 @@
 # SynapX
 
-[![PyPI version](https://badge.fury.io/py/synapx.svg)](https://badge.fury.io/py/synapx)
+[![PyPI version](https://img.shields.io/pypi/v/synapx?color=light-green)](https://pypi.org/project/synapx/)
 [![Downloads](https://static.pepy.tech/personalized-badge/synapx?period=total&units=international_system&left_color=gray&right_color=blue&left_text=Downloads)](https://pepy.tech/project/synapx)
 [![Python versions](https://img.shields.io/pypi/pyversions/synapx.svg)](https://pypi.org/project/synapx/)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
