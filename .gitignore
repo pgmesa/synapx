@@ -10,6 +10,7 @@ synapx/share/
 synapx/_C.pyi
 synapx/_C/
 mnist/
+stub.c
 
 
 # CMake
