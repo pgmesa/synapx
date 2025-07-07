@@ -15,8 +15,6 @@ import toml
 from packaging.requirements import Requirement
 from packaging.version import Version
 
-from synapx import synapx_lib_dir, torch_lib_dir
-
 
 python_version = f"{sys.version_info.major}.{sys.version_info.minor}"
 
@@ -101,6 +99,7 @@ def main():
         print("[%] Repairing Wheel...")
 
         # Add libsynapx.so and torch libraries to LD_LIBRARY_PATH
+        from synapx import synapx_lib_dir, torch_lib_dir
         current_ld_path = os.environ.get('LD_LIBRARY_PATH', '')
         libs_dir = f"{synapx_lib_dir}:{torch_lib_dir}"
         new_ld_path = f"{libs_dir}:{current_ld_path}" if current_ld_path else str(libs_dir)
