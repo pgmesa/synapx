@@ -111,7 +111,7 @@ The package is compiled for each libtorch minor version it supports. A SynapX co
 ### examples/
 Contains practical examples showcasing the library in action. You'll need additional dependencies for these:
 ```bash
-pip install scikit-learn numpy matplotlib pkbar
+pip install scikit-learn numpy matplotlib tqdm ipywidgets torchvision
 ```
 
 The examples include simple problems like make_moons and MNIST classification. You can easily switch between PyTorch and SynapX backends to compare performance and functionality.
