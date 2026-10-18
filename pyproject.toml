@@ -53,6 +53,41 @@ build = [
     "pybind11-stubgen>=2.0.0,<3.0.0"
 ]
 
+[dependency-groups]
+dev = [
+    "numpy>=1.23.0",
+    "pytest>=8.0.0,<9.0.0",
+    "pybind11>=2.6.0,<3.0.0",
+    "pybind11-stubgen>=2.0.0,<3.0.0",
+    "toml",
+    "packaging",
+]
+examples = [
+    "numpy>=1.23.0",
+    "matplotlib>=3.0.0,<4.0.0",
+    "scikit-learn>=1.2.1,<2.0.0",
+    "tqdm>=4.66.0",
+    "ipywidgets>=8.0.0",
+    "ipykernel",
+    "torchvision",
+]
+
+# Development environment only: users get torch from their own install.
+# synapx is built with CMake, so uv only installs the dependencies
+[tool.uv]
+package = false
+default-groups = ["dev", "examples"]
+environments = ["sys_platform == 'win32'", "sys_platform == 'linux'"]
+
+[tool.uv.sources]
+torch = { index = "pytorch-cu128" }
+torchvision = { index = "pytorch-cu128" }
+
+[[tool.uv.index]]
+name = "pytorch-cu128"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
+
 [tool.setuptools]
 packages = { find = { where = ["."], include = ["synapx", "synapx.*"]} }
 package-data = { "synapx.lib" = ["**/*"], "synapx" = ["include/**/*", "share/**/*"] }

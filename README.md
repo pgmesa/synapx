@@ -109,7 +109,7 @@ Once the C++ code is compiled and installed, this directory contains the complet
 The package is compiled for each libtorch minor version it supports. A SynapX compiled with libtorch 2.3.X won't necessarily work with 2.4.X, and the same goes for different Python versions. The correct C++ library is loaded dynamically at runtime by checking your installed PyTorch version.
 
 ### examples/
-Contains practical examples showcasing the library in action. You'll need additional dependencies for these:
+Contains practical examples showcasing the library in action. You'll need additional dependencies for these (already included in the development environment, see [Building from Source](#building-from-source)):
 ```bash
 pip install scikit-learn numpy matplotlib tqdm ipywidgets torchvision
 ```
@@ -123,8 +123,7 @@ Contains tests for almost every tensor operation supported in SynapX, as well as
 
 Run all tests:
 ```bash
-pip install pytest
-python -m pytest tests
+uv run pytest tests
 ```
 
 To compare PyTorch and SynapX performance for each implemented operation:
@@ -133,6 +132,11 @@ python -m pytest ./tests/test_ops.py -s
 ```
 
 ## Building from Source
+
+The development environment (PyTorch, build tools, test and example dependencies) is managed with [uv](https://docs.astral.sh/uv/) and pinned in `uv.lock`:
+```bash
+uv sync
+```
 
 ### Setting up CMake presets
 
