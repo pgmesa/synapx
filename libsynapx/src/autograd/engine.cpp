@@ -93,8 +93,11 @@ namespace synapx::autograd {
                     ));
                 }
 
+                // Accumulate out of place: the buffer may be a broadcast view
+                // (stride 0, e.g. the grad of sum()) or be shared with another
+                // buffer, so writing into it would fail or corrupt the other one
                 if (target_grad_buffer.defined()) {
-                    target_grad_buffer += edge_grad;
+                    target_grad_buffer = Tensor(target_grad_buffer.data() + edge_grad.data());
                 } else {
                     target_grad_buffer = edge_grad;
                 }

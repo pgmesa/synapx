@@ -28,7 +28,10 @@ namespace synapx::autograd
         if (variable.grad().defined())
             variable.set_grad(variable.grad() + grad);
         else {
-            variable.set_grad(grad);
+            // .grad must own contiguous memory: optimizers update it in place,
+            // and the incoming grad can be a broadcast view (stride 0)
+            const torch::Tensor& data = grad.data();
+            variable.set_grad(data.is_contiguous() ? grad : Tensor(data.contiguous()));
         }
 
         return {};

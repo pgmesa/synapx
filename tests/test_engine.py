@@ -116,3 +116,25 @@ def test_multitensor_manipulation():
     
     assert check_tensors(concated, concated_t)
     assert check_tensors(inp.grad, inp_t.grad)
+
+
+def test_fan_out_of_broadcast_grad():
+    """A non-leaf used twice receives the stride-0 grad of sum() twice."""
+    x = synapx.tensor([1.0, 2.0, 3.0], requires_grad=True)
+    z = x * 2
+    (z + z).sum().backward()
+
+    x_t = torch.tensor([1.0, 2.0, 3.0], requires_grad=True)
+    z_t = x_t * 2
+    (z_t + z_t).sum().backward()
+
+    assert check_tensors(x.grad, x_t.grad)
+
+
+def test_leaf_grad_is_contiguous():
+    """The grad of sum() is a broadcast view: .grad must own its memory so
+    optimizers can update it in place."""
+    w = synapx.tensor([[1.0, 2.0], [3.0, 4.0]], requires_grad=True)
+    w.sum().backward()
+    w.grad.zero_()
+    assert check_tensors(w.grad, torch.zeros(2, 2))
