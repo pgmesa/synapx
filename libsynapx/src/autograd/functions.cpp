@@ -10,9 +10,6 @@
 
 namespace synapx::autograd
 {
-    constexpr int64_t epsilon = 1e-12;
-
-
     AccumulateGrad::AccumulateGrad(const Tensor& variable): variable(variable) {
         if (!variable.requires_grad())
             throw std::runtime_error("Internal Error: AccumulateGrad variable does not require grad");
@@ -312,7 +309,7 @@ namespace synapx::autograd
 
     TensorList LogBackward0::apply(const TensorList& inputs) {
         const Tensor& grad = inputs[0];
-        return {grad / (t + epsilon)};
+        return {grad / t};
     }
     
 
@@ -695,27 +692,18 @@ namespace synapx::autograd
 
     TensorList NLLLossBackward0::apply(const TensorList& inputs) { 
         const Tensor& grad = inputs[0];
+        constexpr int64_t ignore_index = -100;
 
-        Tensor input_grad = synapx::zeros(input.sizes(), false, grad.options());
+        // Without class weights, the mean divides by the number of targets
+        // that are not ignore_index
+        torch::Tensor total_weight = (target.data() != ignore_index).sum().to(input.dtype());
+
+        // libtorch's kernel scatters -grad into [i, target[i]] in one pass,
+        // instead of one index_put_ per sample
+        Tensor input_grad(torch::nll_loss_backward(
+            grad.data(), input.data(), target.data(), /*weight=*/{},
+            reduction, ignore_index, total_weight));
         Tensor target_grad; // Not computed
-        
-        int64_t batch_size = input.size(0);
-        int64_t num_classes = input.size(1);
-        
-        for (int64_t i = 0; i < batch_size; i++) {
-            int64_t target_class = target[i].item().toInt();
-
-            // Only update gradient for the target class
-            if (target_class >= 0 && target_class < num_classes) {
-                if (reduction == Reduction::Mean) {
-                    input_grad.index_put_({i, target_class}, -grad / batch_size);
-                } else if (reduction == Reduction::Sum) {
-                    input_grad.index_put_({i, target_class}, -grad);
-                } else {
-                    input_grad.index_put_({i, target_class}, -grad[i]);
-                }
-            }
-        }
 
         return {input_grad, target_grad};
     }
