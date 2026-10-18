@@ -64,6 +64,11 @@ namespace synapx::autograd {
             NodePtr current_node = *it;
             TensorList input_grads = grad_map[current_node.get()];
 
+            for (const auto& [output_nr, hook] : current_node->get_retain_grad_hooks()) {
+                const Tensor& retained_grad = input_grads[output_nr];
+                if (retained_grad.defined()) hook(retained_grad);
+            }
+
             TensorList output_grads = current_node->operator()(input_grads);
 
             // Dispatch each gradient along its edge

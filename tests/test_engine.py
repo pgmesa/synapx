@@ -118,6 +118,34 @@ def test_multitensor_manipulation():
     assert check_tensors(inp.grad, inp_t.grad)
 
 
+def test_retain_grad():
+    x = synapx.tensor([1.0, 2.0, 3.0], requires_grad=True)
+    y = x * 2
+    y.retain_grad()
+    z = (y * y).sum()
+    z.backward()
+
+    x_t = torch.tensor([1.0, 2.0, 3.0], requires_grad=True)
+    y_t = x_t * 2
+    y_t.retain_grad()
+    (y_t * y_t).sum().backward()
+
+    assert y.retains_grad
+    assert check_tensors(y.grad, y_t.grad)
+    assert check_tensors(x.grad, x_t.grad)
+
+
+def test_retain_grad_does_not_keep_tensor_alive():
+    x = synapx.tensor([1.0, 2.0], requires_grad=True)
+    y = x * 2
+    y.retain_grad()
+    out = (y * 3).sum()
+    del y
+    # Backward still works when the retained tensor is gone
+    out.backward()
+    assert check_tensors(x.grad, torch.tensor([6.0, 6.0]))
+
+
 def test_fan_out_of_broadcast_grad():
     """A non-leaf used twice receives the stride-0 grad of sum() twice."""
     x = synapx.tensor([1.0, 2.0, 3.0], requires_grad=True)

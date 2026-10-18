@@ -10,6 +10,7 @@
 #include <spdlog/spdlog.h>
 
 #include <synapx/functional.hpp>
+#include <synapx/autograd/graph.hpp>
 #include <synapx/autograd/engine.hpp>
 
 
@@ -30,9 +31,9 @@ namespace synapx {
             : data(data.detach()), requires_grad(req_grad) {};
 
         torch::Tensor data;
-        bool requires_grad;
+        bool requires_grad = false;
 
-        bool retains_grad;
+        bool retains_grad = false;
         uint32_t output_nr = 0;
         
         torch::Tensor grad;
@@ -147,7 +148,21 @@ namespace synapx {
     }
 
     void Tensor::retain_grad() {
+        if (!requires_grad()) {
+            throw std::runtime_error("can't retain_grad on Tensor that has requires_grad=False");
+        }
+        // Leaves always get their .grad populated
+        if (is_leaf() || impl_->retains_grad) return;
         impl_->retains_grad = true;
+
+        // The hook holds the tensor weakly: the tensor already owns the node
+        // through grad_fn, so a strong reference would be a cycle
+        std::weak_ptr<Impl> weak_impl = impl_;
+        impl_->grad_fn->add_retain_grad_hook(impl_->output_nr, [weak_impl](const Tensor& grad) {
+            if (auto impl = weak_impl.lock()) {
+                impl->grad = impl->grad.defined() ? impl->grad + grad.data() : grad.data().clone();
+            }
+        });
     }
 
     bool Tensor::retains_grad() const {
