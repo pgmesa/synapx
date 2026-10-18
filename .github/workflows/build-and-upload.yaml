@@ -16,20 +16,20 @@ permissions:
 
 jobs:
   build:
-    name: Build and Upload Wheels to Release
+    name: Build Wheels
     runs-on: ${{ matrix.os }}
-    if: github.event_name == 'release'
     strategy:
+      fail-fast: false
       matrix:
         os: [windows-2022, ubuntu-22.04]
         python-version: ["3.9", "3.10", "3.11", "3.12"]
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
 
       - name: Setup Python
-        uses: actions/setup-python@v4
+        uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -81,21 +81,30 @@ jobs:
       - name: Build Wheel
         run: python scripts/build_wheel.py
 
+      # Manual runs keep the wheels as workflow artifacts, to test the build
+      # without touching the release
+      - name: Upload Wheels as Artifact
+        if: github.event_name != 'release'
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheels-${{ matrix.os }}-py${{ matrix.python-version }}
+          path: dist/*.whl
+
       - name: Upload Wheels to GitHub Release
+        if: github.event_name == 'release'
         uses: softprops/action-gh-release@v2
         with:
           files: dist/*.whl
 
   upload-pypi:
     name: Upload Wheels to PyPI
-    needs: build  
+    needs: build
     runs-on: ubuntu-latest
-    # Run if build succeeded OR if build was skipped (manual trigger)
-    if: always() && (needs.build.result == 'success' || needs.build.result == 'skipped')
-    
+    if: needs.build.result == 'success'
+
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v5
 
       - name: Download wheels from latest release
         env:
