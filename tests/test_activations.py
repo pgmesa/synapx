@@ -33,18 +33,19 @@ def test_relu():
     check_activation(synapx.nn.ReLU(), torch.nn.ReLU())
     
     
-# def test_leaky_relu():
-#     check_activation(nn.LeakyReLU(), torch.nn.LeakyReLU())
-    
-    
-# def test_selu():
-#     check_activation(nn.SELU(), torch.nn.SELU())
-    
+def test_leaky_relu():
+    check_activation(synapx.nn.LeakyReLU(), torch.nn.LeakyReLU())
+    check_activation(synapx.nn.LeakyReLU(0.2), torch.nn.LeakyReLU(0.2))
 
-# def test_tanh():
-#     check_activation(nn.Tanh(), torch.nn.Tanh())    
-    
-    
+
+def test_selu():
+    check_activation(synapx.nn.SELU(), torch.nn.SELU())
+
+
+def test_tanh():
+    check_activation(synapx.nn.Tanh(), torch.nn.Tanh())
+
+
 def test_sigmoid():
     check_activation(synapx.nn.Sigmoid(), torch.nn.Sigmoid())
     

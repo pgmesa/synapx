@@ -447,6 +447,18 @@ namespace synapx::autograd {
         Reduction reduction;
     };
 
+    class BinaryCrossEntropyBackward0: public Node {
+    public:
+        BinaryCrossEntropyBackward0(const Tensor& input, const Tensor& target, Reduction reduction);
+        std::string name() const override;
+        TensorList apply(const TensorList& inputs) override;
+
+    private:
+        Tensor input;
+        Tensor target;
+        Reduction reduction;
+    };
+
 
 } // namespace synapx::autograd
 

@@ -1,3 +1,4 @@
+import pytest
 
 import torch
 import synapx
@@ -60,72 +61,49 @@ def test_NLLLoss():
     assert check_tensors(ypred.grad, ypred_t.grad)
 
     
-# def test_BCELoss():
-#     pred = [0.3, 0.4, 0.999, 1, 0]
-#     label = [0, 1, 0, 1, 1]
-    
-#     # synapx
-#     ypred = Tensor(pred, requires_grad=True)
-#     ylabel = Tensor(label)
-#     loss = nn.BCELoss()(ypred, ylabel)
-#     loss.backward()
+def check_loss(loss_fn, loss_fn_t, pred, label, label_dtype=torch.float32):
+    ypred = synapx.tensor(pred, requires_grad=True)
+    ylabel = synapx.tensor(label, dtype=label_dtype)
+    loss = loss_fn(ypred, ylabel)
+    loss.sum().backward()  # sum() so that reduction='none' works too
 
-#     # torch
-#     ypred_t = torch.tensor(pred, requires_grad=True)
-#     ylabel_t = torch.tensor(label, dtype=torch.float)
-#     loss_t = torch.nn.BCELoss()(ypred_t, ylabel_t)
-#     loss_t.backward()
+    ypred_t = torch.tensor(pred, requires_grad=True)
+    ylabel_t = torch.tensor(label, dtype=label_dtype)
+    loss_t = loss_fn_t(ypred_t, ylabel_t)
+    loss_t.sum().backward()
 
-#     print(loss, "\n", loss_t)
-#     print(ypred_t.grad)
-#     print(ypred.grad)
-    
-#     assert check_tensors(loss, loss_t)
-#     assert check_tensors(ypred.grad, ypred_t.grad)
+    assert check_tensors(loss, loss_t)
+    assert check_tensors(ypred.grad, ypred_t.grad)
 
 
-# def test_BCEWithLogitsLoss():
-#     pred = [0.3, 0.4, 0.7, -2, -1]
-#     label = [0, 1, 0, 1, 1]
-    
-#     # synapx
-#     ypred = Tensor(pred, requires_grad=True)
-#     ylabel = Tensor(label)
-#     loss = nn.BCEWithLogitsLoss()(ypred, ylabel)
-#     loss.backward()
+@pytest.mark.parametrize("reduction", ["mean", "sum", "none"])
+def test_BCELoss(reduction):
+    # Includes probabilities of exactly 0 and 1, where the log is clamped
+    pred = [0.3, 0.4, 0.999, 1.0, 0.0, 1e-8]
+    label = [0, 1, 0, 1, 1, 0]
+    check_loss(synapx.nn.BCELoss(reduction=reduction), torch.nn.BCELoss(reduction=reduction),
+               pred, label)
 
-#     # torch
-#     ypred_t = torch.tensor(pred, requires_grad=True)
-#     ylabel_t = torch.tensor(label, dtype=torch.float)
-#     loss_t = torch.nn.BCEWithLogitsLoss()(ypred_t, ylabel_t)
-#     loss_t.backward()
-    
-#     print(loss, "\n", loss_t)
-#     print(ypred_t.grad)
-#     print(ypred.grad)
-    
-#     assert check_tensors(loss, loss_t)
-#     assert check_tensors(ypred.grad, ypred_t.grad)
-    
-    
-# def test_CrossEntropyLoss():
-#     pred = [[0.14, 0.3],[-0.2, 0.9],[-3, 0.1]]
-#     label = [0, 1, 0]
-    
-#     # synapx
-#     ypred = Tensor(pred, requires_grad=True)
-#     ylabel = Tensor(label, dtype=np.int8)
-#     loss = nn.CrossEntropyLoss()(ypred, ylabel)
-#     loss.backward()
 
-#     # torch
-#     ypred_t = torch.tensor(pred, requires_grad=True)
-#     ylabel_t = torch.tensor(label).type(torch.LongTensor)
-#     loss_t = torch.nn.CrossEntropyLoss()(ypred_t, ylabel_t)
-#     loss_t.backward()
+@pytest.mark.parametrize("reduction", ["mean", "sum", "none"])
+def test_BCEWithLogitsLoss(reduction):
+    pred = [0.3, 0.4, 0.7, -2.0, -1.0, 40.0, -40.0]
+    label = [0, 1, 0, 1, 1, 0, 1]
+    check_loss(synapx.nn.BCEWithLogitsLoss(reduction=reduction),
+               torch.nn.BCEWithLogitsLoss(reduction=reduction), pred, label)
 
-#     print(ypred_t.grad)
-#     print(ypred.grad)
-    
-#     assert check_tensors(loss, loss_t)
-#     assert check_tensors(ypred.grad, ypred_t.grad)
+
+@pytest.mark.parametrize("reduction", ["mean", "sum", "none"])
+def test_CrossEntropyLoss(reduction):
+    pred = [[0.14, 0.3, -1.0], [-0.2, 0.9, 2.0], [-3.0, 0.1, 0.5], [1.0, 1.0, 1.0]]
+    label = [0, 1, 2, 0]
+    check_loss(synapx.nn.CrossEntropyLoss(reduction=reduction),
+               torch.nn.CrossEntropyLoss(reduction=reduction), pred, label, torch.long)
+
+
+@pytest.mark.parametrize("reduction", ["mean", "sum", "none"])
+def test_NLLLoss_reductions(reduction):
+    pred = [[-0.5, -1.2, -2.0], [-0.1, -3.0, -1.5], [-2.2, -0.3, -0.9]]
+    label = [2, 0, 1]
+    check_loss(synapx.nn.NLLLoss(reduction=reduction),
+               torch.nn.NLLLoss(reduction=reduction), pred, label, torch.long)

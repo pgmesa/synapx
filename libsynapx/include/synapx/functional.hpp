@@ -92,6 +92,7 @@ namespace synapx {
     // Losses
     SYNAPX_API Tensor mse_loss(const Tensor& input, const Tensor& target, Reduction reduction);
     SYNAPX_API Tensor nll_loss(const Tensor& input, const Tensor& target, Reduction reduction);
+    SYNAPX_API Tensor binary_cross_entropy(const Tensor& input, const Tensor& target, Reduction reduction);
 
     // Layer operations
     SYNAPX_API Tensor linear(const Tensor& inp, const Tensor& weight, std::optional<Tensor> bias);

@@ -708,6 +708,25 @@ namespace synapx::autograd
         return {input_grad, target_grad};
     }
 
+    BinaryCrossEntropyBackward0::BinaryCrossEntropyBackward0(
+        const Tensor& input, const Tensor& target, Reduction reduction)
+        : input(input), target(target), reduction(reduction) {}
+
+    std::string BinaryCrossEntropyBackward0::name() const {
+        return "BinaryCrossEntropyBackward0";
+    }
+
+    // libtorch clamps the denominator x * (1 - x), so inputs of exactly 0 or 1
+    // (sigmoid saturates to 1.0f for x > ~17) still give a finite gradient
+    TensorList BinaryCrossEntropyBackward0::apply(const TensorList& inputs) {
+        const Tensor& grad = inputs[0];
+        Tensor input_grad(torch::binary_cross_entropy_backward(
+            grad.data(), input.data(), target.data(), /*weight=*/{}, reduction));
+        Tensor target_grad; // Not computed
+
+        return {input_grad, target_grad};
+    }
+
     
 } // namespace synapx::autograd::functions
 

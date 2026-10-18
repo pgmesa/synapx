@@ -647,6 +647,10 @@ PYBIND11_MODULE(_C, c) {
         return synapx::nll_loss(input, target, get_reduction(reduction));
     }, py::arg("input"), py::arg("target"), py::arg("reduction") = "mean");
 
+    nn.def("binary_cross_entropy", [](const synapx::Tensor& input, const synapx::Tensor& target, const std::string& reduction) {
+        return synapx::binary_cross_entropy(input, target, get_reduction(reduction));
+    }, py::arg("input"), py::arg("target"), py::arg("reduction") = "mean");
+
     // Layer operations
     nn.def("linear", &synapx::linear, py::arg("inp"), py::arg("weight"), py::arg("bias") = py::none());
     nn.def("flatten", &synapx::flatten, py::arg("tensor"), py::arg("start_dim") = 0, py::arg("end_dim") = -1);

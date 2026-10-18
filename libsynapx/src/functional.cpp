@@ -885,6 +885,22 @@ namespace synapx {
         return output;
     }
 
+    Tensor binary_cross_entropy(const Tensor& input, const Tensor& target, Reduction reduction) {
+        TensorList inputs {input, target};
+
+        Operation operation = [&input, &target, reduction]() -> TorchList {
+            return { torch::binary_cross_entropy(input.data(), target.data(), std::nullopt, reduction) };
+        };
+
+        NodeFactory node_factory = [&input, &target, reduction](const TensorList& outputs) -> autograd::NodePtr {
+            return std::make_shared<autograd::BinaryCrossEntropyBackward0>(input, target, reduction);
+        };
+
+        Tensor output = apply_operation(inputs, operation, node_factory)[0];
+
+        return output;
+    }
+
 
     // Layer operations
     Tensor linear(const Tensor& inp, const Tensor& weight, std::optional<Tensor> bias) {
