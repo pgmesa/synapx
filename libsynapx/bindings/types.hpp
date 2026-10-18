@@ -86,6 +86,11 @@ class PyTensorData {
 private:
     torch::Tensor tensor_;
 
+    static bool is_numpy_loaded() {
+        py::dict modules = py::module_::import("sys").attr("modules");
+        return modules.contains("numpy") && !modules["numpy"].is_none();
+    }
+
 public:
     PyTensorData(py::object data) {
         // Handle Python scalars (int, float, bool)
@@ -101,14 +106,21 @@ public:
             bool value = py::cast<bool>(data);
             tensor_ = torch::tensor(value);
         }
-        // If it's a Python list, first convert to NumPy:
+        // Lists go through torch.tensor, so numpy stays an optional dependency
         else if (py::isinstance<py::list>(data)) {
-            py::list py_list = py::cast<py::list>(data);
-            py::array numpy_array = py::array(py_list);
-            tensor_ = numpy_to_torch(numpy_array);
+            py::module_ torch_mod = py::module_::import("torch");
+            tensor_ = py::cast<torch::Tensor>(torch_mod.attr("tensor")(data));
+            // torch infers float32 for Python floats; parse them again as
+            // float64 (like numpy) so that dtype=float64 does not lose precision
+            if (tensor_.is_floating_point()) {
+                tensor_ = py::cast<torch::Tensor>(
+                    torch_mod.attr("tensor")(data, py::arg("dtype") = torch_mod.attr("float64"))
+                );
+            }
         }
-        // If it's a NumPy array:
-        else if (py::isinstance<py::array>(data)) {
+        // isinstance<py::array> imports numpy, which may not be installed. If
+        // nothing has imported it yet, data cannot be an ndarray
+        else if (is_numpy_loaded() && py::isinstance<py::array>(data)) {
             py::array numpy_array = py::cast<py::array>(data);
             tensor_ = numpy_to_torch(numpy_array);
         } 
