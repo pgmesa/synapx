@@ -17,7 +17,7 @@ message(STATUS "Release flags: ${CMAKE_CXX_FLAGS_RELEASE}")
 # ========================= Python and site-packages ==========================
 # ─────────────────────────────────────────────────────────────────────────────
 # Allow to provide a custom path
-set(PYTHON_EXECUTABLE "" STRING "Path to the Python executable to use")
+set(PYTHON_EXECUTABLE "" CACHE FILEPATH "Path to the Python executable to use")
 
 if(PYTHON_EXECUTABLE)
     set(Python_EXECUTABLE ${PYTHON_EXECUTABLE})
