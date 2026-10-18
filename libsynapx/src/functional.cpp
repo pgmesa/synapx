@@ -88,8 +88,17 @@ namespace synapx {
             }
 
             if (any_grad) {
+                // Nodes may save outputs for backward. Saving the outputs themselves
+                // would create the cycle output -> grad_fn -> node -> output and the
+                // graph would never be freed, so nodes only see detached aliases.
+                TensorList saved_outputs;
+                saved_outputs.reserve(outputs.size());
+                for (const Tensor& output : outputs) {
+                    saved_outputs.push_back(output.detach());
+                }
+
                 // Create node
-                autograd::NodePtr node = node_factory(outputs);
+                autograd::NodePtr node = node_factory(saved_outputs);
 
                 // Link node to graph
                 for (const Tensor& input : inputs) {
