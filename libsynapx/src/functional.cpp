@@ -1,6 +1,7 @@
 
 #include <synapx/functional.hpp>
 
+#include <limits>
 #include <vector>
 
 #include <torch/torch.h>
@@ -8,6 +9,7 @@
 #include <synapx/tensor.hpp>
 #include <synapx/autograd/graph.hpp>
 #include <synapx/autograd/functions.hpp>
+#include <synapx/autograd/utils.hpp>
 
 
 namespace synapx {
@@ -943,6 +945,99 @@ namespace synapx {
         mask = mask / keep_prob; // Scale the mask to preserve the expected value
 
         return t * mask;
+    }
+
+    // conv2d, max_pool2d and batch_norm follow synapgrad's cpu_ops algorithms on
+    // purpose (windows + tensordot, not libtorch's convolution), so that the
+    // two projects can be compared with the same algorithm.
+    Tensor conv2d(const Tensor& input, const Tensor& weight, std::optional<Tensor> bias,
+                  torch::IntArrayRef stride, torch::IntArrayRef padding, torch::IntArrayRef dilation) {
+        TensorList inputs {input, weight};
+        if (bias.has_value()) inputs.push_back(bias.value());
+
+        IntArray kernel_size {weight.data().size(2), weight.data().size(3)};
+        torch::Tensor windows = autograd::extract_windows(input.data(), kernel_size, stride, padding, dilation);
+
+        Operation operation = [&]() -> TorchList {
+            // (C_out, lH, lW, N)
+            torch::Tensor output = torch::tensordot(weight.data(), windows, {1, 2, 3}, {3, 4, 5});
+            if (bias.has_value()) output = output + bias.value().data().reshape({-1, 1, 1, 1});
+            return { output.movedim(-1, 0) };
+        };
+
+        NodeFactory node_factory = [&](const TensorList& outputs) -> autograd::NodePtr {
+            return std::make_shared<autograd::Conv2dBackward0>(
+                windows, weight.data(), bias.has_value(), input.shape(), stride, padding, dilation);
+        };
+
+        return apply_operation(inputs, operation, node_factory)[0];
+    }
+
+    Tensor max_pool2d(const Tensor& input, torch::IntArrayRef kernel_size, torch::IntArrayRef stride,
+                      torch::IntArrayRef padding, torch::IntArrayRef dilation) {
+        constexpr double pad_value = -std::numeric_limits<double>::infinity();
+        torch::Tensor windows = autograd::extract_windows(input.data(), kernel_size, stride, padding, dilation, pad_value);
+
+        Operation operation = [&]() -> TorchList {
+            return { windows.flatten(4).amax(-1).permute({2, 3, 0, 1}) };
+        };
+
+        NodeFactory node_factory = [&](const TensorList& outputs) -> autograd::NodePtr {
+            return std::make_shared<autograd::MaxPool2dBackward0>(
+                windows, input.shape(), kernel_size, stride, padding, dilation);
+        };
+
+        return apply_operation({input}, operation, node_factory)[0];
+    }
+
+    Tensor batch_norm(const Tensor& input, std::optional<Tensor> weight, std::optional<Tensor> bias,
+                      std::optional<Tensor> running_mean, std::optional<Tensor> running_var,
+                      bool training, double momentum, double eps) {
+        TensorList inputs {input};
+        if (weight.has_value()) inputs.push_back(weight.value());
+        if (bias.has_value()) inputs.push_back(bias.value());
+
+        const torch::Tensor x = input.data();
+        const torch::Tensor gamma = weight.has_value() ? weight.value().data() : torch::Tensor();
+        const torch::Tensor beta = bias.has_value() ? bias.value().data() : torch::Tensor();
+        bool track_running_stats = running_mean.has_value() && running_var.has_value();
+
+        IntArray normed_dims;
+        IntArray keepdims_shape(x.dim(), 1);
+        keepdims_shape[1] = x.size(1);
+        for (int64_t d = 0; d < x.dim(); ++d) {
+            if (d != 1) normed_dims.push_back(d);
+        }
+        double n = static_cast<double>(x.numel()) / x.size(1);
+
+        torch::Tensor mean = running_mean.has_value() && !training ? running_mean.value().data() : x.mean(normed_dims);
+        torch::Tensor var = running_var.has_value() && !training
+            ? running_var.value().data() : x.var(normed_dims, /*unbiased=*/false);
+
+        Operation operation = [&]() -> TorchList {
+            torch::Tensor std = torch::sqrt(var + eps);
+            torch::Tensor output = (x - mean.reshape(keepdims_shape)) / std.reshape(keepdims_shape);
+            if (gamma.defined()) output = output * gamma.reshape(keepdims_shape);
+            if (beta.defined()) output = output + beta.reshape(keepdims_shape);
+            return { output };
+        };
+
+        NodeFactory node_factory = [&](const TensorList& outputs) -> autograd::NodePtr {
+            return std::make_shared<autograd::BatchNormBackward0>(x, gamma, beta, mean, var, training, track_running_stats, eps);
+        };
+
+        Tensor output = apply_operation(inputs, operation, node_factory)[0];
+
+        if (running_mean.has_value() && training) {
+            torch::Tensor stats = running_mean.value().data();
+            stats.copy_(mean * momentum + stats * (1.0 - momentum));
+        }
+        if (running_var.has_value() && training) {
+            torch::Tensor stats = running_var.value().data();
+            stats.copy_(var * (n / (n - 1.0)) * momentum + stats * (1.0 - momentum));
+        }
+
+        return output;
     }
 
 

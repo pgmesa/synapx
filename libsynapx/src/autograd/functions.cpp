@@ -728,5 +728,106 @@ namespace synapx::autograd
     }
 
     
+    // Layers
+    Conv2dBackward0::Conv2dBackward0(const torch::Tensor& windows, const torch::Tensor& weight, bool has_bias, torch::IntArrayRef input_shape,
+                                     torch::IntArrayRef stride, torch::IntArrayRef padding, torch::IntArrayRef dilation)
+        : windows(windows), weight(weight), has_bias(has_bias), input_shape(input_shape.vec()),
+          stride(stride.vec()), padding(padding.vec()), dilation(dilation.vec()) {}
+
+    std::string Conv2dBackward0::name() const {
+        return "Conv2dBackward0";
+    }
+
+    TensorList Conv2dBackward0::apply(const TensorList& inputs) {
+        const torch::Tensor grad = inputs[0].data();
+        IntArray kernel_size {weight.size(2), weight.size(3)};
+
+        // (N, lH, lW, C_in, kH, kW) -> (lH, lW, N, C_in, kH, kW)
+        torch::Tensor input_grad_windows = torch::tensordot(grad, weight, {1}, {0}).movedim(0, 2);
+        Tensor input_grad(place_windows(input_grad_windows, input_shape, kernel_size, stride, padding, dilation));
+
+        Tensor weight_grad(torch::tensordot(grad, windows, {2, 3, 0}, {0, 1, 2}));
+
+        if (!has_bias)
+            return {input_grad, weight_grad};
+
+        Tensor bias_grad(grad.sum({0, 2, 3}));
+        return {input_grad, weight_grad, bias_grad};
+    }
+
+    MaxPool2dBackward0::MaxPool2dBackward0(const torch::Tensor& windows, torch::IntArrayRef input_shape, torch::IntArrayRef kernel_size,
+                                           torch::IntArrayRef stride, torch::IntArrayRef padding, torch::IntArrayRef dilation)
+        : windows(windows), input_shape(input_shape.vec()), kernel_size(kernel_size.vec()),
+          stride(stride.vec()), padding(padding.vec()), dilation(dilation.vec()) {}
+
+    std::string MaxPool2dBackward0::name() const {
+        return "MaxPool2dBackward0";
+    }
+
+    TensorList MaxPool2dBackward0::apply(const TensorList& inputs) {
+        // (N, C, lH, lW) -> (lH, lW, N, C)
+        torch::Tensor grad = inputs[0].data().permute({2, 3, 0, 1});
+
+        torch::Tensor flat_windows = windows.flatten(4);
+        torch::Tensor mask = torch::zeros_like(flat_windows);
+        mask.scatter_(-1, flat_windows.argmax(-1, /*keepdim=*/true), 1.0);
+
+        torch::Tensor windows_grad = (grad.unsqueeze(-1) * mask).reshape(windows.sizes());
+
+        return {Tensor(place_windows(windows_grad, input_shape, kernel_size, stride, padding, dilation))};
+    }
+
+    BatchNormBackward0::BatchNormBackward0(const torch::Tensor& x, const torch::Tensor& gamma, const torch::Tensor& beta,
+                                           const torch::Tensor& mean, const torch::Tensor& variance,
+                                           bool training, bool track_running_stats, double eps)
+        : x(x), gamma(gamma), beta(beta), mean(mean), variance(variance),
+          training(training), track_running_stats(track_running_stats), eps(eps) {}
+
+    std::string BatchNormBackward0::name() const {
+        return "BatchNormBackward0";
+    }
+
+    // From synapgrad's cpu_ops.batch_norm_backward: the chain rule through the
+    // mean and the variance of the batch, written out
+    TensorList BatchNormBackward0::apply(const TensorList& inputs) {
+        const torch::Tensor grad = inputs[0].data();
+
+        IntArray normed_dims;
+        IntArray keepdims_shape(x.dim(), 1);
+        keepdims_shape[1] = x.size(1);
+        for (int64_t d = 0; d < x.dim(); ++d) {
+            if (d != 1) normed_dims.push_back(d);
+        }
+        double n = static_cast<double>(x.numel()) / x.size(1);
+
+        torch::Tensor mean_k = mean.reshape(keepdims_shape);
+        torch::Tensor variance_k = variance.reshape(keepdims_shape);
+        torch::Tensor centered = x - mean_k;
+        torch::Tensor x_norm = centered / torch::sqrt(variance_k + eps);
+
+        TensorList grads(1);
+        torch::Tensor dL_dxi_hat = grad;
+        if (gamma.defined()) {
+            dL_dxi_hat = grad * gamma.reshape(keepdims_shape);
+            grads.emplace_back((grad * x_norm).sum(normed_dims));
+        }
+        if (beta.defined()) {
+            grads.emplace_back(grad.sum(normed_dims));
+        }
+
+        torch::Tensor std_k = torch::sqrt(variance_k + eps);
+        torch::Tensor dL_dxi = dL_dxi_hat / std_k;
+        if (training || !track_running_stats) {
+            torch::Tensor dL_dvar = (dL_dxi_hat * centered).mul(-0.5).sum(normed_dims, /*keepdim=*/true) * torch::pow(variance_k + eps, -1.5);
+            torch::Tensor dL_davg = (dL_dxi_hat / std_k).neg().sum(normed_dims, /*keepdim=*/true)
+                                    + (dL_dvar * centered.mul(-2.0).sum(normed_dims, /*keepdim=*/true)).div(n);
+            dL_dxi = dL_dxi + (dL_dvar * centered).mul(2.0).div(n) + dL_davg.div(n);
+        }
+        grads[0] = Tensor(dL_dxi);
+
+        return grads;
+    }
+
+
 } // namespace synapx::autograd::functions
 

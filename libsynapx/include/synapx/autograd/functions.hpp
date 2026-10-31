@@ -460,6 +460,60 @@ namespace synapx::autograd {
     };
 
 
+    // Layers
+    class Conv2dBackward0: public Node {
+    public:
+        Conv2dBackward0(const torch::Tensor& windows, const torch::Tensor& weight, bool has_bias, torch::IntArrayRef input_shape,
+                        torch::IntArrayRef stride, torch::IntArrayRef padding, torch::IntArrayRef dilation);
+        std::string name() const override;
+        TensorList apply(const TensorList& inputs) override;
+
+    private:
+        torch::Tensor windows;
+        torch::Tensor weight;
+        bool has_bias;
+        IntArray input_shape;
+        IntArray stride;
+        IntArray padding;
+        IntArray dilation;
+    };
+
+    class MaxPool2dBackward0: public Node {
+    public:
+        MaxPool2dBackward0(const torch::Tensor& windows, torch::IntArrayRef input_shape, torch::IntArrayRef kernel_size,
+                           torch::IntArrayRef stride, torch::IntArrayRef padding, torch::IntArrayRef dilation);
+        std::string name() const override;
+        TensorList apply(const TensorList& inputs) override;
+
+    private:
+        torch::Tensor windows;
+        IntArray input_shape;
+        IntArray kernel_size;
+        IntArray stride;
+        IntArray padding;
+        IntArray dilation;
+    };
+
+    class BatchNormBackward0: public Node {
+    public:
+        BatchNormBackward0(const torch::Tensor& x, const torch::Tensor& gamma, const torch::Tensor& beta,
+                           const torch::Tensor& mean, const torch::Tensor& variance,
+                           bool training, bool track_running_stats, double eps);
+        std::string name() const override;
+        TensorList apply(const TensorList& inputs) override;
+
+    private:
+        torch::Tensor x;
+        torch::Tensor gamma;
+        torch::Tensor beta;
+        torch::Tensor mean;
+        torch::Tensor variance;
+        bool training;
+        bool track_running_stats;
+        double eps;
+    };
+
+
 } // namespace synapx::autograd
 
 #endif

@@ -13,6 +13,19 @@ SELU_ALPHA = 1.6732632423543772848170429916717
 SELU_SCALE = 1.0507009873554804934193349852946
 
 
+def _pair(value) -> list[int]:
+    return [value, value] if isinstance(value, int) else list(value)
+
+
+def conv2d(x: Tensor, weight: Tensor, bias: Tensor = None, stride=1, padding=0, dilation=1) -> Tensor:
+    return _functional._conv2d(x, weight, bias, _pair(stride), _pair(padding), _pair(dilation))
+
+
+def max_pool2d(x: Tensor, kernel_size, stride=None, padding=0, dilation=1) -> Tensor:
+    stride = kernel_size if stride is None else stride
+    return _functional._max_pool2d(x, _pair(kernel_size), _pair(stride), _pair(padding), _pair(dilation))
+
+
 def _reduce(loss: Tensor, reduction: str) -> Tensor:
     if reduction == 'mean':
         return loss.mean()

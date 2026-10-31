@@ -24,6 +24,16 @@ namespace synapx::autograd {
      */
     torch::Tensor unravel_index(const torch::Tensor& indices, at::IntArrayRef shape);
 
+    // Sliding windows of (N, C, H, W) as a view of the padded input, with shape
+    // (lH, lW, N, C, kH, kW). From synapgrad's conv_tools.extract_windows.
+    torch::Tensor extract_windows(const torch::Tensor& a, torch::IntArrayRef kernel_size, torch::IntArrayRef stride,
+                                  torch::IntArrayRef padding, torch::IntArrayRef dilation, double pad_value = 0.0);
+
+    // Adds windows of shape (lH, lW, N, C, kH, kW) back into a (N, C, H, W) tensor,
+    // one window at a time. From synapgrad's conv_tools.place_windows.
+    torch::Tensor place_windows(const torch::Tensor& windows, torch::IntArrayRef out_shape, torch::IntArrayRef kernel_size,
+                                torch::IntArrayRef stride, torch::IntArrayRef padding, torch::IntArrayRef dilation);
+
 }
 
 #endif

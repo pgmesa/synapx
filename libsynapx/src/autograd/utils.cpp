@@ -90,8 +90,41 @@ namespace synapx::autograd {
         // torch.div(indices[..., None], coefs, rounding_mode='trunc') % shape[:-1]
         torch::Tensor shape_no_last = shape_tensor.slice(0, 0, -1);
         torch::Tensor result = torch::div(indices_expanded, coefs, /*rounding_mode=*/"trunc") % shape_no_last;
-        
+
         return result;
+    }
+
+    torch::Tensor extract_windows(const torch::Tensor& a, torch::IntArrayRef kernel_size, torch::IntArrayRef stride,
+                                  torch::IntArrayRef padding, torch::IntArrayRef dilation, double pad_value) {
+        torch::Tensor padded = torch::constant_pad_nd(a, {padding[1], padding[1], padding[0], padding[0]}, pad_value);
+
+        int64_t span_h = (kernel_size[0] - 1) * dilation[0] + 1;
+        int64_t span_w = (kernel_size[1] - 1) * dilation[1] + 1;
+
+        // (N, C, lH, lW, span_h, span_w)
+        torch::Tensor windows = padded.unfold(2, span_h, stride[0]).unfold(3, span_w, stride[1]);
+        windows = windows.slice(4, 0, span_h, dilation[0]).slice(5, 0, span_w, dilation[1]);
+
+        return windows.permute({2, 3, 0, 1, 4, 5});
+    }
+
+    torch::Tensor place_windows(const torch::Tensor& windows, torch::IntArrayRef out_shape, torch::IntArrayRef kernel_size,
+                                torch::IntArrayRef stride, torch::IntArrayRef padding, torch::IntArrayRef dilation) {
+        int64_t H = out_shape[2], W = out_shape[3];
+        torch::Tensor output = torch::zeros(
+            {out_shape[0], out_shape[1], H + 2 * padding[0], W + 2 * padding[1]}, windows.options());
+
+        for (int64_t i = 0; i < windows.size(0); ++i) {
+            int64_t top = i * stride[0];
+            torch::Tensor row = output.slice(2, top, top + kernel_size[0] * dilation[0], dilation[0]);
+
+            for (int64_t j = 0; j < windows.size(1); ++j) {
+                int64_t left = j * stride[1];
+                row.slice(3, left, left + kernel_size[1] * dilation[1], dilation[1]).add_(windows.select(0, i).select(0, j));
+            }
+        }
+
+        return output.slice(2, padding[0], H + padding[0]).slice(3, padding[1], W + padding[1]);
     }
 
 }

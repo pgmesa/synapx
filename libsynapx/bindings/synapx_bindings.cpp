@@ -655,4 +655,17 @@ PYBIND11_MODULE(_C, c) {
     nn.def("linear", &synapx::linear, py::arg("inp"), py::arg("weight"), py::arg("bias") = py::none());
     nn.def("flatten", &synapx::flatten, py::arg("tensor"), py::arg("start_dim") = 0, py::arg("end_dim") = -1);
     nn.def("dropout", &synapx::dropout, py::arg("tensor"), py::arg("p"), py::arg("train"));
+
+    nn.def("_conv2d", [](const synapx::Tensor& input, const synapx::Tensor& weight, std::optional<synapx::Tensor> bias,
+                         std::vector<int64_t> stride, std::vector<int64_t> padding, std::vector<int64_t> dilation) {
+        return synapx::conv2d(input, weight, bias, stride, padding, dilation);
+    }, py::arg("input"), py::arg("weight"), py::arg("bias"), py::arg("stride"), py::arg("padding"), py::arg("dilation"));
+
+    nn.def("_max_pool2d", [](const synapx::Tensor& input, std::vector<int64_t> kernel_size, std::vector<int64_t> stride,
+                             std::vector<int64_t> padding, std::vector<int64_t> dilation) {
+        return synapx::max_pool2d(input, kernel_size, stride, padding, dilation);
+    }, py::arg("input"), py::arg("kernel_size"), py::arg("stride"), py::arg("padding"), py::arg("dilation"));
+
+    nn.def("batch_norm", &synapx::batch_norm, py::arg("input"), py::arg("weight"), py::arg("bias"),
+           py::arg("running_mean"), py::arg("running_var"), py::arg("training"), py::arg("momentum"), py::arg("eps"));
 }

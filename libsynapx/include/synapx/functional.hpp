@@ -98,6 +98,13 @@ namespace synapx {
     SYNAPX_API Tensor linear(const Tensor& inp, const Tensor& weight, std::optional<Tensor> bias);
     SYNAPX_API Tensor flatten(const Tensor& inp, int64_t start_dim = 0, int64_t end_dim = -1);
     SYNAPX_API Tensor dropout(const Tensor& t, double p, bool train);
+    SYNAPX_API Tensor conv2d(const Tensor& input, const Tensor& weight, std::optional<Tensor> bias,
+                             torch::IntArrayRef stride, torch::IntArrayRef padding, torch::IntArrayRef dilation);
+    SYNAPX_API Tensor max_pool2d(const Tensor& input, torch::IntArrayRef kernel_size, torch::IntArrayRef stride,
+                                 torch::IntArrayRef padding, torch::IntArrayRef dilation);
+    SYNAPX_API Tensor batch_norm(const Tensor& input, std::optional<Tensor> weight, std::optional<Tensor> bias,
+                                 std::optional<Tensor> running_mean, std::optional<Tensor> running_var,
+                                 bool training, double momentum, double eps);
 
 }
 
