@@ -86,3 +86,14 @@ def test_AdamW():
     opt_t = torch.optim.AdamW([param_t], **attrs)
     
     check_optimizer(opt, param, opt_t, param_t)
+
+def test_SGD_momentum_survives_zero_grad():
+    # zero_grad works in place, so the buffer must not alias the first gradient.
+    # Weight decay would hide it: it makes grad a new tensor.
+    param = synapx.ones((4,4), requires_grad=True)
+    opt = synapx.optim.SGD([param], lr=0.1, momentum=0.9)
+
+    param_t = torch.ones((4,4), requires_grad=True)
+    opt_t = torch.optim.SGD([param_t], lr=0.1, momentum=0.9)
+
+    check_optimizer(opt, param, opt_t, param_t)

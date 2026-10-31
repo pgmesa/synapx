@@ -76,7 +76,7 @@ class SGD(Optimizer):
                     if self.t > 1:
                         self.momentum_buffer[i] = self.momentum*self.momentum_buffer[i] + (1.0 - self.dampening)*grad
                     else:
-                        self.momentum_buffer.append(grad)
+                        self.momentum_buffer.append(grad.clone())
                 
                     # Nesterov
                     if self.nesterov:
