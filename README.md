@@ -114,7 +114,7 @@ Contains practical examples showcasing the library in action. You'll need additi
 pip install scikit-learn numpy matplotlib tqdm ipywidgets torchvision
 ```
 
-The examples include simple problems like make_moons and MNIST classification. You can easily switch between PyTorch and SynapX backends to compare performance and functionality.
+The examples include simple problems like make_moons and MNIST classification (an MLP and a CNN). You can easily switch between PyTorch and SynapX backends to compare performance and functionality.
 
 **Performance note**: Currently, there's still a significant performance gap between PyTorch and SynapX, even though both use the same underlying libtorch operations. This is an early version where I focused on getting everything working correctly - the optimization phase comes next, and there are many known bottlenecks and excessive memory consumption issues that can be addressed.
 
@@ -240,8 +240,7 @@ SynapX is compiled for specific combinations of Python and libtorch versions. Wi
 - **Improve autograd speed**: There are significant bottlenecks that can be optimized
 - **Add tensor hooks**: For inspecting or modifying the backward pass from Python. The `retain_grad()` function doesn't work yet because it should be implemented as a tensor hook
 - **Fix `__iter__` in Python tensor class**: Current implementation is not optimal, but works.
-- **Add remaining conv functionality**: 1D and 2D convolutions, maxpool, avgpool
-- **Add CNN MNIST example**
+- **Add remaining conv functionality**: 1D convolutions, avgpool. `Conv2d` and `MaxPool2d` use the sliding windows of [synapgrad](https://github.com/pgmesa/synapgrad) on purpose, to compare the two projects with the same algorithm; libtorch's own `conv2d` is much faster
 
 ### Future ideas (contributions welcome!):
 - **Visualize computation graphs** with graphviz (forward and backward)
