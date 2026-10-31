@@ -6,6 +6,12 @@ import synapx
 from utils import check_tensors
 
 
+def check_grads(grad, grad_t):
+    # A gradient sums many terms, so an element that almost cancels keeps the
+    # rounding error of the largest ones: compare against the tensor's scale
+    return check_tensors(grad, grad_t, atol=1e-5 * grad_t.abs().max().item())
+
+
 def copy_to_torch(param):
     return torch.nn.Parameter(param.torch().clone())
 
@@ -34,9 +40,9 @@ def test_conv2d(stride, padding, dilation, bias):
     (out_t * out_t).sum().backward()
 
     assert check_tensors(out, out_t)
-    assert check_tensors(inp.grad, inp_t.grad)
-    assert check_tensors(conv.weight.grad, conv_t.weight.grad)
-    if bias: assert check_tensors(conv.bias.grad, conv_t.bias.grad)
+    assert check_grads(inp.grad, inp_t.grad)
+    assert check_grads(conv.weight.grad, conv_t.weight.grad)
+    if bias: assert check_grads(conv.bias.grad, conv_t.bias.grad)
 
 
 def test_conv2d_padding_same():
@@ -63,7 +69,7 @@ def test_max_pool2d(kernel_size, stride, padding, dilation):
     (out_t * out_t).sum().backward()
 
     assert check_tensors(out, out_t)
-    assert check_tensors(inp.grad, inp_t.grad)
+    assert check_grads(inp.grad, inp_t.grad)
 
 
 @pytest.mark.parametrize("affine", [True, False])
@@ -82,14 +88,14 @@ def test_batch_norm2d(affine, track_running_stats):
         (out_t * out_t * out_t).sum().backward()
 
         assert check_tensors(out, out_t)
-        assert check_tensors(inp.grad, inp_t.grad)
+        assert check_grads(inp.grad, inp_t.grad)
 
     for _ in range(3):
         step(torch.randn(8, 3, 5, 5) * 2 + 1)
 
     if affine:
-        assert check_tensors(bn.weight.grad, bn_t.weight.grad)
-        assert check_tensors(bn.bias.grad, bn_t.bias.grad)
+        assert check_grads(bn.weight.grad, bn_t.weight.grad)
+        assert check_grads(bn.bias.grad, bn_t.bias.grad)
     if track_running_stats:
         assert check_tensors(bn.running_mean, bn_t.running_mean)
         assert check_tensors(bn.running_var, bn_t.running_var)
