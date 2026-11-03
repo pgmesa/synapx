@@ -22,7 +22,7 @@ jobs:
       fail-fast: false
       matrix:
         os: [windows-2022, ubuntu-22.04]
-        python-version: ["3.9", "3.10", "3.11", "3.12"]
+        python-version: ["3.11", "3.12", "3.13", "3.14"]
 
     steps:
       - name: Checkout Code
@@ -37,11 +37,17 @@ jobs:
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y cmake build-essential ninja-build
 
+      # uv instead of the pip that setup-python brings: pip older than 26.2.2
+      # still trusts the compromised emSign CAs (2026-10 incident)
+      - name: Setup uv
+        uses: astral-sh/setup-uv@v10.2.0
+
       - name: Install Python Dependencies
         shell: bash
         run: |
-          pip install --upgrade pip setuptools wheel twine build toml packaging \
-            "numpy<2.0.0" \
+          uv pip install --system setuptools wheel toml packaging \
+            "certifi>=2026.10.19" \
+            numpy \
             "pybind11>=2.6.0,<3.0.0" \
             "pybind11-stubgen>=2.0.0,<3.0.0" \
             "pytest>=8.0.0,<9.0.0"
@@ -49,7 +55,7 @@ jobs:
       - name: Install auditwheel for manylinux compliance
         if: runner.os == 'Linux'
         run: |
-          pip install auditwheel patchelf
+          uv pip install --system auditwheel patchelf
 
       - name: Install GCC 12 and G++ 12
         if: runner.os == 'Linux'
