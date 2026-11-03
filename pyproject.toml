@@ -7,7 +7,7 @@ name = "synapx"
 dynamic = ["version"]
 description = "A deep learning library powered by a C++ autograd engine, featuring a PyTorch-like API and cross-platform support."
 readme = "README.md"
-requires-python = ">=3.9, <3.13"
+requires-python = ">=3.11, <3.15"
 license = "MIT"
 urls = {Homepage = "https://github.com/pgmesa/synapx"}
 keywords = ["Autograd", "Tensor", "Machine Learning", "Deep Learning", "C++", "Python"]
@@ -15,11 +15,9 @@ authors = [
     {name = "Pablo García Mesa", email = "pgmesa.sm@gmail.com"}
 ]
 
+# One build per torch minor version in this range (scripts/build_wheel.py)
 dependencies = [
-    "torch>=2.4.0,<=2.7.0; python_version == '3.9'",
-    "torch>=2.4.0,<=2.7.0; python_version == '3.10'",
-    "torch>=2.4.0,<=2.7.0; python_version == '3.11'",
-    "torch>=2.4.0,<=2.7.0; python_version == '3.12'",
+    "torch>=2.11,<2.15",
 ]
 
 classifiers = [
@@ -34,10 +32,10 @@ classifiers = [
 
     "Programming Language :: C++",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
 
     "Topic :: Scientific/Engineering",
     "Topic :: Scientific/Engineering :: Mathematics",
@@ -80,12 +78,12 @@ default-groups = ["dev", "examples"]
 environments = ["sys_platform == 'win32'", "sys_platform == 'linux'"]
 
 [tool.uv.sources]
-torch = { index = "pytorch-cu128" }
-torchvision = { index = "pytorch-cu128" }
+torch = { index = "pytorch-cu130" }
+torchvision = { index = "pytorch-cu130" }
 
 [[tool.uv.index]]
-name = "pytorch-cu128"
-url = "https://download.pytorch.org/whl/cu128"
+name = "pytorch-cu130"
+url = "https://download.pytorch.org/whl/cu130"
 explicit = true
 
 [tool.setuptools]

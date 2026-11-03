@@ -19,11 +19,11 @@ from packaging.version import Version
 python_version = f"{sys.version_info.major}.{sys.version_info.minor}"
 
 
-def get_minor_versions_in_range(start: Version, end: Version) -> list[str]:
+def get_minor_versions_in_range(start: Version, end: Version, end_inclusive: bool) -> list[str]:
     versions = []
     major = start.major
     minor = start.minor
-    while (v := Version(f"{major}.{minor}.0")) <= end:
+    while (v := Version(f"{major}.{minor}")) < end or (end_inclusive and v == end):
         versions.append(str(v))
         minor += 1
     return versions
@@ -43,6 +43,7 @@ def read_torch_versions(toml_path) -> list[str]:
     for spec in specifiers:
         # Find lowest and highest bounds
         min_ver = max_ver = None
+        max_inclusive = True
         for s in spec:
             if s.operator in (">=", ">"):
                 ver = Version(s.version)
@@ -52,9 +53,10 @@ def read_torch_versions(toml_path) -> list[str]:
                 ver = Version(s.version)
                 if max_ver is None or ver < max_ver:
                     max_ver = ver
+                    max_inclusive = s.operator == "<="
 
         if min_ver and max_ver:
-            allowed.update(get_minor_versions_in_range(min_ver, max_ver))
+            allowed.update(get_minor_versions_in_range(min_ver, max_ver, max_inclusive))
 
     return sorted(allowed, key=Version)
 
@@ -78,7 +80,8 @@ def main():
     print(f"[%] Detected torch versions to build against: {torch_versions}")
 
     for i, v in enumerate(torch_versions):
-        cmd = [sys.executable, '-m', 'pip', 'install', f'torch=={v}', f'--index-url={index_url}']
+        # uv, not pip: pip older than 26.2.2 still trusts the compromised emSign CAs
+        cmd = ['uv', 'pip', 'install', '--python', sys.executable, f'torch=={v}.*', f'--index-url={index_url}']
         subprocess.run(cmd, cwd=project_path, check=True)
         
         if preset is None:
@@ -92,7 +95,7 @@ def main():
         subprocess.run([sys.executable, '-m', 'pytest', 'tests'], cwd=project_path, check=True)
     
     print(f"[%] Building wheel...")
-    subprocess.run([sys.executable, '-m', 'build'], cwd=project_path, check=True)
+    subprocess.run(['uv', 'build', '--wheel'], cwd=project_path, check=True)
     print("[OK] Wheel created successfully")
 
     if system == 'Linux':

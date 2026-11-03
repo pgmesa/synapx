@@ -106,7 +106,7 @@ This is the C++ library that powers everything. Here's where the critical compon
 ### synapx/
 Once the C++ code is compiled and installed, this directory contains the complete Python package with all components linked together: the Deep Learning library, tensor operations, and autograd engine.
 
-The package is compiled for each libtorch minor version it supports. A SynapX compiled with libtorch 2.3.X won't necessarily work with 2.4.X, and the same goes for different Python versions. The correct C++ library is loaded dynamically at runtime by checking your installed PyTorch version.
+The package is compiled for each libtorch minor version it supports. A SynapX compiled with libtorch 2.13.X won't necessarily work with 2.14.X, and the same goes for different Python versions. The correct C++ library is loaded dynamically at runtime by checking your installed PyTorch version.
 
 ### examples/
 Contains practical examples showcasing the library in action. You'll need additional dependencies for these (already included in the development environment, see [Building from Source](#building-from-source)):
@@ -228,10 +228,10 @@ SynapX is compiled for specific combinations of Python and libtorch versions. Wi
 
 | Python Version | PyTorch Versions | Status |
 |----------------|------------------|--------|
-| 3.9           | 2.4.X, 2.5.X, 2.6.X, 2.7.X | ✅ |
-| 3.10          | 2.4.X, 2.5.X, 2.6.X, 2.7.X | ✅ |
-| 3.11          | 2.4.X, 2.5.X, 2.6.X, 2.7.X | ✅ |
-| 3.12          | 2.4.X, 2.5.X, 2.6.X, 2.7.X | ✅ |
+| 3.11          | 2.11.X, 2.12.X, 2.13.X, 2.14.X | ✅ |
+| 3.12          | 2.11.X, 2.12.X, 2.13.X, 2.14.X | ✅ |
+| 3.13          | 2.11.X, 2.12.X, 2.13.X, 2.14.X | ✅ |
+| 3.14          | 2.11.X, 2.12.X, 2.13.X, 2.14.X | ✅ |
 
 
 ## Current Limitations and TODO
