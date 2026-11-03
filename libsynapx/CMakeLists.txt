@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.22 FATAL_ERROR)
 project(synapx VERSION 0.1.0 LANGUAGES CXX)
 
 # Set C++ standard
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
@@ -30,27 +30,15 @@ find_package(Python COMPONENTS Interpreter Development REQUIRED)
 message(STATUS "Python Interpreter: ${Python_EXECUTABLE}")
 message(STATUS "Python Version: ${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}")
 
-# Get the parent directory of Python_EXECUTABLE
-get_filename_component(PYTHON_EXECUTABLE_DIR ${Python_EXECUTABLE} DIRECTORY)
-message(STATUS "Python executable directory: ${PYTHON_EXECUTABLE_DIR}")
-
-if(UNIX AND NOT WIN32)
-    execute_process(
-        COMMAND "${Python_EXECUTABLE}" -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())"
-        OUTPUT_VARIABLE PYTHON_SITE_PACKAGES
-        OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-    message(STATUS "Python site-packages directory: ${PYTHON_SITE_PACKAGES}")
-    list(APPEND CMAKE_PREFIX_PATH "${PYTHON_SITE_PACKAGES}")
-else()
-    # Path for Windows or when using a venv
-    if(WIN32)
-        list(APPEND CMAKE_PREFIX_PATH "${PYTHON_EXECUTABLE_DIR}\\Lib\\site-packages")
-    else()
-        list(APPEND CMAKE_PREFIX_PATH 
-            "${PYTHON_EXECUTABLE_DIR}/lib/python${Python_VERSION_MAJOR}.${Python_VERSION_MINOR}/site-packages")
-    endif()
-endif()
+# Where torch is installed: the interpreter's site-packages. sysconfig works
+# for system Pythons and venvs on every OS (distutils is gone since 3.12)
+execute_process(
+    COMMAND "${Python_EXECUTABLE}" -c "import sysconfig; print(sysconfig.get_paths()['purelib'])"
+    OUTPUT_VARIABLE PYTHON_SITE_PACKAGES
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+message(STATUS "Python site-packages directory: ${PYTHON_SITE_PACKAGES}")
+list(APPEND CMAKE_PREFIX_PATH "${PYTHON_SITE_PACKAGES}")
 # =============================================================================
 
 # ============================== SynapX Library ===============================

@@ -26,7 +26,7 @@ pybind11_add_module(synapx_bindings synapx_bindings.cpp)
 add_library(synapx::bindings ALIAS synapx_bindings)
 
 # Set C++ standard to match PyTorch
-set_target_properties(synapx_bindings PROPERTIES CXX_STANDARD 17 CXX_STANDARD_REQUIRED ON)
+set_target_properties(synapx_bindings PROPERTIES CXX_STANDARD 20 CXX_STANDARD_REQUIRED ON)
 
 # Link against core library and PyTorch libraries
 target_link_libraries(synapx_bindings PRIVATE synapx::synapx)
